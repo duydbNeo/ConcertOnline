@@ -1,7 +1,7 @@
 {
  "agent": "Event Agent",
  "title": "NEON MIDNIGHT",
- "theme": "Đêm dân ca: hai ban nhạc ảo mang hai làn điệu dân ca Nam Bộ lên sân khấu neon, từ nhịp phi nước đại đến lời ru chậm, rồi hợp ca cùng khán giả.",
+ "theme": "Đêm nhạc điện tử: hai ban nhạc ảo mở màn bằng synth rock rồi đẩy lên nhịp dance, kết bằng cao trào cùng khán giả.",
  "cycle": {
   "lobby": 60,
   "show": 240
@@ -42,8 +42,13 @@
    "start": 20.0,
    "end": 95.0,
    "band": "solar",
-   "song": "ly_ngua_o",
-   "label": "Lý ngựa ô"
+   "song": "trk_blacksheep",
+   "label": "Black Sheep",
+   "track": {
+    "src": "/audio/blacksheep.mp3",
+    "offset": 0
+   },
+   "grid": 0.5
   },
   {
    "id": "mc1",
@@ -58,8 +63,13 @@
    "start": 107.0,
    "end": 177.0,
    "band": "luna",
-   "song": "ly_cay_bong",
-   "label": "Lý cây bông"
+   "song": "trk_mister_blues",
+   "label": "Mister Blues",
+   "track": {
+    "src": "/audio/mister_blues.mp3",
+    "offset": 0
+   },
+   "grid": 0.205
   },
   {
    "id": "mc2",
@@ -74,8 +84,13 @@
    "start": 189.0,
    "end": 224.0,
    "band": "both",
-   "song": "ly_ngua_o_reprise",
-   "label": "Hợp ca Lý ngựa ô"
+   "song": "trk_mister_blues_125",
+   "label": "Mister Blues, cao trào",
+   "track": {
+    "src": "/audio/mister_blues.mp3",
+    "offset": 125
+   },
+   "grid": 0.005
   },
   {
    "id": "outro",
@@ -138,7 +153,7 @@
    "cheer": 1.0
   },
   {
-   "t": 32.0,
+   "t": 32.5,
    "pal": "sunset",
    "light": "spot",
    "led": "rings",
@@ -154,7 +169,7 @@
    ]
   },
   {
-   "t": 46.0,
+   "t": 47.5,
    "pal": "sunset",
    "light": "sweep",
    "led": "grid",
@@ -171,7 +186,7 @@
    ]
   },
   {
-   "t": 58.0,
+   "t": 56.5,
    "pal": "sunset",
    "light": "fan",
    "led": "bars",
@@ -191,7 +206,7 @@
    "cheer": 1.0
   },
   {
-   "t": 74.0,
+   "t": 74.5,
    "pal": "sunset",
    "light": "chase",
    "led": "sunburst",
@@ -211,7 +226,7 @@
    "cheer": 1.0
   },
   {
-   "t": 88.0,
+   "t": 86.5,
    "pal": "sunset",
    "light": "converge",
    "led": "bars",
@@ -263,7 +278,7 @@
    "cheer": 1.0
   },
   {
-   "t": 117.0,
+   "t": 116.8,
    "pal": "bloom",
    "light": "spot",
    "led": "rings",
@@ -279,7 +294,7 @@
    ]
   },
   {
-   "t": 132.0,
+   "t": 132.16,
    "pal": "bloom",
    "light": "sweep",
    "led": "grid",
@@ -296,7 +311,7 @@
    ]
   },
   {
-   "t": 142.0,
+   "t": 141.76,
    "pal": "bloom",
    "light": "fan",
    "led": "bars",
@@ -316,7 +331,7 @@
    "cheer": 1.0
   },
   {
-   "t": 157.0,
+   "t": 157.12,
    "pal": "bloom",
    "light": "chase",
    "led": "sunburst",
@@ -336,7 +351,7 @@
    "cheer": 1.0
   },
   {
-   "t": 169.5,
+   "t": 170.56,
    "pal": "bloom",
    "light": "converge",
    "led": "bars",
@@ -390,7 +405,7 @@
    "cheer": 1.0
   },
   {
-   "t": 195.0,
+   "t": 194.76,
    "pal": "gold",
    "light": "spot",
    "led": "rings",
@@ -406,7 +421,7 @@
    ]
   },
   {
-   "t": 201.0,
+   "t": 200.53,
    "pal": "gold",
    "light": "sweep",
    "led": "grid",
@@ -423,7 +438,7 @@
    ]
   },
   {
-   "t": 207.0,
+   "t": 206.28,
    "pal": "gold",
    "light": "fan",
    "led": "bars",
@@ -443,7 +458,7 @@
    "cheer": 1.0
   },
   {
-   "t": 215.0,
+   "t": 213.97,
    "pal": "gold",
    "light": "chase",
    "led": "sunburst",
@@ -463,7 +478,7 @@
    "cheer": 1.0
   },
   {
-   "t": 221.0,
+   "t": 219.72,
    "pal": "gold",
    "light": "converge",
    "led": "bars",
@@ -612,461 +627,120 @@
    "arp": "x.x.x.x.x.x.x.x.",
    "hook": []
   },
-  "ly_ngua_o": {
-   "title": "Lý ngựa ô",
-   "bpm": 120,
-   "root": 55,
-   "voice": "boy",
+  "trk_blacksheep": {
+   "title": "Black Sheep",
+   "bpm": 80,
+   "root": 50,
+   "voice": "none",
    "prog": [
     {
      "r": 0,
-     "q": "M"
-    },
-    {
-     "r": -3,
      "q": "m"
     },
-    {
-     "r": 5,
-     "q": "M"
-    },
-    {
-     "r": -5,
-     "q": "M"
-    }
-   ],
-   "drums": {
-    "kick": "x...x...x...x...",
-    "snare": "....x.......x...",
-    "hat": "x.x.x.x.x.x.x.x.",
-    "clap": "....x.......x..."
-   },
-   "bass": "x..xx..xx..xx..x",
-   "arp": "x.xxx.xxx.xxx.xx",
-   "hook": [
-    [
-     [
-      7,
-      0,
-      2
-     ],
-     [
-      7,
-      2,
-      2
-     ],
-     [
-      9,
-      4,
-      2
-     ],
-     [
-      7,
-      6,
-      2
-     ],
-     [
-      4,
-      8,
-      4
-     ],
-     [
-      0,
-      12,
-      4
-     ]
-    ],
-    [
-     [
-      4,
-      0,
-      2
-     ],
-     [
-      4,
-      2,
-      2
-     ],
-     [
-      7,
-      4,
-      2
-     ],
-     [
-      4,
-      6,
-      2
-     ],
-     [
-      2,
-      8,
-      4
-     ],
-     [
-      0,
-      12,
-      4
-     ]
-    ],
-    [
-     [
-      7,
-      0,
-      2
-     ],
-     [
-      9,
-      2,
-      2
-     ],
-     [
-      12,
-      4,
-      4
-     ],
-     [
-      9,
-      8,
-      2
-     ],
-     [
-      7,
-      10,
-      2
-     ],
-     [
-      4,
-      12,
-      4
-     ]
-    ],
-    [
-     [
-      2,
-      0,
-      2
-     ],
-     [
-      4,
-      2,
-      2
-     ],
-     [
-      7,
-      4,
-      2
-     ],
-     [
-      4,
-      6,
-      2
-     ],
-     [
-      0,
-      8,
-      8
-     ]
-    ]
-   ],
-   "legal": {
-    "kind": "dân ca Nam Bộ",
-    "melody": "dân gian, không rõ tác giả",
-    "arrangement": "phối synth gốc của dự án",
-    "note": "Giai điệu là bản rút gọn theo âm hưởng, cần người am hiểu dân ca duyệt lại."
-   }
-  },
-  "ly_cay_bong": {
-   "title": "Lý cây bông",
-   "bpm": 96,
-   "root": 52,
-   "voice": "girl",
-   "prog": [
     {
      "r": 0,
-     "q": "M"
-    },
-    {
-     "r": -3,
      "q": "m"
     },
     {
-     "r": 5,
-     "q": "M"
+     "r": 0,
+     "q": "m"
     },
     {
-     "r": -5,
-     "q": "M"
+     "r": 0,
+     "q": "m"
     }
    ],
    "drums": {
-    "kick": "x.......x.......",
-    "snare": "....x.......x...",
-    "hat": "x.x.x.x.x.x.x.x.",
+    "kick": "................",
+    "snare": "................",
+    "hat": "................",
     "clap": "................"
    },
-   "bass": "x.......x...x...",
-   "arp": "x.x.x.x.x.x.x.x.",
-   "hook": [
-    [
-     [
-      4,
-      0,
-      4
-     ],
-     [
-      7,
-      4,
-      4
-     ],
-     [
-      9,
-      8,
-      6
-     ],
-     [
-      7,
-      14,
-      2
-     ]
-    ],
-    [
-     [
-      4,
-      0,
-      4
-     ],
-     [
-      2,
-      4,
-      4
-     ],
-     [
-      0,
-      8,
-      8
-     ]
-    ],
-    [
-     [
-      4,
-      0,
-      4
-     ],
-     [
-      7,
-      4,
-      2
-     ],
-     [
-      9,
-      6,
-      2
-     ],
-     [
-      12,
-      8,
-      6
-     ],
-     [
-      9,
-      14,
-      2
-     ]
-    ],
-    [
-     [
-      7,
-      0,
-      4
-     ],
-     [
-      4,
-      4,
-      4
-     ],
-     [
-      2,
-      8,
-      2
-     ],
-     [
-      0,
-      10,
-      6
-     ]
-    ]
-   ],
-   "legal": {
-    "kind": "dân ca Nam Bộ",
-    "melody": "dân gian, không rõ tác giả",
-    "arrangement": "phối synth gốc của dự án",
-    "note": "Giai điệu là bản rút gọn theo âm hưởng, cần người am hiểu dân ca duyệt lại."
-   }
+   "bass": "................",
+   "arp": "................",
+   "hook": []
   },
-  "ly_ngua_o_reprise": {
-   "title": "Lý ngựa ô",
-   "bpm": 120,
-   "root": 55,
-   "voice": "duet",
+  "trk_mister_blues": {
+   "title": "Mister Blues",
+   "bpm": 125,
+   "root": 50,
+   "voice": "none",
    "prog": [
     {
      "r": 0,
-     "q": "M"
-    },
-    {
-     "r": -3,
      "q": "m"
     },
     {
-     "r": 5,
-     "q": "M"
+     "r": 0,
+     "q": "m"
     },
     {
-     "r": -5,
-     "q": "M"
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": 0,
+     "q": "m"
     }
    ],
    "drums": {
-    "kick": "x...x...x...x...",
-    "snare": "....x.......x...",
-    "hat": "x.x.x.x.x.x.x.x.",
-    "clap": "....x.......x..."
+    "kick": "................",
+    "snare": "................",
+    "hat": "................",
+    "clap": "................"
    },
-   "bass": "x..xx..xx..xx..x",
-   "arp": "x.xxx.xxx.xxx.xx",
-   "hook": [
-    [
-     [
-      7,
-      0,
-      2
-     ],
-     [
-      7,
-      2,
-      2
-     ],
-     [
-      9,
-      4,
-      2
-     ],
-     [
-      7,
-      6,
-      2
-     ],
-     [
-      4,
-      8,
-      4
-     ],
-     [
-      0,
-      12,
-      4
-     ]
-    ],
-    [
-     [
-      4,
-      0,
-      2
-     ],
-     [
-      4,
-      2,
-      2
-     ],
-     [
-      7,
-      4,
-      2
-     ],
-     [
-      4,
-      6,
-      2
-     ],
-     [
-      2,
-      8,
-      4
-     ],
-     [
-      0,
-      12,
-      4
-     ]
-    ],
-    [
-     [
-      7,
-      0,
-      2
-     ],
-     [
-      9,
-      2,
-      2
-     ],
-     [
-      12,
-      4,
-      4
-     ],
-     [
-      9,
-      8,
-      2
-     ],
-     [
-      7,
-      10,
-      2
-     ],
-     [
-      4,
-      12,
-      4
-     ]
-    ],
-    [
-     [
-      2,
-      0,
-      2
-     ],
-     [
-      4,
-      2,
-      2
-     ],
-     [
-      7,
-      4,
-      2
-     ],
-     [
-      4,
-      6,
-      2
-     ],
-     [
-      0,
-      8,
-      8
-     ]
-    ]
+   "bass": "................",
+   "arp": "................",
+   "hook": []
+  },
+  "trk_mister_blues_125": {
+   "title": "Mister Blues",
+   "bpm": 125,
+   "root": 50,
+   "voice": "none",
+   "prog": [
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": 0,
+     "q": "m"
+    }
    ],
-   "legal": {
-    "kind": "dân ca Nam Bộ",
-    "melody": "dân gian, không rõ tác giả",
-    "arrangement": "phối synth gốc của dự án",
-    "note": "Giai điệu là bản rút gọn theo âm hưởng, cần người am hiểu dân ca duyệt lại."
-   }
+   "drums": {
+    "kick": "................",
+    "snare": "................",
+    "hat": "................",
+    "clap": "................"
+   },
+   "bass": "................",
+   "arp": "................",
+   "hook": []
   }
  },
+ "credits": [
+  {
+   "title": "Black Sheep",
+   "artist": "iamoneabe",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/black-sheep"
+  },
+  {
+   "title": "Mister Blues",
+   "artist": "iamoneabe",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/mister-blues"
+  }
+ ],
  "vocabulary": {
   "light": [
    "dim",

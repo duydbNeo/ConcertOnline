@@ -131,7 +131,8 @@
     `<div class="band"><h4>${b.name}<span class="sw"><i style="background:${b.palette.main}"></i><i style="background:${b.palette.accent}"></i></span></h4>
      <p>${b.tagline}</p><p style="margin:4px 0 8px">${b.genre}, ${b.bpm} BPM</p>` +
     b.members.map(m => `<div class="mem"><b>${m.stage}</b><span>${ROLE[m.role] || m.role}</span><em></em><em>${m.trait}</em></div>`).join('') + '</div>').join('') +
-    `<h3>Tủ đồ</h3><p>${WARDROBE.brief}</p><p style="margin-top:6px">${WARDROBE.tops.length} kiểu áo, ${WARDROBE.topColors.length} màu áo, ${WARDROBE.hairStyles.length} kiểu tóc, ${WARDROBE.headAcc.length - 1} phụ kiện đầu, ${WARDROBE.backAcc.length - 1} phụ kiện lưng, ${WARDROBE.stickColors.length} màu gậy sáng, ${WARDROBE.skins.length} màu da.</p><h3>Khán giả</h3><p>${BANDS.audience.virtual}</p><p style="margin-top:6px">${BANDS.audience.real}</p><h3>Lưu ý tên gọi</h3><p>${BANDS.namingNotes}</p>`;
+    `<h3>Tủ đồ</h3><p>${WARDROBE.brief}</p><p style="margin-top:6px">${WARDROBE.tops.length} kiểu áo, ${WARDROBE.topColors.length} màu áo, ${WARDROBE.hairStyles.length} kiểu tóc, ${WARDROBE.headAcc.length - 1} phụ kiện đầu, ${WARDROBE.backAcc.length - 1} phụ kiện lưng, ${WARDROBE.stickColors.length} màu gậy sáng, ${WARDROBE.skins.length} màu da.</p><h3>Khán giả</h3><p>${BANDS.audience.virtual}</p><p style="margin-top:6px">${BANDS.audience.real}</p><h3>Lưu ý tên gọi</h3><p>${BANDS.namingNotes}</p>`
+    + (SHOW.credits && SHOW.credits.length ? '<h3>Nhạc</h3>' + SHOW.credits.map(c => `<p>${c.title}, ${c.artist}, giấy phép ${c.license}. <a href="${c.source}" target="_blank" rel="noopener" style="color:inherit">Nguồn</a></p>`).join('') : '');
 
   const SEGCOL = { none: '#8a5cff', solar: '#ff8a1f', luna: '#ff4fa3', both: '#19e3ff' };
   $('p-script').innerHTML = `<h3>Chủ đề</h3><p>${SHOW.theme}</p><h3>Dòng thời gian (${SHOW_LEN} giây)</h3>
@@ -180,7 +181,7 @@
     if (sorted && vocab) R.push(['ok', `${SHOW.cues.length} cue đúng thứ tự, mọi giá trị đèn, LED, camera, màu, lớp nhạc đều hợp lệ.`]);
     // cue có rơi đúng đầu ô nhịp không
     let worst = 0, off = 0, n = 0;
-    SHOW.cues.forEach(c => { const sg = segAt(c.t); if (!sg || !SHOW.songs[sg.song]) return; const bar = 240 / SHOW.songs[sg.song].bpm; const d = (c.t - sg.start) % bar; const o = Math.min(d, bar - d); worst = Math.max(worst, o); off += o; n++; });
+    SHOW.cues.forEach(c => { const sg = segAt(c.t); if (!sg || !SHOW.songs[sg.song]) return; const bar = 240 / SHOW.songs[sg.song].bpm; const d = (c.t - sg.start - (sg.grid || 0) + 1000 * bar) % bar; const o = Math.min(d, bar - d); worst = Math.max(worst, o); off += o; n++; });
     if (n) R.push([worst > 1.2 ? 'warn' : 'ok', `Cue lệch đầu ô nhịp trung bình ${(off / n).toFixed(2)}s, tối đa ${worst.toFixed(2)}s. Đèn và nhạc đổi đúng cue nhưng có thể chưa khớp ô nhịp.`]);
     return R;
   }

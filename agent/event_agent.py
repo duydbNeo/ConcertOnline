@@ -26,10 +26,10 @@ ARC = [
 
 def bar_sec(song): return 240.0 / song['bpm']
 def snap(t, seg, song):
-    b = bar_sec(song); k = round((t - seg['start']) / b)
-    return round(seg['start'] + k * b, 2)
+    b = bar_sec(song); g = seg.get('grid', 0.0); k = round((t - seg['start'] - g) / b)
+    return round(seg['start'] + g + max(0, k) * b, 2)
 
-cues, segs, lib = [], [], {}
+cues, segs, lib, credits = [], [], {}, {}
 for k in ('overture', 'interlude', 'outro'): lib[k] = base['songs'][k]
 t = 0.0
 def add_seg(sid, song, band, label, length):
@@ -45,9 +45,21 @@ cues += [
 band_names = {b['id']: b['name'] for b in json.load(open(os.path.join(D, '..', 'src', 'bands.json'), encoding='utf-8'))['bands']}
 n_set = len(brief['setlist'])
 for i, it in enumerate(brief['setlist']):
-    sdef = copy.deepcopy(songs[it['song']])
-    key = it['song'] if it['id'] != 'finale' else it['song'] + '_reprise'
-    if it.get('voice'): sdef['voice'] = it['voice']
+    if 'track' in it:
+        tr = songs['_tracks'][it['track']]
+        if it['offset'] + it['len'] > tr['dur']: sys.exit('LỖI: đoạn %s vượt quá độ dài bài %s' % (it['id'], it['track']))
+        beat = 60.0 / tr['bpm']
+        sdef = {'title': tr['title'], 'bpm': tr['bpm'], 'root': 50, 'voice': 'none',
+                'prog': [{'r': 0, 'q': 'm'}] * 4, 'drums': {k: '.' * 16 for k in ('kick', 'snare', 'hat', 'clap')},
+                'bass': '.' * 16, 'arp': '.' * 16, 'hook': []}
+        key = 'trk_' + it['track'] + ('_%d' % it['offset'] if it['offset'] else '')
+        extra = {'track': {'src': tr['src'], 'offset': it['offset']}, 'grid': round(((tr['firstBeat'] - it['offset']) % beat), 3)}
+        credits[it['track']] = {k: tr[k] for k in ('title', 'artist', 'license', 'source')}
+    else:
+        sdef = copy.deepcopy(songs[it['song']])
+        key = it['song'] if it['id'] != 'finale' else it['song'] + '_reprise'
+        if it.get('voice'): sdef['voice'] = it['voice']
+        extra = {}
     lib[key] = sdef
     if i > 0 and it['id'] != 'finale' or (i > 0 and it['id'] == 'finale'):
         mid = 'mc%d' % i
@@ -55,6 +67,7 @@ for i, it in enumerate(brief['setlist']):
         ms = add_seg(mid, 'interlude', 'none', mlabel, brief['interlude'])
         cues.append({'t': ms['start'], 'pal': 'deep', 'light': 'dim', 'led': 'wave', 'text': [x for x in mlabel.upper().split(', ')], 'cam': 'wide', 'energy': 0.45, 'layers': ['pad', 'clap'], 'crowd': 'wave', 'cheer': 0.8})
     seg = add_seg(it['id'], key, it['band'], it['label'], it['len'])
+    seg.update(extra)
     name = ' x '.join(band_names.values()) if it['band'] == 'both' else band_names[it['band']]
     for j, (f, light, led, cam, en, layers, fx, cheer) in enumerate(ARC):
         tt = snap(seg['start'] + f * it['len'], seg, sdef)
@@ -97,9 +110,9 @@ if errs: sys.exit('LỖI:\n' + '\n'.join(errs))
 
 show = {k: base[k] for k in ('palettes', 'vocabulary')}
 show.update({'agent': 'Event Agent', 'title': brief['title'], 'theme': brief['theme'], 'cycle': brief['cycle'],
-             'segments': segs, 'cues': cues, 'songs': lib})
+             'segments': segs, 'cues': cues, 'songs': lib, 'credits': list(credits.values())})
 # giữ thứ tự khóa như bản cũ
-order = ['agent', 'title', 'theme', 'cycle', 'palettes', 'segments', 'cues', 'songs', 'vocabulary']
+order = ['agent', 'title', 'theme', 'cycle', 'palettes', 'segments', 'cues', 'songs', 'credits', 'vocabulary']
 show = {k: show[k] for k in order}
 json.dump(show, open(out_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 

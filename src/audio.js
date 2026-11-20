@@ -1,7 +1,8 @@
-/* ===== audio: nhạc tổng hợp gốc bằng WebAudio (không dùng bản ghi nào, không dính bản quyền) ===== */
+/* ===== audio: nhạc tổng hợp gốc bằng WebAudio, cộng bản nhạc CC0 phát từ tệp khi lịch diễn có track ===== */
 const Aud = (() => {
   let ctx = null, master, comp, analyser, noiseBuf, murmurGain;
   let on = false, timer = null, nextT = 0, DRY = null;
+  const TR = { buf: {}, loading: {}, src: null, gain: null, segId: null };
   const fbuf = new Uint8Array(64);
   const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
 
@@ -159,6 +160,38 @@ const Aud = (() => {
     }
   }
 
+
+  /* Bản nhạc thật (giấy phép CC0): tải một lần, phát theo đồng hồ buổi diễn. */
+  function loadTrack(url) {
+    if (TR.buf[url] || TR.loading[url] || !ctx) return;
+    TR.loading[url] = true;
+    fetch(url).then(r => r.arrayBuffer()).then(ab => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no)))
+      .then(b => { TR.buf[url] = b; }).catch(() => { TR.buf[url] = null; TR.failed = true; }).finally(() => { TR.loading[url] = false; });
+  }
+  function stopTrack() {
+    if (TR.src) { try { TR.gain.gain.cancelScheduledValues(ctx.currentTime); TR.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.05); TR.src.stop(ctx.currentTime + 0.3); } catch (e) { } }
+    TR.src = null; TR.segId = null;
+  }
+  function trackTick(L, seg) {
+    if (!seg || !seg.track || Clock.warp !== 1) { if (TR.src) stopTrack(); return false; }
+    const url = seg.track.src, b = TR.buf[url];
+    if (!b) { loadTrack(url); return true; }
+    if (TR.segId === seg.id && TR.src) return true;
+    const L2 = layout(Clock.now()); // bắt đầu theo giờ hiện tại, không theo mốc nhìn trước
+    if (L2.phase !== 'show') return true;
+    const sg2 = segAt(L2.t); if (!sg2 || sg2.id !== seg.id) return true;
+    stopTrack();
+    const into = L2.t - seg.start, off = (seg.track.offset || 0) + into, remain = seg.end - L2.t;
+    if (off >= b.duration - 0.2 || remain < 0.3) return true;
+    const s = ctx.createBufferSource(); s.buffer = b;
+    const gn = ctx.createGain(), now = ctx.currentTime, fin = into < 0.5 ? 1.2 : 0.25, fout = Math.min(2.5, remain);
+    gn.gain.setValueAtTime(0.0001, now); gn.gain.linearRampToValueAtTime(0.9, now + fin);
+    gn.gain.setValueAtTime(0.9, now + Math.max(fin, remain - fout)); gn.gain.linearRampToValueAtTime(0.0001, now + remain);
+    s.connect(gn); gn.connect(master); s.start(now, off); s.stop(now + remain + 0.05);
+    TR.src = s; TR.gain = gn; TR.segId = seg.id;
+    return true;
+  }
+
   function tick() {
     if (!ctx || !on) return;
     const T = Clock.now(), horizon = T + 0.35;
@@ -166,9 +199,10 @@ const Aud = (() => {
     let guard = 0;
     while (nextT < horizon && guard++ < 200) {
       const L = layout(nextT);
-      if (L.phase !== 'show') { nextT += Math.max(0.1, -L.t); continue; }
+      if (L.phase !== 'show') { if (TR.src) stopTrack(); nextT += Math.max(0.1, -L.t); continue; }
       const seg = segAt(L.t), song = seg && SHOW.songs[seg.song];
       if (!song) { nextT += 0.1; continue; }
+      if (seg.track && trackTick(L, seg)) { nextT += 0.25; continue; }
       const stepDur = 60 / song.bpm / 4;
       let k = Math.round((L.t - seg.start) / stepDur);
       if (seg.start + k * stepDur < L.t - 1e-6) k++;
@@ -189,13 +223,15 @@ const Aud = (() => {
       if (!init()) return false;
       try { await ctx.resume(); } catch (e) { }
       on = true; nextT = Clock.now();
+      SHOW.segments.forEach(sg => { if (sg.track) loadTrack(sg.track.src); });
       master.gain.setTargetAtTime(0.6, ctx.currentTime, 0.1);
       if (!timer) timer = setInterval(tick, 50);
       return ctx.state === 'running';
     },
-    disable() { on = false; if (ctx) master.gain.setTargetAtTime(0.0, ctx.currentTime, 0.05); },
+    disable() { on = false; stopTrack(); if (ctx) master.gain.setTargetAtTime(0.0, ctx.currentTime, 0.05); },
     isOn() { return on; },
-    resync() { nextT = Clock.now(); },
+    trackInfo() { return { seg: TR.segId, playing: !!TR.src, loaded: Object.keys(TR.buf).filter(k => TR.buf[k]), failed: !!TR.failed }; },
+    resync() { nextT = Clock.now(); stopTrack(); },
     cheer(amt) { if (on && ctx) V.cheer(ctx.currentTime, amt, 2.2); },
     spectrum(n) {
       if (!on || !analyser) return null;
@@ -213,6 +249,7 @@ const Aud = (() => {
       DRY = { count: 0, kinds: {} };
       try {
         SHOW.segments.forEach(seg => {
+          if (seg.track) { res[seg.id] = { events: 1, perSec: 0, kinds: { track: 1 } }; return; }
           const song = SHOW.songs[seg.song]; if (!song) { res[seg.id] = { events: 0, perSec: 0, kinds: {} }; return; }
           DRY.count = 0; DRY.kinds = {};
           const stepDur = 60 / song.bpm / 4;

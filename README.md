@@ -26,3 +26,6 @@ Nên giữ không quá khoảng 120, vì game chỉ vẽ tối đa 115 chỗ đ�
 - Gói miễn phí của Cloudflare có hạn mức yêu cầu mỗi ngày. Hãy xem bảng giá Durable Objects hiện hành trước khi mời đông người.
 - Tên ban nhạc SOLAR DRIFT và LUNA VOLT là tên tạm. Cần tra cứu nhãn hiệu trước khi công khai rộng.
 - Mỗi tin nhắn máy chủ nhận đều được kiểm tra: tên tối đa 20 ký tự, đồ hợp lệ, emote nằm trong danh sách, tối đa 8 tin mỗi giây mỗi người.
+
+## Nhạc trong concert (thử nghiệm)
+Hai bản nhạc giấy phép CC0 của iamoneabe (OpenGameArt): [Black Sheep](https://opengameart.org/content/black-sheep) và [Mister Blues](https://opengameart.org/content/mister-blues). Tệp mp3 nằm trong Cloudflare KV, phát qua đường `/audio/<tên>.mp3`. Lịch diễn do `agent/event_agent.py` dựng từ `agent/brief.json`.

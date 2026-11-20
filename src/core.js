@@ -70,7 +70,7 @@ function beatInfo(t) {
   if (!seg) return { beat: 0, pulse: 0, bpm: 110, bar: 0 };
   const song = SHOW.songs[seg.song];
   const bpm = song ? song.bpm : 110;
-  const beat = (t - seg.start) * bpm / 60;
+  const beat = (t - seg.start - (seg.grid || 0)) * bpm / 60;
   const f = beat - Math.floor(beat);
   return { beat, pulse: Math.exp(-f * 4.5), bpm, bar: Math.floor(beat / 4), f };
 }

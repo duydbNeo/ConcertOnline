@@ -80,22 +80,45 @@ export class Room {
   }
 }
 
+const PAGE_URL = 'https://raw.githubusercontent.com/duydbNeo/ConcertOnline/main/public/index.html';
+const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'authorization,content-type', 'access-control-allow-methods': 'PUT,OPTIONS' };
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname === '/ws' || url.pathname === '/stats') {
+    const p = url.pathname;
+    if (p === '/ws' || p === '/stats') {
       const name = (url.searchParams.get('room') || 'main').replace(/[^a-z0-9_-]/gi, '').slice(0, 24) || 'main';
       const stub = env.ROOM.get(env.ROOM.idFromName(name));
-      const u = new URL(request.url); u.pathname = url.pathname;
+      const u = new URL(request.url); u.pathname = p;
       return stub.fetch(new Request(u, request));
     }
-    if (env.ASSETS) return env.ASSETS.fetch(request);
-    if (url.pathname === '/' || url.pathname === '/index.html') {
-      const n = parseInt(await env.PAGE.get('n'), 10);
-      const parts = await Promise.all(Array.from({ length: n }, (_, i) => env.PAGE.get('p' + i)));
-      let html = parts.join('');
-      const show = await env.PAGE.get('show'); // lịch diễn do Event Agent ghi vào KV
-      if (show) html = html.replace(/(<script type="application\/json" id="show-data">)[\s\S]*?(<\/script>)/, (m, a, b) => a + show + b);
+    // Tải nhạc lên KV: chỉ bật khi có UPLOAD_TOKEN (gỡ biến này để tắt)
+    if (p.startsWith('/_up/') && env.UPLOAD_TOKEN) {
+      if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+      const name = p.slice(5);
+      if (request.method !== 'PUT' || !/^[a-z0-9_-]{1,40}$/.test(name) || request.headers.get('authorization') !== 'Bearer ' + env.UPLOAD_TOKEN) return new Response('No', { status: 403, headers: CORS });
+      const buf = await request.arrayBuffer();
+      if (buf.byteLength > 24 * 1024 * 1024) return new Response('Too big', { status: 413, headers: CORS });
+      await env.PAGE.put('a:' + name, buf);
+      return new Response(JSON.stringify({ ok: true, bytes: buf.byteLength }), { headers: CORS });
+    }
+    const m = p.match(/^\/audio\/([a-z0-9_-]{1,40})\.mp3$/);
+    if (m) {
+      const buf = await env.PAGE.get('a:' + m[1], { type: 'arrayBuffer' });
+      if (!buf) return new Response('Not found', { status: 404 });
+      return new Response(buf, { headers: { 'content-type': 'audio/mpeg', 'cache-control': 'public, max-age=86400' } });
+    }
+    if (p === '/' || p === '/index.html') {
+      let html = null;
+      try { const r = await fetch(PAGE_URL, { cf: { cacheTtl: 60, cacheEverything: true } }); if (r.ok) html = await r.text(); } catch (e) { }
+      if (!html) {
+        const n = parseInt(await env.PAGE.get('n'), 10);
+        const parts = await Promise.all(Array.from({ length: n }, (_, i) => env.PAGE.get('p' + i)));
+        html = parts.join('');
+        const show = await env.PAGE.get('show');
+        if (show) html = html.replace(/(<script type="application\/json" id="show-data">)[\s\S]*?(<\/script>)/, (m2, a, b) => a + show + b);
+      }
       return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=60' } });
     }
     return new Response('Not found', { status: 404 });

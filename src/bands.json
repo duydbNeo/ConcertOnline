@@ -1,0 +1,43 @@
+{
+  "agent": "Design Agent",
+  "brief": "Hai ban nhạc ảo gốc (nam, nữ), tên tiếng Anh tự đặt, không dựa trên nghệ sĩ hay nhân vật có sẵn. Mỗi ban nhạc có bảng màu riêng để ánh sáng và LED nhận ra ngay.",
+  "bands": [
+    {
+      "id": "solar",
+      "name": "SOLAR DRIFT",
+      "type": "boy",
+      "genre": "synth-pop, future funk",
+      "bpm": 118,
+      "tagline": "Bốn chàng trai trôi qua bầu trời đêm bằng guitar và synth.",
+      "palette": { "main": "#ff8a1f", "accent": "#19e3ff" },
+      "formation": { "vocal": [0, -7.2], "guitar": [-4.6, -9.2], "bass": [4.6, -9.2], "drums": [0, -13] },
+      "members": [
+        { "stage": "Kai",   "role": "vocal",  "hair": "#ffd34d", "outfit": "#ff8a1f", "skin": "#e8b48a", "hairStyle": "spiky", "trait": "Đội trưởng, giọng tenor ấm, hay nói chuyện với khán giả." },
+        { "stage": "Jett",  "role": "guitar", "hair": "#1b1b2f", "outfit": "#1d2a44", "skin": "#c98f66", "hairStyle": "swoop", "trait": "Ít nói, solo guitar là phần ăn tiền." },
+        { "stage": "Rex",   "role": "bass",   "hair": "#7a3b2e", "outfit": "#2a1f3d", "skin": "#f0c8a0", "hairStyle": "short", "trait": "Giữ nhịp, hay đùa, luôn cười." },
+        { "stage": "Orion", "role": "drums",  "hair": "#2b2b2b", "outfit": "#ff8a1f", "skin": "#8d5a3b", "hairStyle": "short", "trait": "Năng lượng lớn nhất nhóm, đánh trống như chạy marathon." }
+      ]
+    },
+    {
+      "id": "luna",
+      "name": "LUNA VOLT",
+      "type": "girl",
+      "genre": "dance-pop, electro-disco",
+      "bpm": 124,
+      "tagline": "Bốn cô gái biến ánh trăng thành điện áp.",
+      "palette": { "main": "#ff4fa3", "accent": "#8a5cff" },
+      "formation": { "vocal": [0, -7.2], "guitar": [-4.6, -9.2], "keys": [4.6, -9.2], "drums": [0, -13] },
+      "members": [
+        { "stage": "Mira", "role": "vocal",  "hair": "#ff4fa3", "outfit": "#ff4fa3", "skin": "#f2c6a0", "hairStyle": "ponytail", "trait": "Giọng chính, nhảy giỏi nhất nhóm." },
+        { "stage": "Skye", "role": "guitar", "hair": "#8a5cff", "outfit": "#2a1a4a", "skin": "#d9a77c", "hairStyle": "bob", "trait": "Điềm tĩnh, thích riff ngắn và sắc." },
+        { "stage": "Nova", "role": "keys",   "hair": "#f6f0ff", "outfit": "#8a5cff", "skin": "#b9805a", "hairStyle": "ponytail", "trait": "Sáng tác chính, hay nghịch âm thanh synth lạ." },
+        { "stage": "Juno", "role": "drums",  "hair": "#19e3ff", "outfit": "#ff4fa3", "skin": "#e8b48a", "hairStyle": "bob", "trait": "Nhịp trống chắc, hay ném dùi cho khán giả." }
+      ]
+    }
+  ],
+  "audience": {
+    "virtual": "Khán giả ảo dựng bằng instancing: mỗi người có màu áo, màu da, chiều cao, nhịp nhảy riêng. Một phần cầm gậy phát sáng đổi màu theo bảng màu của cue.",
+    "real": "Khán giả thật hiện ở khu vực gần sân khấu với vòng sáng dưới chân và tên hiển thị."
+  },
+  "namingNotes": "Tên SOLAR DRIFT và LUNA VOLT là tên tạm. Cần tra cứu nhãn hiệu (Cục Sở hữu trí tuệ Việt Nam và WIPO) trước khi dùng công khai hoặc thương mại."
+}

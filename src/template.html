@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neon Midnight – Concert ảo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>{{CSS}}</style>
+</head>
+<body>
+<canvas id="c" aria-label="Sân khấu concert 3D"></canvas>
+
+<section id="gate" aria-label="Vào concert">
+  <div class="gate-card">
+    <h1>NEON<br>MIDNIGHT</h1>
+    <p class="status" id="gateStatus" aria-live="polite">Đang tải sân khấu…</p>
+    <p class="desc">Concert thực tế ảo chạy ngay trên trình duyệt. Hai ban nhạc ảo, khán giả ảo và khán giả thật chung một sân khấu.</p>
+    <label class="field">Tên hiển thị
+      <input id="nameIn" maxlength="20" autocomplete="nickname" placeholder="Tên của bạn">
+    </label>
+    <div class="row">
+      <button class="primary" id="enterBtn">Vào concert</button>
+      <button class="ghost" id="demoBtn">Xem demo từ đầu</button>
+    </div>
+    <p class="fine" id="loginNote"></p>
+  </div>
+</section>
+
+<div id="hud" hidden>
+  <div class="top">
+    <div class="brand">NEON MIDNIGHT<small id="hudSub">Đang kết nối…</small></div>
+    <div class="tools">
+      <span class="chip" title="Khán giả thật và khán giả ảo"><i class="dot" id="liveDot"></i><span id="hudCount">1 người xem</span></span>
+      <button class="chip" id="soundBtn" aria-pressed="false">Âm thanh: tắt</button>
+      <button class="chip" id="camBtn">Góc nhìn: khán đài</button>
+      <button class="chip" id="dressBtn">Thay đồ</button>
+      <button class="chip" id="stageBtn">Hậu trường</button>
+    </div>
+  </div>
+  <div class="lower off" id="lower"><b id="lowTitle"></b><span id="lowSub"></span></div>
+  <div class="emotes" role="group" aria-label="Phản ứng">
+    <button data-e="👏" aria-label="Vỗ tay">👏</button>
+    <button data-e="🔦" aria-label="Vẫy gậy sáng">🔦</button>
+    <button data-e="🔥" aria-label="Cháy">🔥</button>
+    <button data-e="❤️" aria-label="Thả tim">❤️</button>
+  </div>
+  <div class="hint">Kéo để nhìn quanh, cuộn để zoom, nhấp đúp để về chính giữa.</div>
+</div>
+
+<section id="wardrobe" hidden aria-label="Phòng thay đồ">
+  <div class="wd-panel">
+    <h2>Phòng thay đồ</h2>
+    <p class="wd-sub">Chọn đồ đi concert. Mọi người trong buổi diễn sẽ thấy bạn mặc đúng bộ này. Kéo nhân vật để xoay.</p>
+    <div class="wd-tabs" role="tablist" id="wdTabs"></div>
+    <div class="wd-opts" id="wdOpts"></div>
+    <div class="row wd-foot">
+      <button class="ghost" id="wdRandom">Ngẫu nhiên</button>
+      <button class="primary" id="wdDone">Xong, vào concert</button>
+    </div>
+  </div>
+</section>
+
+<aside id="drawer" aria-label="Hậu trường">
+  <div class="dh"><h2>Hậu trường</h2><button class="chip" id="closeDrawer">Đóng</button></div>
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-p="design">Ban nhạc</button>
+    <button role="tab" aria-selected="false" data-p="script">Kịch bản</button>
+    <button role="tab" aria-selected="false" data-p="rehearse">Diễn tập</button>
+    <button role="tab" aria-selected="false" data-p="sys">Hệ thống</button>
+  </div>
+  <div class="pane on" id="p-design"></div>
+  <div class="pane" id="p-script"></div>
+  <div class="pane" id="p-rehearse">
+    <h3>Diễn tập tự động</h3>
+    <p>Kiểm tra kịch bản, đếm sự kiện âm thanh của từng đoạn, rồi chạy cả buổi diễn nhanh 12 lần để đo khung hình trên máy của bạn.</p>
+    <div class="row" style="margin-top:12px"><button class="primary" id="rehBtn">Chạy diễn tập</button></div>
+    <ul class="rep" id="rehOut"></ul>
+  </div>
+  <div class="pane" id="p-sys"></div>
+</aside>
+
+<div id="toast" role="status"></div>
+<div id="nowebgl"><div><h2 style="font:800 22px var(--f-display);margin-bottom:10px">Trình duyệt chưa bật WebGL</h2><p style="color:var(--mute)">Concert cần WebGL để vẽ sân khấu 3D. Hãy bật tăng tốc phần cứng trong cài đặt trình duyệt rồi tải lại trang.</p></div></div>
+
+<script type="application/json" id="show-data">{{SHOW}}</script>
+<script type="application/json" id="bands-data">{{BANDS}}</script>
+<script type="application/json" id="wardrobe-data">{{WARDROBE}}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+{{JS}}
+</script>
+</body>
+</html>

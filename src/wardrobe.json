@@ -1,0 +1,32 @@
+{
+  "agent": "Design Agent",
+  "brief": "Tủ đồ đi concert. Mỗi món là một bộ phận gắn vào cùng một bộ xương người, nên thêm món mới không cần dựng lại nhân vật. Chủ đề hiện tại: Neon Midnight.",
+  "tops": [
+    { "id": 0, "name": "Áo thun" },
+    { "id": 1, "name": "Áo khoác sọc phát sáng" },
+    { "id": 2, "name": "Váy xòe" },
+    { "id": 3, "name": "Hoodie" }
+  ],
+  "topColors": ["#2b2f4a", "#e8e4f0", "#ff4fa3", "#19e3ff", "#7a5cff", "#ff8a1f", "#c9ff4f", "#d24a4a"],
+  "hairStyles": [
+    { "id": 0, "name": "Tóc ngắn" },
+    { "id": 1, "name": "Tóc dài" },
+    { "id": 2, "name": "Tóc búi" }
+  ],
+  "hairColors": ["#14100d", "#52301a", "#d9b45a", "#0b0b12", "#d3205f", "#19e3ff"],
+  "headAcc": [
+    { "id": 0, "name": "Không đội" },
+    { "id": 1, "name": "Tai mèo" },
+    { "id": 2, "name": "Vòng sáng" },
+    { "id": 3, "name": "Mũ lưỡi trai" },
+    { "id": 4, "name": "Kính ánh sáng" }
+  ],
+  "backAcc": [
+    { "id": 0, "name": "Không" },
+    { "id": 1, "name": "Cánh sáng" }
+  ],
+  "stickColors": ["follow", "#ff4fa3", "#19e3ff", "#ffd34d", "#8a5cff", "#7dffb0", "#ffffff"],
+  "skins": ["#f2c6a0", "#e8b48a", "#d9a77c", "#c98f66", "#b9805a", "#8d5a3b", "#6d4630", "#f0c8a0"],
+  "defaultLook": [0, 3, 0, 1, 0, 0, 1, 0],
+  "lookFormat": "[kiểu áo, màu áo, kiểu tóc, màu tóc, phụ kiện đầu, phụ kiện lưng, màu da, màu gậy sáng]"
+}

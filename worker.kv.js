@@ -80,6 +80,20 @@ export class Room {
   }
 }
 
+// Dữ liệu chạy lúc runtime: lịch diễn, ban nhạc, tủ đồ nằm trong KV (key show, bands, wardrobe), không nhúng cứng trong bản build
+async function inject(html, env) {
+  for (const [key, id] of [['show', 'show-data'], ['bands', 'bands-data'], ['wardrobe', 'wardrobe-data']]) {
+    try {
+      const raw = await env.PAGE.get(key);
+      if (!raw) continue;
+      JSON.parse(raw);
+      const safe = raw.replace(/<\//g, '<\\/');
+      html = html.replace(new RegExp('(<script type="application/json" id="' + id + '">)[\\s\\S]*?(</script>)'), (m, a, b) => a + safe + b);
+    } catch (e) { }
+  }
+  return html;
+}
+
 const PAGE_URL = 'https://raw.githubusercontent.com/duydbNeo/ConcertOnline/main/public/index.html';
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'authorization,content-type', 'access-control-allow-methods': 'PUT,OPTIONS' };
 
@@ -109,6 +123,10 @@ export default {
       if (!buf) return new Response('Not found', { status: 404 });
       return new Response(buf, { headers: { 'content-type': 'audio/mpeg', 'cache-control': 'public, max-age=86400' } });
     }
+    if (p === '/show.json' || p === '/bands.json' || p === '/wardrobe.json') {
+      const raw = await env.PAGE.get(p.slice(1, -5));
+      return raw ? new Response(raw, { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'access-control-allow-origin': '*' } }) : new Response('Not found', { status: 404 });
+    }
     if (p === '/' || p === '/index.html') {
       let html = null, src = 'kv';
       try {
@@ -121,9 +139,8 @@ export default {
         const n = parseInt(await env.PAGE.get('n'), 10);
         const parts = await Promise.all(Array.from({ length: n }, (_, i) => env.PAGE.get('p' + i)));
         html = parts.join('');
-        const show = await env.PAGE.get('show');
-        if (show) html = html.replace(/(<script type="application\/json" id="show-data">)[\s\S]*?(<\/script>)/, (m2, a, b) => a + show + b);
       }
+      html = await inject(html, env);
       return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=60', 'x-page-src': src } });
     }
     return new Response('Not found', { status: 404 });

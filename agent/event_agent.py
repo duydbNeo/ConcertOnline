@@ -110,9 +110,9 @@ if errs: sys.exit('LỖI:\n' + '\n'.join(errs))
 
 show = {k: base[k] for k in ('palettes', 'vocabulary')}
 show.update({'agent': 'Event Agent', 'title': brief['title'], 'theme': brief['theme'], 'cycle': brief['cycle'],
-             'segments': segs, 'cues': cues, 'songs': lib, 'credits': list(credits.values())})
+             'venue': brief.get('venue', {'preset': 'festival'}), 'segments': segs, 'cues': cues, 'songs': lib, 'credits': list(credits.values())})
 # giữ thứ tự khóa như bản cũ
-order = ['agent', 'title', 'theme', 'cycle', 'palettes', 'segments', 'cues', 'songs', 'credits', 'vocabulary']
+order = ['agent', 'title', 'theme', 'venue', 'cycle', 'palettes', 'segments', 'cues', 'songs', 'credits', 'vocabulary']
 show = {k: show[k] for k in order}
 json.dump(show, open(out_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 

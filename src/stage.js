@@ -41,7 +41,8 @@ const Stage = (() => {
     renderer.setClearColor(0x05030c, 1);
     scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x05030c, 0.013);
-    camera = new THREE.PerspectiveCamera(60, 1, 0.3, 220);
+    renderer.setClearColor(0x05030c, 1);
+    camera = new THREE.PerspectiveCamera(60, 1, 0.3, 700);
 
     hemi = new THREE.HemisphereLight(0x4a4a9a, 0x0a0614, 0.55); scene.add(hemi);
     ptA = new THREE.PointLight(0x19e3ff, 1.3, 70, 1.6); ptA.position.set(-13, 11, -2); scene.add(ptA);

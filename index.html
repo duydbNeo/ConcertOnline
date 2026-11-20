@@ -1,0 +1,2271 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neon Midnight – Concert ảo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>:root{
+  --ink:#07050f; --ink2:#120d24; --paper:#f3eefc; --mute:#a89fc4;
+  --cyan:#19e3ff; --pink:#ff2bd6; --amber:#ffb020; --ok:#4dffb0; --bad:#ff6b6b;
+  --glass:rgba(14,10,30,.74); --line:rgba(180,160,255,.2);
+  --f-display:"Unbounded","Be Vietnam Pro",system-ui,sans-serif;
+  --f-body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:var(--ink);color:var(--paper);font:400 15px/1.5 var(--f-body);overflow:hidden;-webkit-font-smoothing:antialiased}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#c.drag{cursor:grabbing}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+[hidden]{display:none!important}
+
+/* ---- gate ---- */
+#gate{position:fixed;inset:0;display:flex;align-items:flex-end;padding:clamp(16px,4vw,56px);background:linear-gradient(90deg,rgba(7,5,15,.94) 0%,rgba(7,5,15,.7) 38%,rgba(7,5,15,0) 72%);z-index:5}
+.gate-card{width:min(520px,100%);display:flex;flex-direction:column;gap:14px}
+.gate-card h1{font:900 clamp(44px,9.5vw,112px)/.92 var(--f-display);letter-spacing:-.03em;color:#fff;text-shadow:0 0 18px rgba(25,227,255,.75),0 0 54px rgba(255,43,214,.55)}
+.status{font:600 15px/1.4 var(--f-body);color:var(--cyan)}
+.desc{color:var(--mute);max-width:44ch}
+.field{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--mute)}
+.field input{background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--paper);font:500 16px var(--f-body);width:100%}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.primary{background:linear-gradient(100deg,var(--cyan),var(--pink));color:#07050f;font:700 15px var(--f-body);padding:13px 22px;border-radius:12px;box-shadow:0 0 28px rgba(25,227,255,.35)}
+.primary:hover{filter:brightness(1.1)}
+.ghost{border:1px solid var(--line);padding:13px 18px;border-radius:12px;color:var(--paper);background:rgba(255,255,255,.04)}
+.ghost:hover{background:rgba(255,255,255,.1)}
+.fine{font-size:12.5px;color:var(--mute)}
+
+/* ---- hud ---- */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:3}
+#hud>*{pointer-events:auto}
+.top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;gap:12px;padding:14px;align-items:flex-start}
+.brand{font:800 14px var(--f-display);letter-spacing:.02em;padding:8px 12px;border-radius:10px;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--line)}
+.brand small{display:block;font:500 12px var(--f-body);color:var(--mute);margin-top:2px;letter-spacing:0}
+.tools{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:999px;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--line);font-size:13px;white-space:nowrap}
+button.chip:hover{background:rgba(40,30,80,.85)}
+.chip[aria-pressed=true]{border-color:var(--cyan);box-shadow:0 0 14px rgba(25,227,255,.3)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.dot.lobby{background:var(--amber)}
+.lower{position:absolute;left:14px;bottom:78px;max-width:min(420px,calc(100% - 28px));padding:12px 16px;border-radius:14px;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--line);border-left:4px solid var(--cyan);transition:opacity .5s,transform .5s}
+.lower.off{opacity:0;transform:translateY(10px)}
+.lower b{display:block;font:800 18px/1.2 var(--f-display)}
+.lower span{font-size:13px;color:var(--mute)}
+.emotes{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:8px;padding:8px;border-radius:999px;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--line)}
+.emotes button{width:46px;height:46px;border-radius:50%;font-size:22px;background:rgba(255,255,255,.06);transition:transform .12s}
+.emotes button:hover{background:rgba(255,255,255,.14)}
+.emotes button:active{transform:scale(.88)}
+.hint{position:absolute;right:14px;bottom:20px;font-size:12.5px;color:var(--mute);text-shadow:0 1px 6px #000;max-width:240px;text-align:right}
+
+/* ---- backstage ---- */
+#drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);z-index:6;background:rgba(10,7,22,.93);backdrop-filter:blur(16px);border-left:1px solid var(--line);transform:translateX(102%);transition:transform .28s ease;display:flex;flex-direction:column}
+#drawer.open{transform:none}
+.dh{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.dh h2{font:800 17px var(--f-display)}
+.tabs{display:flex;gap:4px;padding:0 12px;border-bottom:1px solid var(--line)}
+.tabs button{padding:10px 12px;font-size:14px;color:var(--mute);border-bottom:2px solid transparent}
+.tabs button[aria-selected=true]{color:var(--paper);border-color:var(--pink)}
+.pane{flex:1;overflow:auto;padding:16px;display:none}
+.pane.on{display:block}
+.pane h3{font:700 15px var(--f-display);margin:18px 0 8px}
+.pane h3:first-child{margin-top:0}
+.pane p{color:var(--mute);font-size:14px}
+.band{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;background:rgba(255,255,255,.03)}
+.band h4{font:800 18px var(--f-display);letter-spacing:.01em}
+.sw{display:inline-flex;gap:4px;vertical-align:middle;margin-left:8px}
+.sw i{width:14px;height:14px;border-radius:50%;display:block;border:1px solid rgba(255,255,255,.3)}
+.mem{display:grid;grid-template-columns:86px 1fr;gap:2px 10px;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px}
+.mem b{font-weight:700}
+.mem em{font-style:normal;color:var(--mute);font-size:12.5px}
+.mem span{color:var(--mute)}
+.tl{display:flex;height:28px;border-radius:8px;overflow:hidden;margin:6px 0 10px;border:1px solid var(--line);position:relative}
+.tl div{display:flex;align-items:center;justify-content:center;font-size:11px;color:#07050f;font-weight:700;overflow:hidden;white-space:nowrap}
+.tl .ph{position:absolute;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 8px #fff}
+.cues{width:100%;border-collapse:collapse;font-size:12.5px}
+.cues td,.cues th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.cues th{color:var(--mute);font-weight:500}
+.cues tr.now{background:rgba(25,227,255,.14)}
+.rep{list-style:none;padding:0;margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.rep li{display:grid;grid-template-columns:22px 1fr;gap:6px;font-size:13.5px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.04)}
+.rep .ok{color:var(--ok)}.rep .warn{color:var(--amber)}.rep .bad{color:var(--bad)}
+.kv{display:grid;grid-template-columns:1fr auto;gap:5px 14px;font-size:13.5px}
+.kv span{color:var(--mute)}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.seg button{padding:7px 12px;border-radius:9px;border:1px solid var(--line);font-size:13px}
+.seg button[aria-pressed=true]{border-color:var(--cyan);background:rgba(25,227,255,.14)}
+#toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:var(--glass);border:1px solid var(--line);padding:9px 16px;border-radius:12px;font-size:14px;z-index:9;opacity:0;transition:opacity .3s;pointer-events:none}
+#toast.on{opacity:1}
+#nowebgl{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:24px;text-align:center;z-index:20;background:var(--ink)}
+@media (max-width:640px){
+  .brand small{display:none}
+  .chip{padding:7px 10px;font-size:12.5px}
+  .hint{display:none}
+  .lower{bottom:76px}
+}
+@media (prefers-reduced-motion:reduce){#drawer,.lower,#toast{transition:none}}
+
+/* ---- wardrobe ---- */
+#wardrobe{position:fixed;inset:0;z-index:4;pointer-events:none;display:flex;justify-content:flex-end}
+#wardrobe[hidden]{display:none}
+.wd-panel{pointer-events:auto;width:min(420px,100%);height:100%;display:flex;flex-direction:column;gap:12px;padding:22px 20px;background:linear-gradient(270deg,rgba(7,5,15,.96),rgba(7,5,15,.8));backdrop-filter:blur(14px);border-left:1px solid var(--line)}
+.wd-panel h2{font:900 clamp(26px,4vw,34px)/1 var(--f-display);letter-spacing:-.02em;text-shadow:0 0 16px rgba(255,43,214,.5)}
+.wd-sub{color:var(--mute);font-size:14px}
+.wd-tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.wd-tabs button{padding:9px 11px;font-size:14px;color:var(--mute);border-bottom:2px solid transparent}
+.wd-tabs button[aria-selected=true]{color:var(--paper);border-color:var(--cyan)}
+.wd-opts{flex:1;overflow:auto;display:flex;flex-direction:column;gap:16px;padding:4px 2px}
+.wd-g h3{font:700 13px var(--f-body);color:var(--mute);margin-bottom:8px}
+.wd-row{display:flex;flex-wrap:wrap;gap:8px}
+.opt{padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);font-size:14px}
+.opt:hover{background:rgba(255,255,255,.1)}
+.opt[aria-pressed=true]{border-color:var(--cyan);background:rgba(25,227,255,.14);box-shadow:0 0 12px rgba(25,227,255,.25)}
+.swatch{width:40px;height:40px;border-radius:50%;background:var(--c);border:2px solid rgba(255,255,255,.25)}
+.swatch.follow{background:var(--c)}
+.swatch[aria-pressed=true]{border-color:#fff;box-shadow:0 0 0 3px var(--cyan)}
+.wd-foot{padding-top:6px}
+@media (max-width:759px){
+  #wardrobe{align-items:flex-end}
+  .wd-panel{height:48%;border-left:0;border-top:1px solid var(--line);background:rgba(7,5,15,.92);padding:14px 16px}
+  .wd-sub{display:none}
+}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Sân khấu concert 3D"></canvas>
+
+<section id="gate" aria-label="Vào concert">
+  <div class="gate-card">
+    <h1>NEON<br>MIDNIGHT</h1>
+    <p class="status" id="gateStatus" aria-live="polite">Đang tải sân khấu…</p>
+    <p class="desc">Concert thực tế ảo chạy ngay trên trình duyệt. Hai ban nhạc ảo, khán giả ảo và khán giả thật chung một sân khấu.</p>
+    <label class="field">Tên hiển thị
+      <input id="nameIn" maxlength="20" autocomplete="nickname" placeholder="Tên của bạn">
+    </label>
+    <div class="row">
+      <button class="primary" id="enterBtn">Vào concert</button>
+      <button class="ghost" id="demoBtn">Xem demo từ đầu</button>
+    </div>
+    <p class="fine" id="loginNote"></p>
+  </div>
+</section>
+
+<div id="hud" hidden>
+  <div class="top">
+    <div class="brand">NEON MIDNIGHT<small id="hudSub">Đang kết nối…</small></div>
+    <div class="tools">
+      <span class="chip" title="Khán giả thật và khán giả ảo"><i class="dot" id="liveDot"></i><span id="hudCount">1 người xem</span></span>
+      <button class="chip" id="soundBtn" aria-pressed="false">Âm thanh: tắt</button>
+      <button class="chip" id="camBtn">Góc nhìn: khán đài</button>
+      <button class="chip" id="dressBtn">Thay đồ</button>
+      <button class="chip" id="stageBtn">Hậu trường</button>
+    </div>
+  </div>
+  <div class="lower off" id="lower"><b id="lowTitle"></b><span id="lowSub"></span></div>
+  <div class="emotes" role="group" aria-label="Phản ứng">
+    <button data-e="👏" aria-label="Vỗ tay">👏</button>
+    <button data-e="🔦" aria-label="Vẫy gậy sáng">🔦</button>
+    <button data-e="🔥" aria-label="Cháy">🔥</button>
+    <button data-e="❤️" aria-label="Thả tim">❤️</button>
+  </div>
+  <div class="hint">Kéo để nhìn quanh, cuộn để zoom, nhấp đúp để về chính giữa.</div>
+</div>
+
+<section id="wardrobe" hidden aria-label="Phòng thay đồ">
+  <div class="wd-panel">
+    <h2>Phòng thay đồ</h2>
+    <p class="wd-sub">Chọn đồ đi concert. Mọi người trong buổi diễn sẽ thấy bạn mặc đúng bộ này. Kéo nhân vật để xoay.</p>
+    <div class="wd-tabs" role="tablist" id="wdTabs"></div>
+    <div class="wd-opts" id="wdOpts"></div>
+    <div class="row wd-foot">
+      <button class="ghost" id="wdRandom">Ngẫu nhiên</button>
+      <button class="primary" id="wdDone">Xong, vào concert</button>
+    </div>
+  </div>
+</section>
+
+<aside id="drawer" aria-label="Hậu trường">
+  <div class="dh"><h2>Hậu trường</h2><button class="chip" id="closeDrawer">Đóng</button></div>
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-p="design">Ban nhạc</button>
+    <button role="tab" aria-selected="false" data-p="script">Kịch bản</button>
+    <button role="tab" aria-selected="false" data-p="rehearse">Diễn tập</button>
+    <button role="tab" aria-selected="false" data-p="sys">Hệ thống</button>
+  </div>
+  <div class="pane on" id="p-design"></div>
+  <div class="pane" id="p-script"></div>
+  <div class="pane" id="p-rehearse">
+    <h3>Diễn tập tự động</h3>
+    <p>Kiểm tra kịch bản, đếm sự kiện âm thanh của từng đoạn, rồi chạy cả buổi diễn nhanh 12 lần để đo khung hình trên máy của bạn.</p>
+    <div class="row" style="margin-top:12px"><button class="primary" id="rehBtn">Chạy diễn tập</button></div>
+    <ul class="rep" id="rehOut"></ul>
+  </div>
+  <div class="pane" id="p-sys"></div>
+</aside>
+
+<div id="toast" role="status"></div>
+<div id="nowebgl"><div><h2 style="font:800 22px var(--f-display);margin-bottom:10px">Trình duyệt chưa bật WebGL</h2><p style="color:var(--mute)">Concert cần WebGL để vẽ sân khấu 3D. Hãy bật tăng tốc phần cứng trong cài đặt trình duyệt rồi tải lại trang.</p></div></div>
+
+<script type="application/json" id="show-data">{"agent": "Event Agent", "title": "NEON MIDNIGHT", "theme": "Đêm nhạc Việt: hai ban nhạc ảo trình diễn ba bản nhạc Việt Nam, từ nhịp lễ hội rộn ràng đến giai điệu pop, rồi cùng khán giả đón cao trào.", "venue": {"preset": "festival", "name": "Hội làng đêm trăng", "sky": {"top": "#02010a", "mid": "#160a36", "horizon": "#4a1a58"}, "searchlights": 5, "lanterns": true, "fireworks": true, "towers": true, "moon": true, "stars": true}, "cycle": {"lobby": 60, "show": 240}, "palettes": {"deep": ["#3b4cff", "#19e3ff"], "neon": ["#19e3ff", "#ff2bd6"], "sunset": ["#ff8a1f", "#19e3ff"], "bloom": ["#ff4fa3", "#8a5cff"], "gold": ["#ffd34d", "#ff2bd6"]}, "segments": [{"id": "overture", "start": 0.0, "end": 20.0, "band": "none", "song": "overture", "label": "Mở màn"}, {"id": "s1", "start": 20.0, "end": 95.0, "band": "solar", "song": "trk_upbeat_vn_festival_105", "label": "Ngày hội", "track": {"src": "/audio/upbeat_vn_festival.mp3", "offset": 105}, "grid": 0.188}, {"id": "mc1", "start": 95.0, "end": 107.0, "band": "none", "song": "interlude", "label": "Vẫy đèn nào"}, {"id": "s2", "start": 107.0, "end": 177.0, "band": "luna", "song": "trk_nam_thang_ben_nhau_15", "label": "Năm tháng bên nhau", "track": {"src": "/audio/nam_thang_ben_nhau.mp3", "offset": 15}, "grid": 0.639}, {"id": "mc2", "start": 177.0, "end": 189.0, "band": "none", "song": "interlude", "label": "Hai ban nhạc, một đêm"}, {"id": "finale", "start": 189.0, "end": 224.0, "band": "both", "song": "trk_vn_festival_vibe_40", "label": "Hội làng, cao trào", "track": {"src": "/audio/vn_festival_vibe.mp3", "offset": 40}, "grid": 0.601}, {"id": "outro", "start": 224.0, "end": 240.0, "band": "both", "song": "outro", "label": "Cảm ơn"}], "cues": [{"t": 0, "pal": "deep", "light": "dim", "led": "title", "text": ["NEON", "MIDNIGHT"], "cam": "wide", "energy": 0.3, "layers": ["pad", "kick"], "cheer": 0.4}, {"t": 8.0, "pal": "neon", "light": "fan", "led": "stars", "cam": "crane", "energy": 0.5, "layers": ["pad", "kick", "hat", "riser"]}, {"t": 20.0, "pal": "sunset", "light": "cross", "led": "grid", "cam": "wide", "energy": 0.7, "layers": ["kick", "snare", "bass", "pad", "hat"], "text": ["SOLAR DRIFT"], "cheer": 1.0}, {"t": 32.38, "pal": "sunset", "light": "spot", "led": "rings", "cam": "closeup", "energy": 0.75, "layers": ["kick", "snare", "bass", "pad", "hat", "vocal"]}, {"t": 47.62, "pal": "sunset", "light": "sweep", "led": "grid", "cam": "stagel", "energy": 0.85, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal"]}, {"t": 56.76, "pal": "sunset", "light": "fan", "led": "bars", "cam": "crane", "energy": 1.0, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal", "clap"], "fx": "confetti", "cheer": 1.0}, {"t": 75.05, "pal": "sunset", "light": "chase", "led": "sunburst", "cam": "stager", "energy": 1.0, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal", "clap"], "fx": "sparks", "cheer": 1.0}, {"t": 87.24, "pal": "sunset", "light": "converge", "led": "bars", "cam": "closeup", "energy": 0.9, "layers": ["kick", "snare", "bass", "pad", "arp", "vocal"]}, {"t": 95.0, "pal": "deep", "light": "dim", "led": "wave", "text": ["VẪY ĐÈN NÀO"], "cam": "wide", "energy": 0.45, "layers": ["pad", "clap"], "crowd": "wave", "cheer": 0.8}, {"t": 107.0, "pal": "bloom", "light": "cross", "led": "grid", "cam": "wide", "energy": 0.7, "layers": ["kick", "snare", "bass", "pad", "hat"], "text": ["LUNA VOLT"], "cheer": 1.0}, {"t": 117.92, "pal": "bloom", "light": "spot", "led": "rings", "cam": "closeup", "energy": 0.75, "layers": ["kick", "snare", "bass", "pad", "hat", "vocal"]}, {"t": 131.64, "pal": "bloom", "light": "sweep", "led": "grid", "cam": "stagel", "energy": 0.85, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal"]}, {"t": 141.92, "pal": "bloom", "light": "fan", "led": "bars", "cam": "crane", "energy": 1.0, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal", "clap"], "fx": "confetti", "cheer": 1.0}, {"t": 159.07, "pal": "bloom", "light": "chase", "led": "sunburst", "cam": "stager", "energy": 1.0, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal", "clap"], "fx": "sparks", "cheer": 1.0}, {"t": 169.35, "pal": "bloom", "light": "converge", "led": "bars", "cam": "closeup", "energy": 0.9, "layers": ["kick", "snare", "bass", "pad", "arp", "vocal"]}, {"t": 177.0, "pal": "deep", "light": "dim", "led": "wave", "text": ["HAI BAN NHẠC", "MỘT ĐÊM"], "cam": "wide", "energy": 0.45, "layers": ["pad", "clap"], "crowd": "wave", "cheer": 0.8}, {"t": 189.0, "pal": "gold", "light": "strobe", "led": "sunburst", "cam": "wide", "energy": 0.7, "layers": ["kick", "snare", "bass", "pad", "hat"], "text": ["SOLAR DRIFT", "x LUNA VOLT"], "cheer": 1.0}, {"t": 193.03, "pal": "gold", "light": "spot", "led": "rings", "cam": "closeup", "energy": 0.75, "layers": ["kick", "snare", "bass", "pad", "hat", "vocal"]}, {"t": 199.89, "pal": "gold", "light": "sweep", "led": "grid", "cam": "stagel", "energy": 0.85, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal"]}, {"t": 206.74, "pal": "gold", "light": "fan", "led": "bars", "cam": "crane", "energy": 1.0, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal", "clap"], "fx": "fireworks", "cheer": 1.0}, {"t": 213.6, "pal": "gold", "light": "chase", "led": "sunburst", "cam": "stager", "energy": 1.0, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal", "clap"], "fx": "sparks", "cheer": 1.0}, {"t": 220.46, "pal": "gold", "light": "converge", "led": "bars", "cam": "closeup", "energy": 0.9, "layers": ["kick", "snare", "bass", "pad", "arp", "vocal"]}, {"t": 224.0, "pal": "gold", "light": "fan", "led": "thanks", "text": ["CẢM ƠN", "HẸN ĐÊM SAU"], "cam": "crane", "energy": 0.7, "layers": ["pad", "arp", "clap"], "crowd": "wave", "fx": "fireworks", "cheer": 1.0}, {"t": 232.0, "pal": "gold", "light": "dim", "led": "thanks", "cam": "wide", "energy": 0.4, "layers": ["pad"], "fx": "fireworks", "cheer": 0.8}], "songs": {"overture": {"title": "Overture", "bpm": 110, "root": 45, "voice": "none", "prog": [{"r": 0, "q": "m"}, {"r": -4, "q": "M"}, {"r": 3, "q": "M"}, {"r": -2, "q": "M"}], "drums": {"kick": "x.......x.......", "snare": "................", "hat": "..x...x...x...x.", "clap": "................"}, "bass": "x.......x.......", "arp": "x.x.x.x.x.x.x.x.", "hook": []}, "interlude": {"title": "Interlude", "bpm": 100, "root": 57, "voice": "none", "prog": [{"r": 0, "q": "m"}, {"r": -4, "q": "M"}, {"r": 3, "q": "M"}, {"r": -2, "q": "M"}], "drums": {"kick": "................", "snare": "................", "hat": "................", "clap": "x...x...x...x..."}, "bass": "x.......x.......", "arp": "x...x...x...x...", "hook": []}, "outro": {"title": "Outro", "bpm": 100, "root": 50, "voice": "none", "prog": [{"r": 0, "q": "m"}, {"r": -4, "q": "M"}, {"r": 3, "q": "M"}, {"r": -2, "q": "M"}], "drums": {"kick": "................", "snare": "................", "hat": "................", "clap": "x...x...x...x..."}, "bass": "x.......x.......", "arp": "x.x.x.x.x.x.x.x.", "hook": []}, "trk_upbeat_vn_festival_105": {"title": "Upbeat Vietnam Festival Day", "bpm": 78.75, "root": 50, "voice": "none", "prog": [{"r": 0, "q": "m"}, {"r": 0, "q": "m"}, {"r": 0, "q": "m"}, {"r": 0, "q": "m"}], "drums": {"kick": "................", "snare": "................", "hat": "................", "clap": "................"}, "bass": "................", "arp": "................", "hook": []}, "trk_nam_thang_ben_nhau_15": {"title": "Năm tháng bên nhau", "bpm": 70, "root": 50, "voice": "none", "prog": [{"r": 0, "q": "m"}, {"r": 0, "q": "m"}, {"r": 0, "q": "m"}, {"r": 0, "q": "m"}], "drums": {"kick": "................", "snare": "................", "hat": "................", "clap": "................"}, "bass": "................", "arp": "................", "hook": []}, "trk_vn_festival_vibe_40": {"title": "Vietnamese Festival Vibe", "bpm": 70, "root": 50, "voice": "none", "prog": [{"r": 0, "q": "m"}, {"r": 0, "q": "m"}, {"r": 0, "q": "m"}, {"r": 0, "q": "m"}], "drums": {"kick": "................", "snare": "................", "hat": "................", "clap": "................"}, "bass": "................", "arp": "................", "hook": []}}, "credits": [{"title": "Upbeat Vietnam Festival Day", "artist": "VPRODMUSIC_Asia_BGM", "license": "Pixabay Content License", "source": "https://pixabay.com/vi/music/l%E1%BA%A1c-quan-upbeat-vietnam-festival-day-nh%E1%BA%A1c-n%E1%BB%81n-cho-vlog-editor-212512/"}, {"title": "Năm tháng bên nhau", "artist": "u_y28d8m0e4k (ILOVESONG)", "license": "Pixabay Content License", "source": "https://pixabay.com/vi/music/nh%E1%BA%A1c-pop-n%C4%83m-th%C3%A1ng-b%C3%AAn-nhau-ilovesong-411626/"}, {"title": "Vietnamese Festival Vibe", "artist": "VPRODMUSIC_Asia_BGM", "license": "Pixabay Content License", "source": "https://pixabay.com/vi/music/th%E1%BA%BF-gi%E1%BB%9Bi-vietnamese-festival-vibe-143594/"}], "vocabulary": {"light": ["dim", "sweep", "fan", "cross", "chase", "strobe", "spot", "converge"], "led": ["title", "grid", "bars", "rings", "stars", "sunburst", "wave", "countdown", "thanks"], "cam": ["wide", "crane", "stagel", "stager", "closeup", "orbit"], "layers": ["kick", "snare", "hat", "clap", "bass", "pad", "arp", "vocal", "riser"], "fx": ["confetti", "sparks", "fireworks"], "bands": ["none", "solar", "luna", "both"]}}</script>
+<script type="application/json" id="bands-data">{"agent": "Design Agent", "brief": "Hai ban nhạc ảo gốc (nam, nữ), tên tiếng Anh tự đặt, không dựa trên nghệ sĩ hay nhân vật có sẵn. Mỗi ban nhạc có bảng màu riêng để ánh sáng và LED nhận ra ngay.", "bands": [{"id": "solar", "name": "SOLAR DRIFT", "type": "boy", "genre": "synth-pop, future funk", "bpm": 118, "tagline": "Bốn chàng trai trôi qua bầu trời đêm bằng guitar và synth.", "palette": {"main": "#ff8a1f", "accent": "#19e3ff"}, "formation": {"vocal": [0, -7.2], "guitar": [-4.6, -9.2], "bass": [4.6, -9.2], "drums": [0, -13]}, "members": [{"stage": "Kai", "role": "vocal", "hair": "#ffd34d", "outfit": "#ff8a1f", "skin": "#e8b48a", "hairStyle": "spiky", "trait": "Đội trưởng, giọng tenor ấm, hay nói chuyện với khán giả."}, {"stage": "Jett", "role": "guitar", "hair": "#1b1b2f", "outfit": "#1d2a44", "skin": "#c98f66", "hairStyle": "swoop", "trait": "Ít nói, solo guitar là phần ăn tiền."}, {"stage": "Rex", "role": "bass", "hair": "#7a3b2e", "outfit": "#2a1f3d", "skin": "#f0c8a0", "hairStyle": "short", "trait": "Giữ nhịp, hay đùa, luôn cười."}, {"stage": "Orion", "role": "drums", "hair": "#2b2b2b", "outfit": "#ff8a1f", "skin": "#8d5a3b", "hairStyle": "short", "trait": "Năng lượng lớn nhất nhóm, đánh trống như chạy marathon."}]}, {"id": "luna", "name": "LUNA VOLT", "type": "girl", "genre": "dance-pop, electro-disco", "bpm": 124, "tagline": "Bốn cô gái biến ánh trăng thành điện áp.", "palette": {"main": "#ff4fa3", "accent": "#8a5cff"}, "formation": {"vocal": [0, -7.2], "guitar": [-4.6, -9.2], "keys": [4.6, -9.2], "drums": [0, -13]}, "members": [{"stage": "Mira", "role": "vocal", "hair": "#ff4fa3", "outfit": "#ff4fa3", "skin": "#f2c6a0", "hairStyle": "ponytail", "trait": "Giọng chính, nhảy giỏi nhất nhóm."}, {"stage": "Skye", "role": "guitar", "hair": "#8a5cff", "outfit": "#2a1a4a", "skin": "#d9a77c", "hairStyle": "bob", "trait": "Điềm tĩnh, thích riff ngắn và sắc."}, {"stage": "Nova", "role": "keys", "hair": "#f6f0ff", "outfit": "#8a5cff", "skin": "#b9805a", "hairStyle": "ponytail", "trait": "Sáng tác chính, hay nghịch âm thanh synth lạ."}, {"stage": "Juno", "role": "drums", "hair": "#19e3ff", "outfit": "#ff4fa3", "skin": "#e8b48a", "hairStyle": "bob", "trait": "Nhịp trống chắc, hay ném dùi cho khán giả."}]}], "audience": {"virtual": "Khán giả ảo dựng bằng instancing: mỗi người có màu áo, màu da, chiều cao, nhịp nhảy riêng. Một phần cầm gậy phát sáng đổi màu theo bảng màu của cue.", "real": "Khán giả thật hiện ở khu vực gần sân khấu với vòng sáng dưới chân và tên hiển thị."}, "namingNotes": "Tên SOLAR DRIFT và LUNA VOLT là tên tạm. Cần tra cứu nhãn hiệu (Cục Sở hữu trí tuệ Việt Nam và WIPO) trước khi dùng công khai hoặc thương mại."}</script>
+<script type="application/json" id="wardrobe-data">{"agent": "Design Agent", "brief": "Tủ đồ đi concert. Mỗi món là một bộ phận gắn vào cùng một bộ xương người, nên thêm món mới không cần dựng lại nhân vật. Chủ đề hiện tại: Neon Midnight.", "tops": [{"id": 0, "name": "Áo thun"}, {"id": 1, "name": "Áo khoác sọc phát sáng"}, {"id": 2, "name": "Váy xòe"}, {"id": 3, "name": "Hoodie"}], "topColors": ["#2b2f4a", "#e8e4f0", "#ff4fa3", "#19e3ff", "#7a5cff", "#ff8a1f", "#c9ff4f", "#d24a4a"], "hairStyles": [{"id": 0, "name": "Tóc ngắn"}, {"id": 1, "name": "Tóc dài"}, {"id": 2, "name": "Tóc búi"}], "hairColors": ["#14100d", "#52301a", "#d9b45a", "#0b0b12", "#d3205f", "#19e3ff"], "headAcc": [{"id": 0, "name": "Không đội"}, {"id": 1, "name": "Tai mèo"}, {"id": 2, "name": "Vòng sáng"}, {"id": 3, "name": "Mũ lưỡi trai"}, {"id": 4, "name": "Kính ánh sáng"}], "backAcc": [{"id": 0, "name": "Không"}, {"id": 1, "name": "Cánh sáng"}], "stickColors": ["follow", "#ff4fa3", "#19e3ff", "#ffd34d", "#8a5cff", "#7dffb0", "#ffffff"], "skins": ["#f2c6a0", "#e8b48a", "#d9a77c", "#c98f66", "#b9805a", "#8d5a3b", "#6d4630", "#f0c8a0"], "defaultLook": [0, 3, 0, 1, 0, 0, 1, 0], "lookFormat": "[kiểu áo, màu áo, kiểu tóc, màu tóc, phụ kiện đầu, phụ kiện lưng, màu da, màu gậy sáng]"}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ===== core: data, clock, helpers ===== */
+const SHOW = JSON.parse(document.getElementById('show-data').textContent);
+const BANDS = JSON.parse(document.getElementById('bands-data').textContent);
+const WARDROBE = JSON.parse(document.getElementById('wardrobe-data').textContent);
+const LOBBY = SHOW.cycle.lobby, SHOW_LEN = SHOW.cycle.show, CYCLE = LOBBY + SHOW_LEN;
+
+const Clock = {
+  mode: 'live',      // 'live' = đồng bộ theo giờ thật, 'demo' = chạy riêng từ đầu
+  demoBase: LOBBY,
+  demoPerf: 0,
+  warp: 1,
+  now() {
+    if (this.mode === 'live') return Date.now() / 1000;
+    return this.demoBase + ((performance.now() - this.demoPerf) / 1000) * this.warp;
+  },
+  startDemo(warp) {
+    this.mode = 'demo';
+    this.warp = warp || 1;
+    this.demoBase = LOBBY;
+    this.demoPerf = performance.now();
+  },
+  goLive() { this.mode = 'live'; this.warp = 1; }
+};
+
+function layout(T) {
+  const c = ((T % CYCLE) + CYCLE) % CYCLE;
+  if (c < LOBBY) return { phase: 'lobby', t: c - LOBBY, countdown: LOBBY - c };
+  return { phase: 'show', t: c - LOBBY, countdown: 0 };
+}
+function segAt(t) {
+  const s = SHOW.segments;
+  for (let i = 0; i < s.length; i++) if (t >= s[i].start && t < s[i].end) return s[i];
+  return null;
+}
+function cueIndexAt(t) {
+  const c = SHOW.cues; let idx = -1;
+  for (let i = 0; i < c.length; i++) { if (c[i].t <= t) idx = i; else break; }
+  return idx;
+}
+// Gộp các cue từ đầu đến t: trường nào cue sau không ghi thì giữ giá trị trước.
+const _cueCache = new Map();
+function cueStateAt(t) {
+  const idx = cueIndexAt(t);
+  if (idx < 0) return null;
+  if (_cueCache.has(idx)) return _cueCache.get(idx);
+  const st = { _idx: idx };
+  for (let i = 0; i <= idx; i++) {
+    const c = SHOW.cues[i];
+    for (const k in c) { if (k !== 'fx' && k !== 'cheer') st[k] = c[k]; }
+  }
+  st.fx = SHOW.cues[idx].fx || null;
+  st.cheer = SHOW.cues[idx].cheer || 0;
+  st.layerSet = new Set(st.layers || []);
+  st.colors = SHOW.palettes[st.pal] || SHOW.palettes.neon;
+  _cueCache.set(idx, st);
+  return st;
+}
+
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const rnd = (a, b) => a + Math.random() * (b - a);
+function mulberry(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function hex2rgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; }
+function fmtTime(s) { s = Math.max(0, Math.ceil(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+
+// Nhịp hiện tại: beat là số nhịp từ đầu đoạn, pulse là xung tắt dần trong mỗi nhịp.
+function beatInfo(t) {
+  const seg = segAt(t);
+  if (!seg) return { beat: 0, pulse: 0, bpm: 110, bar: 0 };
+  const song = SHOW.songs[seg.song];
+  const bpm = song ? song.bpm : 110;
+  const beat = (t - seg.start - (seg.grid || 0)) * bpm / 60;
+  const f = beat - Math.floor(beat);
+  return { beat, pulse: Math.exp(-f * 4.5), bpm, bar: Math.floor(beat / 4), f };
+}
+
+/* ===== audio: nhạc tổng hợp gốc bằng WebAudio, cộng bản nhạc CC0 phát từ tệp khi lịch diễn có track ===== */
+const Aud = (() => {
+  let ctx = null, master, comp, analyser, noiseBuf, murmurGain, beatAn, bbuf;
+  let on = false, timer = null, nextT = 0, DRY = null;
+  const TR = { buf: {}, loading: {}, src: null, gain: null, segId: null };
+  const fbuf = new Uint8Array(64);
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+
+  function init() {
+    if (ctx) return true;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    ctx = new AC();
+    master = ctx.createGain(); master.gain.value = 0.0;
+    comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = 0.005; comp.release.value = 0.2;
+    analyser = ctx.createAnalyser(); analyser.fftSize = 128; analyser.smoothingTimeConstant = 0.78;
+    master.connect(comp); comp.connect(analyser); analyser.connect(ctx.destination);
+    beatAn = ctx.createAnalyser(); beatAn.fftSize = 1024; beatAn.smoothingTimeConstant = 0.15; comp.connect(beatAn); bbuf = new Uint8Array(512);
+    const len = ctx.sampleRate * 1.5;
+    noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    // tiếng ồn khán giả nền
+    const ns = ctx.createBufferSource(); ns.buffer = noiseBuf; ns.loop = true;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 600; bp.Q.value = 0.5;
+    murmurGain = ctx.createGain(); murmurGain.gain.value = 0.0;
+    ns.connect(bp); bp.connect(murmurGain); murmurGain.connect(master); ns.start();
+    return true;
+  }
+
+  function noiseSrc(t, dur) {
+    const s = ctx.createBufferSource(); s.buffer = noiseBuf;
+    s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.05); return s;
+  }
+  function g(t, peak, a, d, sus, r, dur) {
+    const n = ctx.createGain();
+    n.gain.setValueAtTime(0.0001, t);
+    n.gain.linearRampToValueAtTime(peak, t + a);
+    n.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak * sus), t + a + d);
+    n.gain.exponentialRampToValueAtTime(0.0001, t + dur + r);
+    return n;
+  }
+
+  /* --- giọng đơn --- */
+  const V = {
+    kick(t, v) {
+      const o = ctx.createOscillator(); o.type = 'sine';
+      o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.14);
+      const n = g(t, 0.95 * v, 0.002, 0.12, 0.2, 0.2, 0.18);
+      o.connect(n); n.connect(master); o.start(t); o.stop(t + 0.4);
+    },
+    snare(t, v) {
+      const s = noiseSrc(t, 0.2), f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1400;
+      const n = g(t, 0.38 * v, 0.001, 0.07, 0.15, 0.1, 0.12);
+      s.connect(f); f.connect(n); n.connect(master);
+      const o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(140, t + 0.08);
+      const n2 = g(t, 0.22 * v, 0.001, 0.06, 0.1, 0.05, 0.08); o.connect(n2); n2.connect(master); o.start(t); o.stop(t + 0.2);
+    },
+    hat(t, v, open) {
+      const s = noiseSrc(t, open ? 0.3 : 0.08), f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 7500;
+      const n = g(t, 0.17 * v, 0.001, open ? 0.12 : 0.03, 0.1, 0.05, open ? 0.2 : 0.05);
+      s.connect(f); f.connect(n); n.connect(master);
+    },
+    clap(t, v) {
+      for (let i = 0; i < 3; i++) {
+        const tt = t + i * 0.011;
+        const s = noiseSrc(tt, 0.15), f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1700; f.Q.value = 0.8;
+        const n = g(tt, 0.3 * v, 0.001, i === 2 ? 0.09 : 0.012, 0.1, 0.04, i === 2 ? 0.1 : 0.014);
+        s.connect(f); f.connect(n); n.connect(master);
+      }
+    },
+    bass(t, m, dur) {
+      const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = mtof(m);
+      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = 6;
+      f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(220, t + dur * 0.9);
+      const n = g(t, 0.34, 0.005, 0.08, 0.6, 0.06, dur);
+      o.connect(f); f.connect(n); n.connect(master); o.start(t); o.stop(t + dur + 0.1);
+    },
+    pad(t, notes, dur) {
+      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1300; f.Q.value = 0.5;
+      const n = g(t, 0.09, 0.35, 0.4, 0.8, 0.5, dur);
+      f.connect(n); n.connect(master);
+      notes.forEach(m => [-6, 6].forEach(det => {
+        const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = mtof(m); o.detune.value = det;
+        o.connect(f); o.start(t); o.stop(t + dur + 0.6);
+      }));
+    },
+    pluck(t, m, dur) {
+      const o = ctx.createOscillator(); o.type = 'square'; o.frequency.value = mtof(m);
+      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = 3;
+      f.frequency.setValueAtTime(3600, t); f.frequency.exponentialRampToValueAtTime(500, t + 0.14);
+      const n = g(t, 0.085, 0.002, 0.1, 0.1, 0.06, dur * 0.6);
+      o.connect(f); f.connect(n); n.connect(master); o.start(t); o.stop(t + dur + 0.2);
+    },
+    voice(t, m, dur, kind) {
+      const girl = kind === 'girl';
+      const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = mtof(m);
+      const lfo = ctx.createOscillator(); lfo.frequency.value = 5.2; const lg = ctx.createGain(); lg.gain.value = 5;
+      lfo.connect(lg); lg.connect(o.detune);
+      const form = girl ? [850, 1350] : [680, 1080];
+      const out = g(t, girl ? 0.2 : 0.22, 0.03, 0.08, 0.8, 0.1, dur);
+      form.forEach((fr, i) => {
+        const b = ctx.createBiquadFilter(); b.type = 'bandpass'; b.frequency.value = fr; b.Q.value = 7;
+        const gg = ctx.createGain(); gg.gain.value = i === 0 ? 1 : 0.6;
+        o.connect(b); b.connect(gg); gg.connect(out);
+      });
+      out.connect(master); o.start(t); lfo.start(t); o.stop(t + dur + 0.2); lfo.stop(t + dur + 0.2);
+    },
+    riser(t, dur) {
+      const s = noiseSrc(t, dur), f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.5;
+      f.frequency.setValueAtTime(400, t); f.frequency.exponentialRampToValueAtTime(7000, t + dur);
+      const n = ctx.createGain(); n.gain.setValueAtTime(0.0001, t); n.gain.exponentialRampToValueAtTime(0.16, t + dur); n.gain.linearRampToValueAtTime(0.0001, t + dur + 0.05);
+      s.connect(f); f.connect(n); n.connect(master);
+    },
+    whoop(t, amt) { // vài giọng hò reo trượt lên, lệch nhau
+      for (let i = 0; i < 6; i++) {
+        const st = t + Math.random() * 0.35, f0 = 260 + Math.random() * 260, dur = 0.5 + Math.random() * 0.5;
+        const o = ctx.createOscillator(); o.type = 'sawtooth';
+        o.frequency.setValueAtTime(f0, st); o.frequency.exponentialRampToValueAtTime(f0 * (1.35 + Math.random() * 0.5), st + dur * 0.7);
+        const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 800 + Math.random() * 500; f.Q.value = 2.5;
+        const n = g(st, 0.05 * amt, 0.06, dur * 0.5, 0.4, 0.15, dur);
+        o.connect(f); f.connect(n); n.connect(master); o.start(st); o.stop(st + dur + 0.3);
+      }
+    },
+    clap(t, amt) { // một tràng vỗ tay: nhiều cú nhỏ lệch nhau vài chục ms
+      const n = 9 + Math.floor(Math.random() * 6);
+      for (let i = 0; i < n; i++) {
+        const st = t + Math.random() * 0.07, s = noiseSrc(st, 0.08);
+        const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1500 + Math.random() * 2500; f.Q.value = 1.1;
+        const gg = ctx.createGain(); gg.gain.setValueAtTime(0.0001, st); gg.gain.linearRampToValueAtTime(0.03 * amt, st + 0.003); gg.gain.exponentialRampToValueAtTime(0.0001, st + 0.06);
+        s.connect(f); f.connect(gg); gg.connect(master);
+      }
+    },
+    cheer(t, amt, dur) {
+      V.whoop(t, amt);
+      [[900, 0.6], [2400, 0.9]].forEach(([fr, q]) => {
+        const s = noiseSrc(t, dur + 1), f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = fr; f.Q.value = q;
+        const n = ctx.createGain(); n.gain.setValueAtTime(0.0001, t);
+        n.gain.linearRampToValueAtTime(0.12 * amt, t + 0.5);
+        n.gain.linearRampToValueAtTime(0.1 * amt, t + dur);
+        n.gain.exponentialRampToValueAtTime(0.0001, t + dur + 1.0);
+        s.connect(f); f.connect(n); n.connect(master);
+      });
+    }
+  };
+
+  const CH = { m: [0, 3, 7], M: [0, 4, 7] };
+  const ARP = [0, 1, 2, 3, 2, 1, 0, 2];
+
+  function emit(kind, fn) { if (DRY) { DRY.count++; DRY.kinds[kind] = (DRY.kinds[kind] || 0) + 1; } else fn(); }
+
+  function playStep(song, k, stepDur, delay, cue, t0) {
+    const L = cue.layerSet, st = k % 16, bar = Math.floor(k / 16);
+    const chord = song.prog[bar % 4], tones = CH[chord.q];
+    const t = DRY ? 0 : t0 + Math.max(0, delay);
+    const d = song.drums;
+    if (L.has('kick') && d.kick[st] === 'x') emit('kick', () => V.kick(t, 1));
+    if (L.has('snare') && d.snare[st] === 'x') emit('snare', () => V.snare(t, 1));
+    if (L.has('hat') && d.hat[st] === 'x') emit('hat', () => V.hat(t, st % 4 === 2 ? 1 : 0.65, st === 14));
+    if (L.has('clap') && d.clap[st] === 'x') emit('clap', () => V.clap(t, 0.8));
+    if (L.has('bass') && song.bass[st] === 'x') emit('bass', () => V.bass(t, song.root + chord.r - 12, stepDur * 1.8));
+    if (L.has('pad') && st === 0) emit('pad', () => V.pad(t, tones.map(x => song.root + chord.r + x), stepDur * 16));
+    if (L.has('arp') && song.arp[st] === 'x') {
+      const ti = ARP[k % 8]; const off = ti === 3 ? 12 : tones[ti];
+      emit('arp', () => V.pluck(t, song.root + chord.r + 12 + off, stepDur));
+    }
+    if (L.has('riser') && st === 0 && bar % 2 === 0) emit('riser', () => V.riser(t, stepDur * 32));
+    if (L.has('vocal') && song.hook.length) {
+      const hb = song.hook[bar % 4];
+      for (let i = 0; i < hb.length; i++) {
+        const h = hb[i];
+        if (h[1] !== st) continue;
+        const m = song.root + 12 + h[0], dur = h[2] * stepDur;
+        if (song.voice === 'duet') {
+          emit('vocal', () => { V.voice(t, m, dur, 'boy'); V.voice(t, m + 12, dur, 'girl'); });
+        } else {
+          emit('vocal', () => V.voice(t, m, dur, song.voice));
+        }
+      }
+    }
+  }
+
+
+  /* Bản nhạc thật (giấy phép CC0): tải một lần, phát theo đồng hồ buổi diễn. */
+  function loadTrack(url) {
+    if (TR.buf[url] || TR.loading[url] || !ctx) return;
+    TR.loading[url] = true;
+    fetch(url).then(r => r.arrayBuffer()).then(ab => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no)))
+      .then(b => { TR.buf[url] = b; }).catch(() => { TR.buf[url] = null; TR.failed = true; }).finally(() => { TR.loading[url] = false; });
+  }
+  function stopTrack() {
+    if (TR.src) { try { TR.gain.gain.cancelScheduledValues(ctx.currentTime); TR.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.05); TR.src.stop(ctx.currentTime + 0.3); } catch (e) { } }
+    TR.src = null; TR.segId = null;
+  }
+  function trackTick(L, seg) {
+    if (!seg || !seg.track || Clock.warp !== 1) { if (TR.src) stopTrack(); return false; }
+    const url = seg.track.src, b = TR.buf[url];
+    if (!b) { loadTrack(url); return true; }
+    if (TR.segId === seg.id && TR.src) return true;
+    const L2 = layout(Clock.now()); // bắt đầu theo giờ hiện tại, không theo mốc nhìn trước
+    if (L2.phase !== 'show') return true;
+    const sg2 = segAt(L2.t); if (!sg2 || sg2.id !== seg.id) return true;
+    stopTrack();
+    const into = L2.t - seg.start, off = (seg.track.offset || 0) + into, remain = seg.end - L2.t;
+    if (off >= b.duration - 0.2 || remain < 0.3) return true;
+    const s = ctx.createBufferSource(); s.buffer = b;
+    const gn = ctx.createGain(), now = ctx.currentTime, fin = into < 0.5 ? 1.2 : 0.25, fout = Math.min(2.5, remain);
+    gn.gain.setValueAtTime(0.0001, now); gn.gain.linearRampToValueAtTime(0.9, now + fin);
+    gn.gain.setValueAtTime(0.9, now + Math.max(fin, remain - fout)); gn.gain.linearRampToValueAtTime(0.0001, now + remain);
+    s.connect(gn); gn.connect(master); s.start(now, off); s.stop(now + remain + 0.05);
+    TR.src = s; TR.gain = gn; TR.segId = seg.id;
+    return true;
+  }
+
+  /* Nhịp thật từ âm thanh đang phát: dò cú đánh ở dải trầm, dựng pha nhịp, đo độ to và dải giọng. */
+  const LV = { on: false, pulse: 0, level: 0, mid: 0, beat: 0, period: 0.5, last: -9, prev: 0, mean: 0.02, dev: 0.02, iv: [], n: 0, clock: 0 };
+  function band(a, b) { let s = 0; for (let i = a; i < b; i++) s += bbuf[i]; return s / (b - a) / 255; }
+  function liveUpdate(dt, energy) {
+    if (!on || !beatAn || !TR.src) { LV.on = false; return null; }
+    LV.clock += dt;
+    beatAn.getByteFrequencyData(bbuf);
+    const bass = band(1, 7), mid = band(10, 46), all = band(1, 120);
+    const flux = Math.max(0, bass - LV.prev); LV.prev = bass;
+    LV.mean += (flux - LV.mean) * Math.min(1, dt * 1.5);
+    LV.dev += (Math.abs(flux - LV.mean) - LV.dev) * Math.min(1, dt * 1.5);
+    const hit = flux > LV.mean + 2.2 * LV.dev + 0.02 && bass > 0.3 && LV.clock - LV.last > 0.25;
+    if (hit) {
+      const iv = LV.clock - LV.last;
+      if (iv > 0.3 && iv < 1.0) { LV.iv.push(iv); if (LV.iv.length > 8) LV.iv.shift(); const s = LV.iv.slice().sort((x, y) => x - y); LV.period = s[Math.floor(s.length / 2)]; }
+      LV.last = LV.clock; LV.pulse = 1;
+      const fr = LV.beat - Math.floor(LV.beat), tgt = fr > 0.5 ? Math.ceil(LV.beat) : Math.floor(LV.beat);
+      LV.beat += (tgt - LV.beat) * 0.45;
+      LV.n++;
+      if (energy > 0.6 && LV.n % 2 === 0 && ctx) V.clap(ctx.currentTime + 0.02, Math.min(1, energy));
+    } else { LV.pulse *= Math.exp(-dt * 6); LV.beat += dt / LV.period; }
+    LV.level += (all - LV.level) * Math.min(1, dt * 6);
+    LV.mid += (mid - LV.mid) * Math.min(1, dt * 10);
+    if (ctx) murmurGain.gain.setTargetAtTime(0.012 + 0.05 * LV.level * energy, ctx.currentTime, 0.4);
+    LV.on = true; return LV;
+  }
+
+  function tick() {
+    if (!ctx || !on) return;
+    const T = Clock.now(), horizon = T + 0.35;
+    if (nextT < T - 0.1) nextT = T;
+    let guard = 0;
+    while (nextT < horizon && guard++ < 200) {
+      const L = layout(nextT);
+      if (L.phase !== 'show') { if (TR.src) stopTrack(); nextT += Math.max(0.1, -L.t); continue; }
+      const seg = segAt(L.t), song = seg && SHOW.songs[seg.song];
+      if (!song) { nextT += 0.1; continue; }
+      if (seg.track && trackTick(L, seg)) { nextT += 0.25; continue; }
+      const stepDur = 60 / song.bpm / 4;
+      let k = Math.round((L.t - seg.start) / stepDur);
+      if (seg.start + k * stepDur < L.t - 1e-6) k++;
+      const stepShow = seg.start + k * stepDur;
+      if (stepShow >= seg.end - 1e-6) { nextT += (seg.end - L.t) + 0.0005; continue; }
+      const absStep = nextT + (stepShow - L.t);
+      const cue = cueStateAt(stepShow);
+      if (cue) playStep(song, k, stepDur, absStep - T, cue, ctx.currentTime);
+      nextT = absStep + stepDur;
+    }
+    const L0 = layout(T);
+    if (!TR.src) murmurGain.gain.setTargetAtTime(L0.phase === 'lobby' ? 0.05 : 0.018, ctx.currentTime, 0.6);
+  }
+
+  return {
+    available() { return !!(window.AudioContext || window.webkitAudioContext); },
+    async enable() {
+      if (!init()) return false;
+      try { await ctx.resume(); } catch (e) { }
+      on = true; nextT = Clock.now();
+      SHOW.segments.forEach(sg => { if (sg.track) loadTrack(sg.track.src); });
+      master.gain.setTargetAtTime(0.6, ctx.currentTime, 0.1);
+      if (!timer) timer = setInterval(tick, 50);
+      return ctx.state === 'running';
+    },
+    disable() { on = false; stopTrack(); if (ctx) master.gain.setTargetAtTime(0.0, ctx.currentTime, 0.05); },
+    isOn() { return on; },
+    trackInfo() { return { seg: TR.segId, playing: !!TR.src, loaded: Object.keys(TR.buf).filter(k => TR.buf[k]), failed: !!TR.failed }; },
+    resync() { nextT = Clock.now(); stopTrack(); },
+    cheer(amt) { if (on && ctx) V.cheer(ctx.currentTime, amt, 2.2); },
+    live(dt, energy) { return liveUpdate(dt, energy); },
+    liveState() { return { on: LV.on, period: +LV.period.toFixed(3), n: LV.n, level: +LV.level.toFixed(2), mid: +LV.mid.toFixed(2) }; },
+    spectrum(n) {
+      if (!on || !analyser) return null;
+      analyser.getByteFrequencyData(fbuf);
+      const out = new Float32Array(n), bins = 40;
+      for (let i = 0; i < n; i++) {
+        const a = Math.floor(Math.pow(i / n, 1.5) * bins), b = Math.max(a + 1, Math.floor(Math.pow((i + 1) / n, 1.5) * bins));
+        let s = 0; for (let j = a; j < b; j++) s += fbuf[j]; out[i] = s / (b - a) / 255;
+      }
+      return out;
+    },
+    /* Diễn tập khô: chạy bộ lập lịch nốt trên cả buổi, đếm số sự kiện âm thanh, không phát gì. */
+    dryRun() {
+      const res = {};
+      DRY = { count: 0, kinds: {} };
+      try {
+        SHOW.segments.forEach(seg => {
+          if (seg.track) { res[seg.id] = { events: 1, perSec: 0, kinds: { track: 1 } }; return; }
+          const song = SHOW.songs[seg.song]; if (!song) { res[seg.id] = { events: 0, perSec: 0, kinds: {} }; return; }
+          DRY.count = 0; DRY.kinds = {};
+          const stepDur = 60 / song.bpm / 4;
+          for (let k = 0; seg.start + k * stepDur < seg.end; k++) {
+            const cue = cueStateAt(seg.start + k * stepDur); if (cue) playStep(song, k, stepDur, 0, cue, 0);
+          }
+          res[seg.id] = { events: DRY.count, perSec: DRY.count / (seg.end - seg.start), kinds: Object.assign({}, DRY.kinds) };
+        });
+      } finally { DRY = null; }
+      return res;
+    }
+  };
+})();
+
+/* ===== LED: màn hình vẽ bằng canvas 2D, dùng làm texture cho tường LED ===== */
+const LED = (() => {
+  const mainC = document.createElement('canvas'); mainC.width = 640; mainC.height = 280;
+  const sideC = document.createElement('canvas'); sideC.width = 160; sideC.height = 360;
+  const mg = mainC.getContext('2d'), sg = sideC.getContext('2d');
+  let mainTex = null, sideTex = null;
+  const FONT = '"Unbounded","Be Vietnam Pro",system-ui,sans-serif';
+
+  function fakeSpec(n, time, pulse) {
+    const a = new Float32Array(n);
+    for (let i = 0; i < n; i++) a[i] = clamp(0.18 + 0.55 * pulse * (0.55 + 0.45 * Math.sin(i * 0.8 + time * 3.1)) + 0.12 * Math.sin(i * 0.37 + time * 1.3), 0, 1);
+    return a;
+  }
+  function rgba(hex, a) { const [r, g, b] = hex2rgb(hex); return `rgba(${r * 255 | 0},${g * 255 | 0},${b * 255 | 0},${a})`; }
+  function bg(g, w, h, c0, c1, a) {
+    const gr = g.createLinearGradient(0, 0, 0, h);
+    gr.addColorStop(0, '#05030c'); gr.addColorStop(1, rgba(c1, a == null ? 0.35 : a));
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  }
+  function text(g, lines, w, h, c0, c1, size, pulse) {
+    if (!lines || !lines.length) return;
+    const n = lines.length, lh = size * 1.12;
+    let y = h / 2 - (n - 1) * lh / 2;
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    lines.forEach((ln, i) => {
+      g.font = `800 ${size}px ${FONT}`;
+      let s = size; while (g.measureText(ln).width > w * 0.92 && s > 12) { s -= 2; g.font = `800 ${s}px ${FONT}`; }
+      g.shadowColor = i % 2 ? c1 : c0; g.shadowBlur = 14 + 22 * pulse;
+      g.fillStyle = '#fff'; g.fillText(ln, w / 2, y + i * lh);
+      g.shadowBlur = 0;
+    });
+  }
+
+  const scenes = {
+    title(g, w, h, t, P, spec, c0, c1, lines) {
+      bg(g, w, h, c0, c1, 0.5);
+      g.strokeStyle = rgba(c0, 0.25); g.lineWidth = 1;
+      for (let i = -4; i < 14; i++) { const x = ((i * 70 + t * 18) % (w + 140)) - 70; g.beginPath(); g.moveTo(x, 0); g.lineTo(x - 120, h); g.stroke(); }
+      text(g, lines || [SHOW.title], w, h, c0, c1, h * 0.26, P);
+    },
+    grid(g, w, h, t, P, spec, c0, c1, lines) {
+      const hz = h * 0.52;
+      const sky = g.createLinearGradient(0, 0, 0, hz); sky.addColorStop(0, '#07040f'); sky.addColorStop(1, rgba(c1, 0.55));
+      g.fillStyle = sky; g.fillRect(0, 0, w, hz);
+      g.fillStyle = '#05030c'; g.fillRect(0, hz, w, h - hz);
+      const r = h * (0.26 + 0.02 * P);
+      const sun = g.createLinearGradient(0, hz - r * 1.6, 0, hz); sun.addColorStop(0, c0); sun.addColorStop(1, c1);
+      g.save(); g.beginPath(); g.arc(w / 2, hz - r * 0.2, r, Math.PI, 0); g.closePath(); g.clip();
+      g.fillStyle = sun; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#05030c'; for (let i = 0; i < 6; i++) g.fillRect(0, hz - r * 0.9 + i * r * 0.18 + ((t * 8) % (r * 0.18)), w, 1 + i);
+      g.restore();
+      g.strokeStyle = rgba(c0, 0.9); g.lineWidth = 1.2;
+      for (let i = -10; i <= 10; i++) { g.beginPath(); g.moveTo(w / 2 + i * 14, hz); g.lineTo(w / 2 + i * 120, h); g.stroke(); }
+      for (let i = 0; i < 9; i++) { const k = ((i + (t * 0.7 % 1)) / 9); const y = hz + (h - hz) * k * k; g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
+      if (lines) text(g, lines, w, h * 0.5, c0, c1, h * 0.17, P);
+    },
+    bars(g, w, h, t, P, spec, c0, c1, lines) {
+      bg(g, w, h, c0, c1, 0.3);
+      const n = 32, bw = w / n;
+      for (let i = 0; i < n; i++) {
+        const v = Math.pow(spec[i], 1.1), bh = v * h * 0.9;
+        const gr = g.createLinearGradient(0, h, 0, h - bh); gr.addColorStop(0, c1); gr.addColorStop(1, c0);
+        g.fillStyle = gr; g.fillRect(i * bw + 2, h - bh, bw - 4, bh);
+        g.fillStyle = '#fff'; g.fillRect(i * bw + 2, h - bh - 4, bw - 4, 3);
+      }
+      if (lines) text(g, lines, w, h * 0.55, c0, c1, h * 0.14, P);
+    },
+    rings(g, w, h, t, P, spec, c0, c1, lines) {
+      bg(g, w, h, c0, c1, 0.25);
+      g.lineWidth = 3;
+      for (let i = 0; i < 7; i++) {
+        const k = ((i / 7) + t * 0.18) % 1, r = k * w * 0.42 * (1 + 0.1 * P);
+        g.strokeStyle = rgba(i % 2 ? c0 : c1, (1 - k) * 0.9);
+        g.beginPath(); g.ellipse(w / 2, h / 2, r, r * 0.55, 0, 0, Math.PI * 2); g.stroke();
+      }
+      text(g, lines || [], w, h, c0, c1, h * 0.2, P);
+    },
+    stars(g, w, h, t, P, spec, c0, c1, lines) {
+      g.fillStyle = '#04020a'; g.fillRect(0, 0, w, h);
+      const R = mulberry(7);
+      for (let i = 0; i < 90; i++) {
+        const x = R() * w, y = R() * h, tw = 0.4 + 0.6 * Math.abs(Math.sin(t * (0.6 + R()) + i));
+        g.fillStyle = `rgba(255,255,255,${tw})`; g.fillRect(x, y, 1 + R() * 2, 1 + R() * 2);
+      }
+      const cx = ((t * 120) % (w + 300)) - 150, cy = h * 0.2 + cx * 0.3;
+      const tr = g.createLinearGradient(cx - 120, cy - 36, cx, cy); tr.addColorStop(0, 'rgba(0,0,0,0)'); tr.addColorStop(1, c0);
+      g.strokeStyle = tr; g.lineWidth = 4; g.beginPath(); g.moveTo(cx - 120, cy - 36); g.lineTo(cx, cy); g.stroke();
+      text(g, lines || [], w, h, c0, c1, h * 0.2, P);
+    },
+    sunburst(g, w, h, t, P, spec, c0, c1, lines) {
+      bg(g, w, h, c0, c1, 0.4);
+      const n = 18, cx = w / 2, cy = h / 2, rot = t * 0.35;
+      for (let i = 0; i < n; i++) {
+        const a0 = rot + i * Math.PI * 2 / n, a1 = a0 + Math.PI / n;
+        g.fillStyle = i % 2 ? rgba(c0, 0.55 + 0.3 * P) : rgba(c1, 0.35);
+        g.beginPath(); g.moveTo(cx, cy); g.arc(cx, cy, w, a0, a1); g.closePath(); g.fill();
+      }
+      text(g, lines || [], w, h, c0, c1, h * 0.2, P);
+    },
+    wave(g, w, h, t, P, spec, c0, c1, lines) {
+      bg(g, w, h, c0, c1, 0.3);
+      for (let k = 0; k < 4; k++) {
+        g.strokeStyle = rgba(k % 2 ? c0 : c1, 0.85 - k * 0.15); g.lineWidth = 3;
+        g.beginPath();
+        for (let x = 0; x <= w; x += 6) {
+          const y = h / 2 + Math.sin(x * 0.018 + t * (1.4 + k * 0.4) + k) * (22 + 18 * P) * (1 + k * 0.25);
+          x ? g.lineTo(x, y) : g.moveTo(x, y);
+        }
+        g.stroke();
+      }
+      text(g, lines || [], w, h, c0, c1, h * 0.2, P);
+    },
+    countdown(g, w, h, t, P, spec, c0, c1, lines) {
+      bg(g, w, h, c0, c1, 0.35);
+      text(g, lines || ['DOORS OPEN'], w, h, c0, c1, h * 0.16, P);
+    },
+    thanks(g, w, h, t, P, spec, c0, c1, lines) {
+      scenes.stars(g, w, h, t, P, spec, c0, c1, null);
+      g.fillStyle = rgba(c1, 0.18); g.fillRect(0, h * 0.62, w, h * 0.38);
+      text(g, lines || ['THANK YOU'], w, h, c0, c1, h * 0.2, P);
+    }
+  };
+
+  function drawSide(g, w, h, t, P, spec, c0, c1) {
+    g.fillStyle = '#05030c'; g.fillRect(0, 0, w, h);
+    const n = 14, bh = h / n;
+    for (let i = 0; i < n; i++) {
+      const v = spec[(i * 2) % 32] * 0.9 + 0.06, bw = v * w;
+      const gr = g.createLinearGradient(0, 0, bw, 0); gr.addColorStop(0, c1); gr.addColorStop(1, c0);
+      g.fillStyle = gr; g.fillRect(0, i * bh + 2, bw, bh - 4);
+    }
+    g.fillStyle = rgba(c0, 0.25 * P); g.fillRect(0, 0, w, h);
+  }
+
+  return {
+    init(THREE) {
+      mainTex = new THREE.CanvasTexture(mainC); sideTex = new THREE.CanvasTexture(sideC);
+      mainTex.minFilter = sideTex.minFilter = THREE.LinearFilter;
+      mainTex.generateMipmaps = sideTex.generateMipmaps = false;
+      return { main: mainTex, side: sideTex };
+    },
+    scenes: Object.keys(scenes),
+    draw(cue, t, bi, spec, lobbyCountdown) {
+      const [c0, c1] = cue ? cue.colors : SHOW.palettes.deep;
+      const sp = spec || fakeSpec(32, performance.now() / 1000, bi.pulse);
+      const time = performance.now() / 1000;
+      if (lobbyCountdown != null) {
+        scenes.countdown(mg, mainC.width, mainC.height, time, bi.pulse, sp, c0, c1, ['DOORS OPEN', fmtTime(lobbyCountdown)]);
+      } else {
+        const fn = scenes[cue && cue.led] || scenes.title;
+        fn(mg, mainC.width, mainC.height, time, bi.pulse, sp, c0, c1, cue && cue.text);
+      }
+      drawSide(sg, sideC.width, sideC.height, time, bi.pulse, sp, c0, c1);
+      mainTex.needsUpdate = true; sideTex.needsUpdate = true;
+    }
+  };
+})();
+
+/* ===== stage: renderer, sân khấu, tường LED, đèn, hiệu ứng, camera ===== */
+const Stage = (() => {
+  let renderer, scene, camera, canvas;
+  const beams = [], lamps = [], stripMats = [], panelMats = [];
+  let ptA, ptB, hemi, edgeMat, barrier;
+  let fx = null;
+  const FXN = 1600;
+  const camPos = new THREE.Vector3(0, 5.5, 32), camTgt = new THREE.Vector3(0, 6, -10);
+  const tmpV = new THREE.Vector3(), tmpQ = new THREE.Quaternion(), DOWN = new THREE.Vector3(0, -1, 0);
+  const view = { yaw: 0, pitch: 0, fov: 60 };
+  let camMode = 'director';
+  let myPos = new THREE.Vector3(0, 2.15, 14);
+  let quality = { beams: 14, fxScale: 1 };
+
+  const PRESET = {
+    wide: [[0, 5.5, 32], [0, 6, -10]],
+    crane: [[0, 16, 25], [0, 3, -10]],
+    stagel: [[-21, 4, 12], [0, 3.5, -9]],
+    stager: [[21, 4, 12], [0, 3.5, -9]]
+  };
+
+  function gridTexture(c) {
+    const cv = document.createElement('canvas'); cv.width = cv.height = 128;
+    const g = cv.getContext('2d'); g.fillStyle = '#0b0914'; g.fillRect(0, 0, 128, 128);
+    g.strokeStyle = c; g.lineWidth = 2; g.globalAlpha = 0.5; g.strokeRect(1, 1, 126, 126);
+    const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+  }
+
+  function beamMaterial() {
+    return new THREE.ShaderMaterial({
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+      uniforms: { uColor: { value: new THREE.Color('#19e3ff') }, uI: { value: 0 } },
+      vertexShader: 'varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vUv=uv; vN=normalize(normalMatrix*normal); vec4 mv=modelViewMatrix*vec4(position,1.0); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }',
+      fragmentShader: 'uniform vec3 uColor; uniform float uI; varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ float edge=abs(dot(normalize(vN),normalize(vV))); float a=uI*(0.08+0.55*pow(vUv.y,1.6))*(0.25+0.75*edge); gl_FragColor=vec4(uColor*a,a); }'
+    });
+  }
+
+  function init(cv) {
+    canvas = cv;
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+    renderer.setClearColor(0x05030c, 1);
+    scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x05030c, 0.013);
+    renderer.setClearColor(0x05030c, 1);
+    camera = new THREE.PerspectiveCamera(60, 1, 0.3, 700);
+
+    hemi = new THREE.HemisphereLight(0x4a4a9a, 0x0a0614, 0.55); scene.add(hemi);
+    ptA = new THREE.PointLight(0x19e3ff, 1.3, 70, 1.6); ptA.position.set(-13, 11, -2); scene.add(ptA);
+    ptB = new THREE.PointLight(0xff2bd6, 1.3, 70, 1.6); ptB.position.set(13, 11, -2); scene.add(ptB);
+
+    // sàn khán đài
+    const ft = gridTexture('#6a5cff'); ft.repeat.set(60, 60);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(130, 130), new THREE.MeshLambertMaterial({ map: ft }));
+    floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0, 10); scene.add(floor);
+
+    // sân khấu
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(32, 1.5, 13.4), new THREE.MeshLambertMaterial({ color: 0x17122a }));
+    deck.position.set(0, 0.75, -10.7); scene.add(deck);
+    edgeMat = new THREE.MeshBasicMaterial({ color: 0x19e3ff });
+    const edge = new THREE.Mesh(new THREE.BoxGeometry(32, 0.14, 0.16), edgeMat); edge.position.set(0, 1.46, -4.05); scene.add(edge);
+    const edge2 = new THREE.Mesh(new THREE.BoxGeometry(32, 0.14, 0.16), edgeMat); edge2.position.set(0, 0.2, -4.02); scene.add(edge2);
+    for (let i = 0; i < 9; i++) {
+      const m = new THREE.MeshBasicMaterial({ color: 0xff2bd6 }); panelMats.push(m);
+      const s = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.04, 11.6), m); s.position.set(-12.8 + i * 3.2, 1.52, -10.7); scene.add(s);
+    }
+    // barrier trước đám đông
+    barrier = new THREE.Mesh(new THREE.BoxGeometry(34, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: 0x6a5cff }));
+    barrier.position.set(0, 1.1, 1.6); scene.add(barrier);
+
+    // tường LED
+    const tex = LED.init(THREE);
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(25, 11.5, 0.5), new THREE.MeshLambertMaterial({ color: 0x0c0a16 }));
+    frame.position.set(0, 7.9, -17.7); scene.add(frame);
+    const wall = new THREE.Mesh(new THREE.PlaneGeometry(24, 10.5), new THREE.MeshBasicMaterial({ map: tex.main, fog: false }));
+    wall.position.set(0, 7.9, -17.4); scene.add(wall);
+    [-1, 1].forEach(sx => {
+      const sc = new THREE.Mesh(new THREE.PlaneGeometry(5, 11.25), new THREE.MeshBasicMaterial({ map: tex.side, fog: false }));
+      sc.position.set(sx * 17.6, 7.6, -9.5); sc.rotation.y = -sx * 0.42; scene.add(sc);
+      const post = new THREE.Mesh(new THREE.BoxGeometry(5.4, 11.7, 0.4), new THREE.MeshLambertMaterial({ color: 0x0c0a16 }));
+      post.position.set(sx * 17.6, 7.6, -9.62); post.rotation.y = -sx * 0.42; scene.add(post);
+    });
+
+    // giàn truss
+    const metal = new THREE.MeshLambertMaterial({ color: 0x2a2a3e });
+    [[-6, 14], [-14, 14]].forEach(([z, y]) => {
+      const b = new THREE.Mesh(new THREE.BoxGeometry(32, 0.4, 0.4), metal); b.position.set(0, y, z); scene.add(b);
+    });
+    [-15.5, 15.5].forEach(x => {
+      const p = new THREE.Mesh(new THREE.BoxGeometry(0.4, 14, 8.4), metal); p.position.set(x, 7, -10); scene.add(p);
+    });
+
+    // đèn beam
+    const geo = new THREE.CylinderGeometry(0.15, 2.7, 34, 14, 1, true); geo.translate(0, -17, 0);
+    for (let i = 0; i < 14; i++) {
+      const row = i < 7 ? 0 : 1, k = i % 7;
+      const x = -12 + k * 4, z = row ? -14 : -6;
+      const piv = new THREE.Object3D(); piv.position.set(x, 13.6, z);
+      const mesh = new THREE.Mesh(geo, beamMaterial()); piv.add(mesh); scene.add(piv);
+      const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff })); lamp.position.copy(piv.position); lamp.position.y -= 0.3; scene.add(lamp);
+      beams.push({ piv, mesh, lamp, x, z, row, k, cur: new THREE.Vector3(x, 0, 10), tgt: new THREE.Vector3() }); lamps.push(lamp);
+    }
+
+    // hạt hiệu ứng
+    const pos = new Float32Array(FXN * 3), col = new Float32Array(FXN * 3);
+    for (let i = 0; i < FXN; i++) pos[i * 3 + 1] = -100;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3).setUsage(THREE.DynamicDrawUsage));
+    const pts = new THREE.Points(g, new THREE.PointsMaterial({ size: 0.55, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    pts.frustumCulled = false; scene.add(pts);
+    fx = { pts, pos, col, vel: new Float32Array(FXN * 3), life: new Float32Array(FXN), max: new Float32Array(FXN), base: new Float32Array(FXN * 3), grav: new Float32Array(FXN), next: 0 };
+
+    return { scene, camera, renderer };
+  }
+
+  /* --- hạt --- */
+  function spawn(p, v, c, life, grav) {
+    const i = fx.next; fx.next = (fx.next + 1) % FXN;
+    fx.pos[i * 3] = p[0]; fx.pos[i * 3 + 1] = p[1]; fx.pos[i * 3 + 2] = p[2];
+    fx.vel[i * 3] = v[0]; fx.vel[i * 3 + 1] = v[1]; fx.vel[i * 3 + 2] = v[2];
+    fx.base[i * 3] = c[0]; fx.base[i * 3 + 1] = c[1]; fx.base[i * 3 + 2] = c[2];
+    fx.life[i] = fx.max[i] = life; fx.grav[i] = grav;
+  }
+  function burst(kind, colors) {
+    const cs = colors.map(hex2rgb), sc = quality.fxScale;
+    if (kind === 'confetti') {
+      const n = (260 * sc) | 0;
+      for (let i = 0; i < n; i++) spawn([rnd(-16, 16), rnd(13, 18), rnd(-8, 22)], [rnd(-1.5, 1.5), rnd(-2.5, -0.8), rnd(-1.5, 1.5)], i % 5 === 0 ? [1, 1, 1] : cs[i % cs.length], rnd(5, 8), 0.5);
+    } else if (kind === 'sparks') {
+      [-13, -7, 7, 13].forEach(x => {
+        const n = (70 * sc) | 0;
+        for (let i = 0; i < n; i++) spawn([x + rnd(-.3, .3), 1.6, -4.3], [rnd(-2.5, 2.5), rnd(10, 17), rnd(-1, 3)], cs[i % cs.length], rnd(1.2, 2), 12);
+      });
+    } else if (kind === 'fireworks') {
+      const centers = 5;
+      for (let c = 0; c < centers; c++) {
+        const cx = rnd(-22, 22), cy = rnd(16, 26), cz = rnd(-14, 8), col = [cs[c % cs.length], [1, 0.9, 0.5], [1, 1, 1]][c % 3];
+        const n = (110 * sc) | 0;
+        for (let i = 0; i < n; i++) {
+          const th = Math.random() * 6.283, ph = Math.acos(rnd(-1, 1)), sp = rnd(6, 13);
+          spawn([cx, cy, cz], [Math.sin(ph) * Math.cos(th) * sp, Math.cos(ph) * sp, Math.sin(ph) * Math.sin(th) * sp], col, rnd(1.6, 2.4), 6);
+        }
+      }
+    }
+  }
+  function updateFx(dt) {
+    const f = fx;
+    for (let i = 0; i < FXN; i++) {
+      if (f.life[i] <= 0) continue;
+      f.life[i] -= dt;
+      if (f.life[i] <= 0) { f.pos[i * 3 + 1] = -100; f.col[i * 3] = f.col[i * 3 + 1] = f.col[i * 3 + 2] = 0; continue; }
+      f.vel[i * 3 + 1] -= f.grav[i] * dt;
+      const drag = f.grav[i] > 5 ? 0.985 : 0.995;
+      f.vel[i * 3] *= drag; f.vel[i * 3 + 2] *= drag;
+      f.pos[i * 3] += f.vel[i * 3] * dt; f.pos[i * 3 + 1] += f.vel[i * 3 + 1] * dt; f.pos[i * 3 + 2] += f.vel[i * 3 + 2] * dt;
+      const k = Math.min(1, f.life[i] / f.max[i] * 1.6);
+      f.col[i * 3] = f.base[i * 3] * k; f.col[i * 3 + 1] = f.base[i * 3 + 1] * k; f.col[i * 3 + 2] = f.base[i * 3 + 2] * k;
+    }
+    f.pts.geometry.attributes.position.needsUpdate = true; f.pts.geometry.attributes.color.needsUpdate = true;
+  }
+
+  /* --- đèn --- */
+  function updateLights(W, time, dt) {
+    const mode = W.cue ? W.cue.light : 'dim', c0 = W.colors[0], c1 = W.colors[1];
+    const col0 = new THREE.Color(c0), col1 = new THREE.Color(c1);
+    const P = W.bi.pulse, beat = W.bi.beat, e = W.energy;
+    const focus = Performers.focusPoint();
+    const N = quality.beams;
+    for (let i = 0; i < beams.length; i++) {
+      const b = beams[i], u = b.k / 6;
+      if (N < 14 && b.row === 1) { b.mesh.visible = false; b.lamp.visible = false; continue; }
+      b.mesh.visible = true; b.lamp.visible = true;
+      let I = 0.1;
+      const t = b.tgt;
+      switch (mode) {
+        case 'sweep': t.set(Math.sin(time * 0.9 + i * 0.55) * 24, 0, 8 + Math.cos(time * 0.7 + i) * 14); I = 0.8; break;
+        case 'fan': t.set((u - 0.5) * 46 * (1 + 0.18 * P), 0, 9 + b.row * 6); I = 0.85; break;
+        case 'cross': t.set((b.k % 2 ? 1 : -1) * (6 + Math.sin(time * 0.8) * 7) + (u - 0.5) * 8, 0, 4 + b.row * 8); I = 0.9; break;
+        case 'chase': t.set((u - 0.5) * 40, 0, 7 + b.row * 6); I = ((Math.floor(beat * 2) + i) % 4 === 0) ? 1 : 0.08; break;
+        case 'strobe': t.set((u - 0.5) * 36, 0, 8 + b.row * 6); I = P > 0.5 ? 1 : 0.04; break;
+        case 'spot': t.set(focus.x + Math.sin(time * 1.3 + i) * 0.8, 2, focus.z + 0.5); I = 0.95; break;
+        case 'converge': t.set(focus.x * 0.5, 3 + 3 * P, focus.z + 0.5); I = 0.7 + 0.3 * P; break;
+        default: t.set((u - 0.5) * 24, 0, 6); I = 0.16;
+      }
+      b.cur.lerp(t, 1 - Math.exp(-dt * 6));
+      tmpV.copy(b.cur).sub(b.piv.position).normalize();
+      tmpQ.setFromUnitVectors(DOWN, tmpV); b.piv.quaternion.copy(tmpQ);
+      const col = (i % 2) ? col0 : col1;
+      b.mesh.material.uniforms.uColor.value.copy(col);
+      b.mesh.material.uniforms.uI.value = I * (0.55 + 0.6 * e) * (mode === 'dim' ? 1 : (0.75 + 0.35 * P));
+      b.lamp.material.color.copy(col).multiplyScalar(0.3 + I);
+    }
+    ptA.color.copy(col0); ptB.color.copy(col1);
+    const base = mode === 'dim' ? 0.7 : 1.2 + 0.8 * P * e;
+    ptA.intensity = base; ptB.intensity = base;
+    edgeMat.color.copy(col0).multiplyScalar(0.5 + 0.8 * P);
+    panelMats.forEach((m, i) => m.color.copy(i % 2 ? col0 : col1).multiplyScalar(mode === 'dim' ? 0.25 : 0.35 + 0.65 * (((Math.floor(beat * 2) + i) % 3 === 0) ? 1 : 0.35)));
+  }
+
+  /* --- camera --- */
+  function updateCamera(W, time, dt) {
+    const k = 1 - Math.exp(-dt * 2.4);
+    if (camMode === 'audience') {
+      camera.position.lerp(myPos, 1 - Math.exp(-dt * 5));
+      camTgt.set(0, 5.5, -10);
+      camera.lookAt(camTgt);
+      camera.rotateY(view.yaw); camera.rotateX(view.pitch);
+      camera.position.y += Math.sin(time * 2.2) * 0.012 * W.energy;
+      camera.fov = lerp(camera.fov, view.fov - 3 * W.bi.pulse * W.energy, 0.2);
+    } else {
+      const m = W.cue ? W.cue.cam : 'wide';
+      let p, tg;
+      if (m === 'closeup') { const f = Performers.focusPoint(); p = [f.x * 0.4, 4.2, 3.5]; tg = [f.x, 3.4, f.z]; }
+      else if (m === 'orbit') { const a = Math.sin(time * 0.18) * 0.95; p = [Math.sin(a) * 25, 8 + Math.sin(time * 0.3) * 1.5, -8 + Math.cos(a) * 25]; tg = [0, 4, -10]; }
+      else { const pr = PRESET[m] || PRESET.wide; p = pr[0]; tg = pr[1]; }
+      camPos.x = lerp(camPos.x, p[0], k); camPos.y = lerp(camPos.y, p[1], k); camPos.z = lerp(camPos.z, p[2], k);
+      camTgt.x = lerp(camTgt.x, tg[0], k * 1.4); camTgt.y = lerp(camTgt.y, tg[1], k * 1.4); camTgt.z = lerp(camTgt.z, tg[2], k * 1.4);
+      camera.position.copy(camPos); camera.lookAt(camTgt);
+      camera.fov = lerp(camera.fov, 56 - 3 * W.bi.pulse * W.energy, 0.15);
+    }
+    camera.updateProjectionMatrix();
+  }
+
+  function resize(w, h, pr) {
+    renderer.setPixelRatio(pr); renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+
+  return {
+    init, resize, burst, updateFx, updateLights, updateCamera,
+    get scene() { return scene; }, get camera() { return camera; }, get renderer() { return renderer; },
+    render() { renderer.render(scene, camera); },
+    setCamMode(m) { camMode = m; }, getCamMode() { return camMode; },
+    setMyPos(x, z) { myPos.set(x, 2.15, z); },
+    look(dx, dy) { view.yaw = clamp(view.yaw + dx, -3.2, 3.2); view.pitch = clamp(view.pitch + dy, -0.45, 0.5); },
+    zoom(d) { view.fov = clamp(view.fov + d, 34, 80); },
+    resetLook() { view.yaw = 0; view.pitch = 0; view.fov = 60; },
+    setQuality(q) { quality = q; },
+    info() { return renderer.info.render; }
+  };
+})();
+
+/* ===== env: không gian nền quanh khu concert (trời, đường chân trời, đèn pha, đèn lồng, pháo hoa).
+   Cấu hình ở runtime qua SHOW.venue do Event Agent viết; không có gì cứng trong mã. ===== */
+const Env = (() => {
+  let scene, V, root, quality = 1;
+  const U = { uTime: { value: 0 }, uE: { value: 0.2 }, uP: { value: 0 }, uC0: { value: null }, uC1: { value: null } };
+  const lights = [], lanterns = [], bursts = [], poles = {};
+  let hills, skyline, windows, sky, lastBurst = -9, burstIdx = 0, lastCheer = 0;
+  const rnd = (() => { let s = 7; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
+  const col = h => new THREE.Color(h);
+
+  const DEFAULT = {
+    preset: 'festival', name: '',
+    sky: { top: '#02010a', mid: '#140a33', horizon: '#3a1450' },
+    ground: '#07050f', moon: true, stars: true,
+    searchlights: 5, lanterns: true, fireworks: true, towers: true
+  };
+
+  function merge(v) {
+    const o = JSON.parse(JSON.stringify(DEFAULT));
+    if (v) { Object.assign(o, v); o.sky = Object.assign({}, DEFAULT.sky, v.sky || {}); }
+    return o;
+  }
+
+  function skyDome() {
+    const m = new THREE.ShaderMaterial({
+      side: THREE.BackSide, depthWrite: false, fog: false,
+      uniforms: Object.assign({ uTop: { value: col(V.sky.top) }, uMid: { value: col(V.sky.mid) }, uHor: { value: col(V.sky.horizon) }, uMoon: { value: V.moon ? 1 : 0 }, uStars: { value: V.stars ? 1 : 0 } }, U),
+      vertexShader: 'varying vec3 vP; void main(){ vP=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+      fragmentShader: `uniform vec3 uTop,uMid,uHor,uC0,uC1; uniform float uTime,uE,uP,uMoon,uStars; varying vec3 vP;
+        float h(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+        void main(){
+          float y=max(vP.y,0.0);
+          vec3 c=mix(uHor,uMid,smoothstep(0.0,0.22,y)); c=mix(c,uTop,smoothstep(0.18,0.75,y));
+          vec2 g=vec2(atan(vP.x,vP.z)*46.0,y*90.0); vec2 id=floor(g); float r=h(id);
+          float st=step(0.982,r)*smoothstep(0.04,0.25,y)*(0.45+0.55*sin(uTime*(1.5+r*2.0)+r*60.0));
+          st*=smoothstep(0.38,0.0,length(fract(g)-0.5)); c+=vec3(0.8,0.85,1.0)*st*uStars;
+          vec3 md=normalize(vec3(-0.5,0.38,-0.78)); float d=dot(vP,md);
+          c+=vec3(1.0,0.94,0.78)*smoothstep(0.9988,0.9994,d)*uMoon+vec3(0.55,0.6,0.9)*smoothstep(0.975,1.0,d)*0.22*uMoon;
+          float back=smoothstep(0.1,-0.9,vP.z);
+          vec3 glow=mix(uC0,uC1,0.5+0.5*sin(atan(vP.x,-vP.z)*2.0+uTime*0.2));
+          c+=glow*exp(-y*5.0)*(0.1+0.55*uE+0.25*uP*uE)*(0.35+0.65*back);
+          gl_FragColor=vec4(c,1.0);
+        }`
+    });
+    sky = new THREE.Mesh(new THREE.SphereGeometry(320, 32, 16), m); sky.renderOrder = -10; root.add(sky);
+  }
+
+  function ground() {
+    const g = new THREE.Mesh(new THREE.CircleGeometry(420, 48), new THREE.MeshBasicMaterial({ color: col(V.ground) }));
+    g.rotation.x = -Math.PI / 2; g.position.y = -0.06; root.add(g);
+  }
+
+  const windowMat = (size) => new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+    uniforms: Object.assign({ uSize: { value: size } }, U),
+    vertexShader: 'attribute float aS; attribute float aT; varying float vS; varying float vT; uniform float uSize; void main(){ vS=aS; vT=aT; vec4 mv=modelViewMatrix*vec4(position,1.0); gl_PointSize=uSize*(300.0/-mv.z); gl_Position=projectionMatrix*mv; }',
+    fragmentShader: 'uniform float uTime,uE,uP; uniform vec3 uC0,uC1; varying float vS; varying float vT; void main(){ vec2 q=gl_PointCoord-0.5; float a=smoothstep(0.5,0.1,length(q)); float tw=0.55+0.45*sin(uTime*(0.6+vS*2.5)+vS*40.0); vec3 base=vT<0.5?vec3(1.0,0.82,0.5):(vT<0.85?vec3(0.6,0.8,1.0):mix(uC0,uC1,vS)); gl_FragColor=vec4(base*tw*(0.7+0.5*uE*uP),a*(0.5+0.5*tw)); }'
+  });
+
+  function cityline() {
+    const N = quality > 0.6 ? 90 : 50, geo = new THREE.BoxGeometry(1, 1, 1);
+    const mat = new THREE.MeshBasicMaterial({ color: 0x090716, fog: false });
+    skyline = new THREE.InstancedMesh(geo, mat, N);
+    const d = new THREE.Object3D(), pos = [], aS = [], aT = [];
+    for (let i = 0; i < N; i++) {
+      const a = (-Math.PI * 0.95 + (i / N) * Math.PI * 1.9) * (i % 5 === 0 ? 1.0 : 1.0), rad = 150 + rnd() * 70;
+      // phía sau sân khấu (z âm) dày và cao, hai bên thấp dần
+      const x = Math.sin(a) * rad * 1.15, z = -Math.cos(a) * rad * 0.9 - 40, side = Math.abs(a) / Math.PI;
+      const w = 8 + rnd() * 14, dp = 8 + rnd() * 10, hgt = (18 + rnd() * 70) * (1.05 - 0.55 * side);
+      d.position.set(x, hgt / 2, z); d.scale.set(w, hgt, dp); d.rotation.y = Math.atan2(-x, -z + 0); d.updateMatrix(); skyline.setMatrixAt(i, d.matrix);
+      const cnt = Math.floor(hgt * w / 55 * quality);
+      for (let k = 0; k < cnt; k++) {
+        const u = (rnd() - 0.5) * (w - 1.4), v = 1.5 + rnd() * (hgt - 3), lp = new THREE.Vector3(u, v - hgt / 2, dp / 2 + 0.08);
+        lp.applyEuler(d.rotation).add(d.position); pos.push(lp.x, lp.y + hgt / 2 - hgt / 2, lp.z); aS.push(rnd()); aT.push(rnd());
+      }
+    }
+    root.add(skyline);
+    const pg = new THREE.BufferGeometry();
+    pg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); pg.setAttribute('aS', new THREE.Float32BufferAttribute(aS, 1)); pg.setAttribute('aT', new THREE.Float32BufferAttribute(aT, 1));
+    windows = new THREE.Points(pg, windowMat(2.4)); windows.frustumCulled = false; root.add(windows);
+  }
+
+  function hillring() {
+    const seg = 160, pos = [], idx = [], H = [];
+    for (let i = 0; i <= seg; i++) {
+      const a = (i / seg) * Math.PI * 2, r = 300;
+      const hh = 14 + 18 * Math.abs(Math.sin(a * 3 + 0.6)) + 9 * Math.sin(a * 7 + 2) + 5 * Math.sin(a * 17);
+      H.push(hh);
+      pos.push(Math.sin(a) * r, 0, -Math.cos(a) * r, Math.sin(a) * r * 0.9, Math.max(hh, 4), -Math.cos(a) * r * 0.9);
+      if (i < seg) { const k = i * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); }
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx);
+    hills = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0x07050f, side: THREE.DoubleSide, fog: false }));
+    root.add(hills);
+    // đèn làng mạc dưới chân đồi
+    const n = Math.floor(260 * quality), p2 = [], s2 = [], t2 = [];
+    for (let i = 0; i < n; i++) {
+      const j = Math.floor(rnd() * seg), a = (j / seg) * Math.PI * 2, r = 280 - rnd() * 14, hh = Math.max(4, H[j] * (0.15 + rnd() * 0.5));
+      p2.push(Math.sin(a) * r + (rnd() - 0.5) * 6, hh, -Math.cos(a) * r); s2.push(rnd()); t2.push(rnd() * 0.5);
+    }
+    const g2 = new THREE.BufferGeometry(); g2.setAttribute('position', new THREE.Float32BufferAttribute(p2, 3)); g2.setAttribute('aS', new THREE.Float32BufferAttribute(s2, 1)); g2.setAttribute('aT', new THREE.Float32BufferAttribute(t2, 1));
+    windows = new THREE.Points(g2, windowMat(3.2)); windows.frustumCulled = false; root.add(windows);
+  }
+
+  function searchlights() {
+    const n = Math.round(V.searchlights * (quality > 0.6 ? 1 : 0.5));
+    for (let i = 0; i < n; i++) {
+      const m = new THREE.ShaderMaterial({
+        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
+        uniforms: { uColor: { value: new THREE.Color('#19e3ff') }, uI: { value: 0.3 } },
+        vertexShader: 'varying float vY; void main(){ vY=uv.y; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+        fragmentShader: 'uniform vec3 uColor; uniform float uI; varying float vY; void main(){ gl_FragColor=vec4(uColor*uI*(1.0-vY*0.85),(1.0-vY)*0.55*uI); }'
+      });
+      const geo = new THREE.CylinderGeometry(0.5, 7, 260, 14, 1, true); geo.translate(0, 130, 0);
+      const mesh = new THREE.Mesh(geo, m), pv = new THREE.Group(), a = (i / n) * Math.PI - Math.PI * 0.5;
+      pv.position.set(Math.sin(a) * 150 * 1.2, 0, -90 - Math.cos(a) * 60 - 40); pv.add(mesh); root.add(pv);
+      lights.push({ pv, m, ph: i * 1.7, sp: 0.25 + rnd() * 0.3 });
+    }
+  }
+
+  function towers() {
+    const dark = new THREE.MeshLambertMaterial({ color: 0x14102a }), glow = new THREE.MeshBasicMaterial({ color: 0x19e3ff });
+    poles.glow = glow;
+    [-1, 1].forEach(sx => {
+      const x = sx * 21;
+      const t = new THREE.Mesh(new THREE.BoxGeometry(1.1, 17, 1.1), dark); t.position.set(x, 8.5, -9); root.add(t);
+      for (let i = 0; i < 5; i++) {
+        const sp = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.6, 1.7), dark); sp.position.set(x, 1.4 + i * 1.75, -8.2); root.add(sp);
+        const gl = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.07, 0.07), glow); gl.position.set(x, 2.25 + i * 1.75, -7.3); root.add(gl);
+      }
+    });
+  }
+
+  function lanternRows() {
+    const rows = [8, 26, 46], per = Math.floor(26 * Math.min(1, quality + 0.3)), N = rows.length * per * 2;
+    const geo = new THREE.SphereGeometry(0.42, 8, 6); geo.scale(1, 1.25, 1);
+    const mA = new THREE.MeshBasicMaterial({ color: 0xff3b3b, fog: false }), mB = new THREE.MeshBasicMaterial({ color: 0xffc23d, fog: false });
+    const A = new THREE.InstancedMesh(geo, mA, N / 2), B = new THREE.InstancedMesh(geo, mB, N / 2);
+    const d = new THREE.Object3D(); let ia = 0, ib = 0;
+    const strings = [];
+    rows.forEach((z, ri) => {
+      for (let i = 0; i < per * 2; i++) {
+        const u = i / (per * 2 - 1), x = (u - 0.5) * 84, y = 10.5 - 2.2 * (1 - Math.pow(2 * u - 1, 2)) - ri * 0.3;
+        d.position.set(x, y, z); d.updateMatrix();
+        if (i % 2) B.setMatrixAt(ib++, d.matrix); else A.setMatrixAt(ia++, d.matrix);
+        lanterns.push({ i, x, y, z });
+      }
+      // dây
+      const pts = []; for (let k = 0; k <= 24; k++) { const u = k / 24; pts.push(new THREE.Vector3((u - 0.5) * 84, 10.5 - 2.2 * (1 - Math.pow(2 * u - 1, 2)) + 0.4 - ri * 0.3, z)); }
+      root.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0x3a2a40, fog: false })));
+      [-1, 1].forEach(sx => { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 11, 6), new THREE.MeshBasicMaterial({ color: 0x1a1426 })); p.position.set(sx * 42, 5.5, z); root.add(p); });
+    });
+    root.add(A); root.add(B); poles.lanA = mA; poles.lanB = mB; poles.lanMesh = [A, B];
+  }
+
+  function fireworks() {
+    for (let b = 0; b < 4; b++) {
+      const n = Math.floor(150 * Math.min(1, quality + 0.3)), dir = [], sp = [];
+      for (let i = 0; i < n; i++) { const th = rnd() * Math.PI * 2, ph = Math.acos(2 * rnd() - 1); dir.push(Math.sin(ph) * Math.cos(th), Math.sin(ph) * Math.sin(th), Math.cos(ph)); sp.push(0.5 + rnd() * 0.5); }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(n * 3), 3));
+      g.setAttribute('aDir', new THREE.Float32BufferAttribute(dir, 3)); g.setAttribute('aSp', new THREE.Float32BufferAttribute(sp, 1));
+      const m = new THREE.ShaderMaterial({
+        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+        uniforms: { uC: { value: new THREE.Vector3() }, uAge: { value: 99 }, uCol: { value: new THREE.Color('#ffffff') } },
+        vertexShader: 'attribute vec3 aDir; attribute float aSp; uniform vec3 uC; uniform float uAge; varying float vF; void main(){ vec3 p=uC+aDir*aSp*(1.0-exp(-uAge*1.7))*34.0; p.y-=3.2*uAge*uAge; vF=clamp(1.0-uAge/3.4,0.0,1.0); vec4 mv=modelViewMatrix*vec4(p,1.0); gl_PointSize=(3.0+5.0*vF)*(300.0/-mv.z)*2.0; gl_Position=projectionMatrix*mv; }',
+        fragmentShader: 'uniform vec3 uCol; varying float vF; void main(){ float a=smoothstep(0.5,0.0,length(gl_PointCoord-0.5)); gl_FragColor=vec4(uCol*(0.6+vF),a*vF); }'
+      });
+      const pt = new THREE.Points(g, m); pt.frustumCulled = false; pt.visible = false; root.add(pt); bursts.push({ pt, m, age: 99 });
+    }
+  }
+
+  function init(THREE_, sc, venue) {
+    scene = sc; V = merge(venue); root = new THREE.Group(); scene.add(root);
+    U.uC0.value = col('#19e3ff'); U.uC1.value = col('#ff2bd6');
+    skyDome(); ground();
+    if (V.preset === 'city') cityline(); else hillring();
+    if (V.searchlights > 0) searchlights();
+    if (V.towers) towers();
+    if (V.lanterns && V.preset !== 'city') lanternRows();
+    if (V.fireworks) fireworks();
+  }
+
+  const t0 = new THREE.Color(), t1 = new THREE.Color();
+  function update(W, time, dt) {
+    if (!root) return;
+    t0.set(W.colors[0]); t1.set(W.colors[1]);
+    U.uC0.value.lerp(t0, 0.05); U.uC1.value.lerp(t1, 0.05);
+    U.uTime.value = time; U.uE.value += (W.energy - U.uE.value) * 0.08; U.uP.value = W.bi.pulse;
+    const e = W.energy, p = W.bi.pulse;
+    lights.forEach((L, i) => {
+      L.pv.rotation.z = Math.sin(time * L.sp + L.ph) * (0.35 + 0.45 * e) + (i % 2 ? 0.12 : -0.12);
+      L.pv.rotation.x = Math.cos(time * L.sp * 0.8 + L.ph) * 0.3 - 0.1;
+      L.m.uniforms.uColor.value.copy(i % 2 ? U.uC0.value : U.uC1.value); L.m.uniforms.uI.value = (W.phase === 'show' ? 0.2 + 0.7 * e : 0.12) * (0.75 + 0.25 * p);
+    });
+    if (poles.glow) poles.glow.color.copy(U.uC0.value).multiplyScalar(0.5 + 0.8 * p * e);
+    if (poles.lanA) {
+      poles.lanA.color.setRGB(1, 0.2 + 0.1 * p, 0.2).multiplyScalar(0.65 + 0.5 * e + 0.4 * p * e);
+      poles.lanB.color.setRGB(1, 0.76, 0.24).multiplyScalar(0.65 + 0.5 * e + 0.4 * p * e);
+      poles.lanMesh.forEach((m, k) => { m.rotation.z = Math.sin(time * 0.7 + k) * 0.004; });
+    }
+    // pháo hoa: bắn khi khán giả hò reo mạnh, hoặc cue cheer cao
+    const ch = W.cue && W.cue.cheer || 0;
+    if (bursts.length && W.phase === 'show' && ch > 0.6 && time - lastBurst > 1.4 && (ch > lastCheer || Math.random() < 0.02)) {
+      const b = bursts[burstIdx++ % bursts.length];
+      b.m.uniforms.uC.value.set((Math.random() - 0.5) * 220, 55 + Math.random() * 50, -170 - Math.random() * 60);
+      b.m.uniforms.uCol.value.copy(Math.random() < 0.5 ? U.uC0.value : U.uC1.value).lerp(new THREE.Color(1, 1, 1), 0.35);
+      b.age = 0; b.pt.visible = true; lastBurst = time;
+    }
+    lastCheer = ch;
+    bursts.forEach(b => { if (b.age < 4) { b.age += dt; b.m.uniforms.uAge.value = b.age; if (b.age >= 3.5) b.pt.visible = false; } });
+  }
+
+  return { init, update, setQuality(q) { quality = q; }, get venue() { return V; } };
+})();
+
+/* ===== performers: ban nhạc dựng bằng khối hình, hoạt ảnh theo nhịp ===== */
+const Performers = (() => {
+  const root = new THREE.Group();
+  const bands = {};
+  const focus = { x: 0, z: -7 };
+  const G = { box: new THREE.BoxGeometry(1, 1, 1), sph: new THREE.SphereGeometry(1, 14, 10), cyl: new THREE.CylinderGeometry(1, 1, 1, 16), cone: new THREE.ConeGeometry(1, 1, 6), cap: new THREE.SphereGeometry(1, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2) };
+  const dark = new THREE.MeshLambertMaterial({ color: 0x15121f, emissive: 0x050408 });
+  const metal = new THREE.MeshLambertMaterial({ color: 0x3a3650, emissive: 0x0c0b12 });
+
+  function lam(c, em) { const m = new THREE.MeshLambertMaterial({ color: c }); m.emissive = new THREE.Color(c).multiplyScalar(em == null ? 0.18 : em); return m; }
+  function neon(c) { return new THREE.MeshBasicMaterial({ color: c }); }
+  function mesh(geo, mat, sx, sy, sz, x, y, z) { const m = new THREE.Mesh(geo, mat); m.scale.set(sx, sy, sz); m.position.set(x || 0, y || 0, z || 0); return m; }
+
+  function makeHair(style, color, head) {
+    const m = lam(color, 0.25);
+    if (style === 'spiky') {
+      for (let i = 0; i < 5; i++) { const c = mesh(G.cone, m, 0.11, 0.34, 0.11, (i - 2) * 0.13, 0.34, (i % 2) * 0.06 - 0.03); c.rotation.z = -(i - 2) * 0.22; head.add(c); }
+      head.add(mesh(G.cap, m, 0.325, 0.3, 0.325, 0, 0.02, -0.01));
+    } else if (style === 'swoop') {
+      head.add(mesh(G.cap, m, 0.335, 0.32, 0.335, 0, 0.03, -0.02));
+      const s = mesh(G.box, m, 0.4, 0.12, 0.3, 0.12, 0.2, 0.18); s.rotation.z = -0.35; head.add(s);
+    } else if (style === 'ponytail') {
+      head.add(mesh(G.cap, m, 0.33, 0.32, 0.33, 0, 0.03, -0.02));
+      const t = mesh(G.sph, m, 0.12, 0.4, 0.12, 0, -0.12, -0.36); t.rotation.x = 0.4; head.add(t);
+      head.add(mesh(G.sph, neon(0xffffff), 0.06, 0.06, 0.06, 0, 0.1, -0.33));
+    } else if (style === 'bob') {
+      head.add(mesh(G.cap, m, 0.34, 0.32, 0.34, 0, 0.03, -0.02));
+      head.add(mesh(G.box, m, 0.68, 0.38, 0.36, 0, -0.08, -0.12));
+    } else {
+      head.add(mesh(G.cap, m, 0.33, 0.3, 0.33, 0, 0.03, -0.01));
+    }
+  }
+
+  function makeMember(spec, pal) {
+    const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
+    const skin = lam(spec.skin, 0.2), outfit = lam(spec.outfit, 0.3), accent = neon(pal.accent);
+    const legs = [-1, 1].map(s => {
+      const p = new THREE.Group(); p.position.set(s * 0.17, 0.88, 0);
+      p.add(mesh(G.box, dark, 0.3, 0.85, 0.32, 0, -0.43, 0));
+      p.add(mesh(G.box, neon(pal.main), 0.32, 0.1, 0.38, 0, -0.84, 0.03));
+      body.add(p); return p;
+    });
+    body.add(mesh(G.box, outfit, 0.8, 0.96, 0.44, 0, 1.36, 0));
+    body.add(mesh(G.box, accent, 0.82, 0.07, 0.46, 0, 1.62, 0));
+    body.add(mesh(G.box, accent, 0.07, 0.96, 0.46, 0, 1.36, 0));
+    const head = new THREE.Group(); head.position.set(0, 2.12, 0); body.add(head);
+    head.add(mesh(G.sph, skin, 0.3, 0.31, 0.3));
+    [-1, 1].forEach(s => head.add(mesh(G.sph, dark, 0.04, 0.05, 0.03, s * 0.11, 0.03, 0.27)));
+    head.add(mesh(G.box, lam(0xb04a5a, 0.1), 0.11, 0.03, 0.03, 0, -0.1, 0.285));
+    makeHair(spec.hairStyle, spec.hair, head);
+    const arms = [-1, 1].map(s => {
+      const p = new THREE.Group(); p.position.set(s * 0.52, 1.74, 0);
+      p.add(mesh(G.box, outfit, 0.22, 0.42, 0.24, 0, -0.2, 0));
+      p.add(mesh(G.box, skin, 0.19, 0.4, 0.21, 0, -0.62, 0));
+      body.add(p); return p;
+    });
+    const m = { root, body, head, legs, armL: arms[0], armR: arms[1], role: spec.role, seed: hashStr(spec.stage) % 100 / 100 * 6.28, parts: {} };
+
+    if (spec.role === 'vocal') {
+      const mic = new THREE.Group();
+      mic.add(mesh(G.cyl, metal, 0.04, 0.22, 0.04, 0, 0, 0));
+      mic.add(mesh(G.sph, neon(0xffffff), 0.075, 0.075, 0.075, 0, 0.15, 0));
+      mic.position.set(0, -0.82, 0.08); m.armR.add(mic);
+    } else if (spec.role === 'guitar' || spec.role === 'bass') {
+      const g = new THREE.Group();
+      const bodyM = lam(spec.role === 'bass' ? 0x2a1f3d : parseInt(pal.main.slice(1), 16), 0.3);
+      g.add(mesh(G.box, bodyM, 0.62, 0.5, 0.14, 0, 0, 0));
+      g.add(mesh(G.box, accent, 0.64, 0.05, 0.16, 0, 0.22, 0));
+      const len = spec.role === 'bass' ? 1.25 : 1.0;
+      g.add(mesh(G.box, dark, len, 0.09, 0.08, -0.5 - len / 2 + 0.3, 0.12, 0));
+      g.position.set(0.05, 1.12, 0.3); g.rotation.z = -0.28; body.add(g); m.parts.inst = g;
+    } else if (spec.role === 'keys') {
+      const k = new THREE.Group();
+      k.add(mesh(G.box, dark, 2.0, 0.14, 0.7, 0, 0, 0));
+      k.add(mesh(G.box, lam(0xf0f0f8, 0.4), 1.9, 0.05, 0.3, 0, 0.1, 0.14));
+      k.add(mesh(G.box, accent, 2.0, 0.05, 0.05, 0, 0.1, -0.3));
+      [-0.8, 0.8].forEach(x => k.add(mesh(G.box, metal, 0.08, 1.0, 0.08, x, -0.55, 0)));
+      k.position.set(0, 1.5, 0.75); root.add(k);
+    } else if (spec.role === 'drums') {
+      const kit = new THREE.Group();
+      const shell = lam(parseInt(pal.main.slice(1), 16), 0.25);
+      const kick = mesh(G.cyl, shell, 0.62, 0.5, 0.62, 0, 0.75, 1.15); kick.rotation.x = Math.PI / 2; kit.add(kick);
+      const sn = mesh(G.cyl, metal, 0.36, 0.16, 0.36, -0.55, 1.2, 0.75); kit.add(sn);
+      [-0.3, 0.3].forEach((x, i) => kit.add(mesh(G.cyl, shell, 0.3, 0.2, 0.3, x, 1.55, 1.1 + i * 0.0)));
+      m.parts.cym = [-1.2, 1.2].map(x => { const c = mesh(G.cyl, lam(0xd9c36a, 0.6), 0.5, 0.025, 0.5, x, 2.05, 0.7); kit.add(c); kit.add(mesh(G.cyl, metal, 0.025, 2.0, 0.025, x, 1.0, 0.7)); return c; });
+      kit.add(mesh(G.cyl, dark, 0.38, 0.8, 0.38, 0, 0.4, -0.2));
+      root.add(kit);
+      m.legs.forEach(l => l.rotation.x = -1.35);
+      body.position.y = -0.05;
+    }
+    return m;
+  }
+
+  function init(THREE_scene) {
+    BANDS.bands.forEach(b => {
+      const g = new THREE.Group(); root.add(g);
+      const members = b.members.map(spec => {
+        const m = makeMember(spec, b.palette); const f = b.formation[spec.role] || [0, -9];
+        m.base = new THREE.Vector3(f[0], 1.5, f[1]); m.root.position.copy(m.base);
+        m.root.scale.setScalar(2.0); g.add(m.root); return m;
+      });
+      bands[b.id] = { spec: b, group: g, members, enter: 0, offX: 0, vocal: members.find(x => x.role === 'vocal') };
+      g.position.y = -7; g.visible = false;
+    });
+    THREE_scene.add(root);
+  }
+
+  function update(W, time, dt) {
+    const mode = W.seg ? W.seg.band : 'none';
+    const e = W.energy, beat = W.bi.beat, h = Math.abs(Math.sin(Math.PI * beat)), P = W.bi.pulse, M = W.live ? W.live.mid : 0;
+    for (const id in bands) {
+      const B = bands[id];
+      const active = mode === 'both' || mode === id;
+      B.enter = lerp(B.enter, active ? 1 : 0, 1 - Math.exp(-dt * 2.2));
+      const targetX = mode === 'both' ? (id === 'solar' ? -7.5 : 7.5) : 0;
+      B.offX = lerp(B.offX, targetX, 1 - Math.exp(-dt * 2));
+      B.group.position.x = B.offX; B.group.position.y = lerp(-7, 0, B.enter);
+      B.group.visible = B.enter > 0.02;
+      if (!B.group.visible) continue;
+      B.members.forEach((m, i) => animate(m, time, beat, h, P, e, id === 'luna', M));
+    }
+    // điểm nhấn: ca sĩ đang hát
+    let target = null;
+    if (mode === 'both') target = bands[Math.floor(W.bi.bar) % 2 === 0 ? 'solar' : 'luna']; else target = bands[mode];
+    if (target) {
+      const v = target.vocal, wx = target.group.position.x + v.root.position.x;
+      focus.x = lerp(focus.x, wx, 0.08); focus.z = lerp(focus.z, v.root.position.z, 0.08);
+    }
+  }
+
+  function animate(m, time, beat, h, P, e, girl, M) {
+    M = M || 0;
+    const s = m.seed, r = m.role, body = m.body;
+    const sway = Math.sin(time * (1.6 + girl * 0.3) + s) * e;
+    m.head.rotation.x = h * 0.12 * e; m.head.rotation.z = sway * 0.06;
+    if (r === 'vocal') {
+      m.root.position.x = m.base.x + Math.sin(time * 0.45 + s) * 2.6 * e;
+      m.root.position.z = m.base.z + 0.5 + Math.sin(time * 0.3 + s) * 0.6 * e;
+      body.position.y = h * 0.22 * e + M * 0.3; body.rotation.z = sway * 0.05 + (M - 0.2) * 0.12; m.head.rotation.x += M * 0.25;
+      m.armR.rotation.x = -2.1 + P * 0.15; m.armR.rotation.z = -0.15;
+      const hype = e > 0.85;
+      m.armL.rotation.z = hype ? 2.6 + Math.sin(time * 5 + s) * 0.35 : 0.35 + Math.sin(time * 2) * 0.1;
+      m.armL.rotation.x = 0;
+      m.legs[0].rotation.x = Math.sin(time * 3 + s) * 0.2 * e; m.legs[1].rotation.x = -m.legs[0].rotation.x;
+    } else if (r === 'guitar' || r === 'bass') {
+      body.position.y = h * 0.12 * e + P * 0.05; body.rotation.z = sway * 0.1; body.rotation.y = Math.sin(time * 0.7 + s) * 0.2;
+      m.armR.rotation.x = -0.9 + Math.sin(time * (r === 'guitar' ? 15 : 8) + s) * 0.3 * e;
+      m.armL.rotation.x = -1.15; m.armL.rotation.z = -0.5;
+      m.legs[0].rotation.z = 0.12 + h * 0.05; m.legs[1].rotation.z = -0.12 - h * 0.05;
+    } else if (r === 'keys') {
+      body.position.y = h * 0.1 * e; body.rotation.z = sway * 0.08;
+      m.armL.rotation.x = -1.2 + Math.sin(time * 6 + s) * 0.25 * e; m.armR.rotation.x = -1.2 + Math.sin(time * 7 + 1) * 0.25 * e;
+    } else if (r === 'drums') {
+      const a = beat * Math.PI * 4;
+      m.armR.rotation.x = -1.0 - Math.max(0, Math.sin(a)) * 0.9 * e - 0.2;
+      m.armL.rotation.x = -1.0 - Math.max(0, Math.sin(a + Math.PI)) * 0.9 * e - 0.2;
+      m.armR.rotation.z = -0.4; m.armL.rotation.z = 0.4;
+      body.position.y = -0.05 + h * 0.06 * e;
+      if (m.parts.cym) m.parts.cym.forEach((c, i) => { c.rotation.z = Math.sin(time * 30 + i) * 0.04 * P * e; });
+    }
+  }
+
+  return { init, update, root, focusPoint() { return focus; } };
+})();
+
+/* ===== crowd: khán giả ảo (instancing + shader), khán giả thật (avatar mặc đồ riêng + vòng sáng + tên) ===== */
+const Crowd = (() => {
+  const MAXV = 1100, MAXR = 128;
+  let scene, vMesh, rMesh, rings, vGeo, rGeo, shared;
+  let vCount = 900, vTotal = 0, vScale = null;
+  const tags = [], emotes = [];
+  const tagCache = new Map(), emoTex = {};
+  const peersView = [];
+  let mySlot = { x: 0, z: 14 }, myIdx = -1, selfVisible = false;
+  let waveAmt = 0;
+
+  /* ---------- hình học: thân, đầu, tóc, tay, gậy; bản đầy đủ thêm mắt, tóc dài/búi, váy, hoodie, mũ, kính, cánh ---------- */
+  function buildBase(full) {
+    const P = [], N = [], I = [], PT = []; let off = 0;
+    function add(geo, part, tx, ty, tz, rx, ry, rz) {
+      if (rx) geo.rotateX(rx); if (ry) geo.rotateY(ry); if (rz) geo.rotateZ(rz);
+      const p = geo.attributes.position.array, n = geo.attributes.normal.array, ix = geo.index.array;
+      for (let i = 0; i < p.length; i += 3) { P.push(p[i] + tx, p[i + 1] + ty, p[i + 2] + tz); N.push(n[i], n[i + 1], n[i + 2]); PT.push(part); }
+      for (let i = 0; i < ix.length; i++) I.push(ix[i] + off);
+      off += p.length / 3;
+    }
+    add(new THREE.CylinderGeometry(0.26, 0.31, 1.15, 8, 1), 0, 0, 0.575, 0);
+    add(new THREE.SphereGeometry(0.24, 8, 6), 1, 0, 1.42, 0);
+    add(new THREE.SphereGeometry(0.265, 8, 4, 0, Math.PI * 2, 0, Math.PI * 0.45), 5, 0, 1.45, -0.01);
+    add(new THREE.BoxGeometry(0.12, 0.66, 0.12), 2, -0.36, 1.1 - 0.33, 0);
+    add(new THREE.BoxGeometry(0.12, 0.66, 0.12), 3, 0.36, 1.1 - 0.33, 0);
+    add(new THREE.CylinderGeometry(0.035, 0.035, 0.62, 5, 1), 4, 0.36, 1.1 - 0.66 - 0.28, 0);
+    if (full) {
+      add(new THREE.SphereGeometry(0.035, 6, 4), 6, -0.085, 1.42, -0.226);
+      add(new THREE.SphereGeometry(0.035, 6, 4), 6, 0.085, 1.42, -0.226);
+      add(new THREE.BoxGeometry(0.5, 0.72, 0.12), 7, 0, 1.2, 0.2);
+      add(new THREE.SphereGeometry(0.14, 8, 6), 8, 0, 1.74, 0.03);
+      add(new THREE.CylinderGeometry(0.3, 0.6, 0.5, 10, 1, true), 9, 0, 0.5, 0);
+      add(new THREE.CylinderGeometry(0.292, 0.292, 0.14, 10, 1, true), 10, 0, 0.86, 0);
+      add(new THREE.SphereGeometry(0.2, 8, 6), 11, 0, 1.2, 0.22);
+      add(new THREE.ConeGeometry(0.085, 0.22, 5), 12, -0.14, 1.74, 0);
+      add(new THREE.ConeGeometry(0.085, 0.22, 5), 12, 0.14, 1.74, 0);
+      add(new THREE.TorusGeometry(0.21, 0.03, 5, 14), 13, 0, 1.92, 0, Math.PI / 2);
+      add(new THREE.CylinderGeometry(0.255, 0.27, 0.14, 10), 14, 0, 1.7, 0);
+      add(new THREE.BoxGeometry(0.34, 0.035, 0.24), 14, 0, 1.64, -0.26);
+      add(new THREE.BoxGeometry(0.46, 0.09, 0.05), 15, 0, 1.45, -0.258);
+      add(new THREE.BoxGeometry(0.34, 0.55, 0.03), 16, -0.3, 1.05, 0.2, 0, 0, 0.45);
+      add(new THREE.BoxGeometry(0.34, 0.55, 0.03), 16, 0.3, 1.05, 0.2, 0, 0, -0.45);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
+    g.setAttribute('part', new THREE.Float32BufferAttribute(PT, 1));
+    g.setIndex(I);
+    return g;
+  }
+
+  const VS = `
+    attribute float part; attribute vec3 iOff; attribute vec3 iCloth; attribute vec3 iSkin; attribute vec4 iAnim;
+    attribute vec4 iLook; attribute vec3 iHair; attribute vec3 iStick;
+    uniform float uTime, uEnergy, uWave, uPulse, uYaw; uniform vec3 uColA, uColB;
+    varying vec3 vBase; varying vec3 vN; varying float vEm; varying float vDepth; varying float vWx; varying float vWz;
+    float on(float v,float k){ return step(abs(v-k),0.5); }
+    void main(){
+      float ph=iAnim.x, sp=iAnim.y, hs=iAnim.z, stick=iAnim.w;
+      vec3 p=position; vec3 n=normal;
+      float hyped=step(1.5,stick), hasStick=step(0.5,stick);
+      p.y*=hs;
+      float act=clamp(uEnergy+hyped*0.6,0.0,1.0);
+      float hop=abs(sin(uTime*sp+ph))*0.3*act*(0.35+0.65*fract(ph*7.0))+uPulse*0.14*act*(0.3+0.7*fract(ph*13.0));
+      if(part>1.5 && part<4.5){
+        float side=(part<2.5)?-1.0:1.0;
+        float R=step(0.35,fract(ph*5.0+0.2));
+        float raise=clamp(0.12+0.88*act*R,0.0,1.0);
+        if(side<0.0) raise*=0.55;
+        raise=max(raise,hyped);
+        float ang=mix(0.12,2.9,raise)+sin(uTime*sp*0.55+ph)*0.38*raise;
+        float wv=2.75+sin(uTime*2.3-iOff.x*0.24-iOff.z*0.06)*0.55;
+        ang=mix(ang,wv,uWave*(hasStick>0.5?1.0:0.35)*(side>0.0?1.0:0.5));
+        float a=side*ang; float c=cos(a), s=sin(a);
+        vec2 piv=vec2(side*0.36,1.1*hs); vec2 d=p.xy-piv;
+        p.xy=piv+vec2(d.x*c-d.y*s, d.x*s+d.y*c);
+        if(part>3.5 && hasStick<0.5) p=vec3(0.0,-20.0,0.0);
+      }
+      float hide=0.0;
+      if(part>6.5){
+        if(part<7.5) hide=1.0-on(iLook.y,1.0);
+        else if(part<8.5) hide=1.0-on(iLook.y,2.0);
+        else if(part<9.5) hide=1.0-on(iLook.x,2.0);
+        else if(part<10.5) hide=1.0-on(iLook.x,1.0);
+        else if(part<11.5) hide=1.0-on(iLook.x,3.0);
+        else if(part<12.5) hide=1.0-on(iLook.z,1.0);
+        else if(part<13.5) hide=1.0-on(iLook.z,2.0);
+        else if(part<14.5) hide=1.0-on(iLook.z,3.0);
+        else if(part<15.5) hide=1.0-on(iLook.z,4.0);
+        else hide=1.0-on(iLook.w,1.0);
+      }
+      if(hide>0.5) p=vec3(0.0,-20.0,0.0);
+      float cy=cos(uYaw), sy=sin(uYaw);
+      p.xz=vec2(p.x*cy-p.z*sy, p.x*sy+p.z*cy);
+      n.xz=vec2(n.x*cy-n.z*sy, n.x*sy+n.z*cy);
+      p.y+=hop;
+      vec3 w=iOff+p;
+      vec4 mv=viewMatrix*vec4(w,1.0);
+      gl_Position=projectionMatrix*mv;
+      vDepth=length(mv.xyz); vN=n; vWx=w.x; vWz=w.z;
+      vec3 stickC=(iStick.x<0.0)?mix(uColA,uColB,fract(ph*3.0)):iStick;
+      float em=0.0;
+      if(part<0.5) vBase=iCloth;
+      else if(part<1.5) vBase=iSkin;
+      else if(part<3.5) vBase=iSkin*0.9;
+      else if(part<4.5){ vBase=stickC; em=1.0; }
+      else if(part<5.5) vBase=iHair;
+      else if(part<6.5) vBase=vec3(0.04);
+      else if(part<8.5) vBase=iHair;
+      else if(part<9.5) vBase=iCloth;
+      else if(part<10.5){ vBase=stickC; em=1.0; }
+      else if(part<11.5) vBase=iCloth*0.8;
+      else if(part<12.5) vBase=iHair;
+      else if(part<13.5){ vBase=stickC; em=1.0; }
+      else if(part<14.5) vBase=iCloth*0.65;
+      else { vBase=stickC; em=1.0; }
+      vEm=em;
+    }`;
+  const FS = `
+    precision highp float;
+    uniform vec3 uColA, uColB, uFog, uLdir; uniform float uLit, uAmb, uPulse, uFogD;
+    varying vec3 vBase; varying vec3 vN; varying float vEm; varying float vDepth; varying float vWx; varying float vWz;
+    void main(){
+      vec3 base=vBase;
+      float lit=max(dot(normalize(vN),normalize(uLdir)),0.0);
+      float fall=clamp(1.3-(vWz+4.0)/55.0,0.2,1.0);
+      vec3 L=mix(uColA,uColB,smoothstep(-24.0,24.0,vWx))*uLit*fall;
+      vec3 col=base*(uAmb+L*(0.25+1.1*lit));
+      if(vEm>0.5){ col=base*(1.1+0.9*uPulse)+vec3(0.12); }
+      float f=exp(-uFogD*uFogD*vDepth*vDepth);
+      col=mix(uFog,col,f);
+      gl_FragColor=vec4(col,1.0);
+    }`;
+
+  function newUniforms() {
+    return {
+      uTime: { value: 0 }, uEnergy: { value: 0.3 }, uWave: { value: 0 }, uPulse: { value: 0 }, uYaw: { value: 0 },
+      uColA: { value: new THREE.Color('#19e3ff') }, uColB: { value: new THREE.Color('#ff2bd6') },
+      uFog: { value: new THREE.Color(0x05030c) }, uLdir: { value: new THREE.Vector3(0, 0.3, -1) },
+      uLit: { value: 0.9 }, uAmb: { value: 0.32 }, uFogD: { value: 0.013 }
+    };
+  }
+  function makeMaterial(u) { return new THREE.ShaderMaterial({ vertexShader: VS, fragmentShader: FS, uniforms: u }); }
+
+  function makeInstGeo(base, n) {
+    const g = new THREE.InstancedBufferGeometry();
+    g.index = base.index; g.attributes.position = base.attributes.position; g.attributes.normal = base.attributes.normal; g.attributes.part = base.attributes.part;
+    g.setAttribute('iOff', new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('iCloth', new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3));
+    g.setAttribute('iSkin', new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3));
+    g.setAttribute('iAnim', new THREE.InstancedBufferAttribute(new Float32Array(n * 4), 4).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('iLook', new THREE.InstancedBufferAttribute(new Float32Array(n * 4), 4));
+    g.setAttribute('iHair', new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3));
+    const st = new Float32Array(n * 3); for (let i = 0; i < n; i++) st[i * 3] = -1;
+    g.setAttribute('iStick', new THREE.InstancedBufferAttribute(st, 3));
+    g.instanceCount = 0;
+    return g;
+  }
+  const ATTRS = ['iOff', 'iCloth', 'iSkin', 'iAnim', 'iLook', 'iHair', 'iStick'];
+  function touch(g) { ATTRS.forEach(k => g.attributes[k].needsUpdate = true); }
+
+  /* ---------- trang phục ---------- */
+  const Look = {
+    valid(l) {
+      if (!Array.isArray(l) || l.length !== 8) return false;
+      const W = WARDROBE, lim = [W.tops.length, W.topColors.length, W.hairStyles.length, W.hairColors.length, W.headAcc.length, W.backAcc.length, W.skins.length, W.stickColors.length];
+      return l.every((v, i) => Number.isInteger(v) && v >= 0 && v < lim[i]);
+    },
+    fallback(id) {
+      const h = hashStr(String(id)) >>> 0, W = WARDROBE;
+      return [h % W.tops.length, (h >>> 3) % W.topColors.length, (h >>> 6) % W.hairStyles.length, (h >>> 9) % W.hairColors.length, (h >>> 12) % W.headAcc.length, (h >>> 15) % W.backAcc.length, (h >>> 18) % W.skins.length, 0];
+    },
+    random() {
+      const W = WARDROBE, r = n => Math.floor(Math.random() * n);
+      return [r(W.tops.length), r(W.topColors.length), r(W.hairStyles.length), r(W.hairColors.length), r(W.headAcc.length), r(W.backAcc.length), r(W.skins.length), r(W.stickColors.length)];
+    },
+    apply(g, i, l) {
+      const W = WARDROBE;
+      g.attributes.iCloth.array.set(hex2rgb(W.topColors[l[1]]), i * 3);
+      g.attributes.iSkin.array.set(hex2rgb(W.skins[l[6]]), i * 3);
+      g.attributes.iHair.array.set(hex2rgb(W.hairColors[l[3]]), i * 3);
+      const sc = W.stickColors[l[7]];
+      g.attributes.iStick.array.set(sc === 'follow' ? [-1, 0, 0] : hex2rgb(sc), i * 3);
+      g.attributes.iLook.array.set([l[0], l[2], l[4], l[5]], i * 4);
+    }
+  };
+
+  const CLOTH = ['#2b2f4a', '#e8e4f0', '#ff4fa3', '#19e3ff', '#7a5cff', '#ff8a1f', '#1a1a22', '#c9ff4f', '#d24a4a', '#3a7bd5', '#f6d365', '#5b3a8f', '#101018', '#f0f0f0'];
+  const SKIN = WARDROBE.skins;
+  const HAIR = ['#14100d', '#52301a', '#d9b45a', '#0b0b12', '#d3205f'];
+
+  function gen() {
+    const R = mulberry(20260);
+    const slots = [];
+    for (let z = 2.6; z <= 50; z += 1.18) {
+      for (let x = -27; x <= 27; x += 1.12) {
+        const px = x + (R() - 0.5) * 0.55, pz = z + (R() - 0.5) * 0.5;
+        const edge = clamp((Math.abs(px) - 19) / 10, 0, 1) * 0.8 + clamp((pz - 40) / 12, 0, 1) * 0.35;
+        if (R() < 0.07 + edge) continue;
+        slots.push([px, pz]);
+      }
+    }
+    for (let i = slots.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); const t = slots[i]; slots[i] = slots[j]; slots[j] = t; }
+    vTotal = Math.min(MAXV, slots.length); vScale = new Float32Array(vTotal);
+    const off = vGeo.attributes.iOff.array, cl = vGeo.attributes.iCloth.array, sk = vGeo.attributes.iSkin.array, an = vGeo.attributes.iAnim.array, hr = vGeo.attributes.iHair.array;
+    for (let i = 0; i < vTotal; i++) {
+      off[i * 3] = slots[i][0]; off[i * 3 + 1] = 0; off[i * 3 + 2] = slots[i][1];
+      cl.set(hex2rgb(CLOTH[Math.floor(R() * CLOTH.length)]), i * 3); sk.set(hex2rgb(SKIN[Math.floor(R() * SKIN.length)]), i * 3); hr.set(hex2rgb(HAIR[Math.floor(R() * HAIR.length)]), i * 3);
+      an[i * 4] = R() * 100; an[i * 4 + 1] = 2.4 + R() * 3.2; an[i * 4 + 2] = vScale[i] = 0.9 + R() * 0.2; an[i * 4 + 3] = R() < 0.55 ? 1 : 0;
+    }
+    touch(vGeo);
+    vGeo.instanceCount = Math.min(vCount, vTotal);
+  }
+
+  const SLOTS = (() => {
+    const s = [];
+    [14, 15.6, 17.2, 18.8, 20.4].forEach((z, r) => { for (let i = 0; i < 23; i++) { const x = (i - 11) * 1.5; s.push([x, z, r]); } });
+    s.sort((a, b) => a[2] - b[2] || Math.abs(a[0]) - Math.abs(b[0]) || a[0] - b[0]);
+    return s;
+  })();
+
+  function nameTex(name) {
+    if (tagCache.has(name)) return tagCache.get(name);
+    const c = document.createElement('canvas'); c.width = 256; c.height = 64;
+    const g = c.getContext('2d'); g.font = '600 28px "Be Vietnam Pro",system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const t = name.length > 16 ? name.slice(0, 15) + '…' : name;
+    g.fillStyle = 'rgba(8,6,16,0.72)'; const w = Math.min(250, g.measureText(t).width + 30);
+    g.beginPath(); g.roundRect ? g.roundRect(128 - w / 2, 12, w, 40, 20) : g.rect(128 - w / 2, 12, w, 40); g.fill();
+    g.fillStyle = '#fff'; g.fillText(t, 128, 33);
+    const tx = new THREE.CanvasTexture(c); tagCache.set(name, tx); return tx;
+  }
+  function emojiTex(e) {
+    if (emoTex[e]) return emoTex[e];
+    const c = document.createElement('canvas'); c.width = c.height = 96;
+    const g = c.getContext('2d'); g.font = '64px system-ui,"Apple Color Emoji","Segoe UI Emoji",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(e, 48, 52);
+    return emoTex[e] = new THREE.CanvasTexture(c);
+  }
+
+  function init(sc) {
+    scene = sc;
+    shared = newUniforms();
+    vGeo = makeInstGeo(buildBase(false), MAXV);
+    vMesh = new THREE.Mesh(vGeo, makeMaterial(shared)); vMesh.frustumCulled = false; scene.add(vMesh);
+    rGeo = makeInstGeo(buildBase(true), MAXR);
+    rMesh = new THREE.Mesh(rGeo, makeMaterial(shared)); rMesh.frustumCulled = false; scene.add(rMesh);
+    const ringGeo = new THREE.RingGeometry(0.55, 0.78, 24); ringGeo.rotateX(-Math.PI / 2);
+    rings = new THREE.InstancedMesh(ringGeo, new THREE.MeshBasicMaterial({ transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }), MAXR);
+    rings.frustumCulled = false; rings.count = 0; scene.add(rings);
+    for (let i = 0; i < 36; i++) {
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false, fog: false })); sp.scale.set(3.4, 0.85, 1); sp.visible = false; scene.add(sp); tags.push(sp);
+    }
+    for (let i = 0; i < 24; i++) {
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false, fog: false })); sp.scale.set(1, 1, 1); sp.visible = false; sp.userData.life = 0; scene.add(sp); emotes.push(sp);
+    }
+    gen();
+  }
+
+  function setPeers(list, myId) {
+    const sorted = list.slice().sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+    peersView.length = 0; myIdx = -1;
+    const off = rGeo.attributes.iOff.array, an = rGeo.attributes.iAnim.array;
+    let n = 0; const m = new THREE.Matrix4(), col = new THREE.Color();
+    let ti = 0;
+    sorted.forEach((p, idx) => {
+      const sl = SLOTS[idx % SLOTS.length];
+      const mine = p.id === myId;
+      if (mine) { mySlot = { x: sl[0], z: sl[1] + 0.1 }; Stage.setMyPos(sl[0], sl[1] + 0.1); }
+      if (n < MAXR) {
+        const h = hashStr(p.id) >>> 0, look = Look.valid(p.look) ? p.look : Look.fallback(p.id);
+        off[n * 3] = sl[0]; off[n * 3 + 1] = 0; off[n * 3 + 2] = sl[1];
+        Look.apply(rGeo, n, look);
+        const em = p.et && (Date.now() - p.et < 6000);
+        an[n * 4] = (h % 1000) / 10 + 0.3; an[n * 4 + 1] = 3.2 + (h % 7) * 0.3; an[n * 4 + 2] = (mine && !selfVisible) ? 0.0001 : 1.0; an[n * 4 + 3] = em ? 2 : 1;
+        m.makeTranslation(sl[0], 0.02, sl[1]); rings.setMatrixAt(n, m); col.set(WARDROBE.topColors[look[1]]); rings.setColorAt(n, col);
+        if (mine) myIdx = n;
+        if (!mine && ti < tags.length) {
+          const sp = tags[ti++]; sp.material.map = nameTex(p.name || 'Khách'); sp.material.needsUpdate = true; sp.position.set(sl[0], 3.0, sl[1]); sp.visible = true;
+        }
+        n++;
+      }
+      peersView.push({ id: p.id, x: sl[0], z: sl[1], emote: p.emote, et: p.et, mine });
+    });
+    for (; ti < tags.length; ti++) tags[ti].visible = false;
+    // ẩn khán giả ảo đứng trùng chỗ với khán giả thật
+    const va = vGeo.attributes.iAnim.array, vo = vGeo.attributes.iOff.array;
+    for (let i = 0; i < vTotal; i++) va[i * 4 + 2] = vScale[i];
+    peersView.forEach(pv => { for (let i = 0; i < vTotal; i++) { const dx = vo[i * 3] - pv.x, dz = vo[i * 3 + 2] - pv.z; if (pv.mine ? (Math.abs(dx) < 1.4 && dz > -2.7 && dz < 1.0) : (dx * dx + dz * dz < 0.8)) va[i * 4 + 2] = 0.0001; } });
+    vGeo.attributes.iAnim.needsUpdate = true;
+    touch(rGeo);
+    rGeo.instanceCount = n; rings.count = n; rings.instanceMatrix.needsUpdate = true; if (rings.instanceColor) rings.instanceColor.needsUpdate = true;
+    return n;
+  }
+
+  function setSelfVisible(v) {
+    selfVisible = v;
+    if (myIdx >= 0) { rGeo.attributes.iAnim.array[myIdx * 4 + 2] = v ? 1.0 : 0.0001; rGeo.attributes.iAnim.needsUpdate = true; }
+  }
+
+  function spawnEmote(e, x, z) {
+    const sp = emotes.find(s => s.userData.life <= 0); if (!sp) return;
+    sp.material.map = emojiTex(e); sp.material.needsUpdate = true; sp.material.opacity = 1;
+    sp.position.set(x + rnd(-0.3, 0.3), 2.8, z); sp.userData.life = 2.2; sp.userData.vx = rnd(-0.3, 0.3); sp.visible = true; sp.scale.set(1.2, 1.2, 1);
+  }
+
+  function update(W, time, dt) {
+    const u = shared;
+    u.uTime.value = time; u.uEnergy.value = lerp(u.uEnergy.value, W.energy, 0.06);
+    const tw = W.cue && W.cue.crowd === 'wave' ? 1 : 0;
+    waveAmt = lerp(waveAmt, tw, 0.04); u.uWave.value = waveAmt;
+    u.uPulse.value = W.bi.pulse;
+    u.uColA.value.set(W.colors[0]); u.uColB.value.set(W.colors[1]);
+    u.uLit.value = W.phase === 'lobby' ? 0.5 : 0.6 + 0.6 * W.energy + 0.5 * W.bi.pulse * W.energy;
+    emotes.forEach(sp => {
+      if (sp.userData.life <= 0) return;
+      sp.userData.life -= dt; sp.position.y += dt * 1.6; sp.position.x += sp.userData.vx * dt;
+      sp.material.opacity = clamp(sp.userData.life, 0, 1);
+      if (sp.userData.life <= 0) sp.visible = false;
+    });
+  }
+
+  return {
+    init, setPeers, update, spawnEmote, setSelfVisible,
+    buildBase, makeInstGeo, makeMaterial, newUniforms, touch, Look,
+    setCount(n) { vCount = n; vGeo.instanceCount = Math.min(n, vTotal); },
+    total() { return vTotal; },
+    count() { return vGeo.instanceCount; },
+    mySlot() { return mySlot; },
+    peersView() { return peersView; }
+  };
+})();
+
+/* ===== wardrobe: phòng thay đồ, xem trước 3D xoay được, lưu lựa chọn ===== */
+const Wardrobe = (() => {
+  const KEY = 'nm_look_v1';
+  let renderer, scene, cam, geo, mesh, uni, sparkles, spk = [];
+  let active = false, ready = false, look = null, confirmed = false;
+  let yaw = 0, dragYaw = 0, idle = 0, tab = 0, onDone = () => { };
+  const $ = id => document.getElementById(id);
+
+  function load() { try { const a = JSON.parse(localStorage.getItem(KEY) || 'null'); return Crowd.Look.valid(a) ? a : null; } catch (e) { return null; } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(look)); } catch (e) { } }
+  const saved = load();
+  if (saved) { look = saved; confirmed = true; }
+
+  const W = WARDROBE;
+  const TABS = [
+    { name: 'Áo', groups: [{ label: 'Kiểu', i: 0, items: W.tops.map(t => ({ v: t.id, name: t.name })) }, { label: 'Màu áo', i: 1, swatch: true, items: W.topColors.map((c, v) => ({ v, c, name: 'Màu ' + (v + 1) })) }] },
+    { name: 'Tóc', groups: [{ label: 'Kiểu', i: 2, items: W.hairStyles.map(t => ({ v: t.id, name: t.name })) }, { label: 'Màu tóc', i: 3, swatch: true, items: W.hairColors.map((c, v) => ({ v, c, name: 'Màu ' + (v + 1) })) }] },
+    { name: 'Phụ kiện', groups: [{ label: 'Trên đầu', i: 4, items: W.headAcc.map(t => ({ v: t.id, name: t.name })) }, { label: 'Sau lưng', i: 5, items: W.backAcc.map(t => ({ v: t.id, name: t.name })) }] },
+    { name: 'Gậy sáng', groups: [{ label: 'Màu phát sáng', i: 7, swatch: true, items: W.stickColors.map((c, v) => ({ v, c, name: c === 'follow' ? 'Đổi màu theo bài' : 'Màu ' + v })) }] },
+    { name: 'Da', groups: [{ label: 'Màu da', i: 6, swatch: true, items: W.skins.map((c, v) => ({ v, c, name: 'Tông ' + (v + 1) })) }] }
+  ];
+
+  function build() {
+    scene = new THREE.Scene(); scene.background = new THREE.Color(0x07050f);
+    cam = new THREE.PerspectiveCamera(36, 1, 0.1, 60); cam.position.set(0, 1.25, 4.9); cam.lookAt(0, 1.0, 0);
+    uni = Crowd.newUniforms(); uni.uFogD.value = 0; uni.uLdir.value.set(0.35, 0.5, 1); uni.uLit.value = 1.2; uni.uAmb.value = 0.55; uni.uEnergy.value = 0.5;
+    uni.uColA.value.set('#19e3ff'); uni.uColB.value.set('#ff2bd6');
+    geo = Crowd.makeInstGeo(Crowd.buildBase(true), 1); geo.instanceCount = 1;
+    geo.attributes.iAnim.array.set([0.3, 3.4, 1.0, 1], 0);
+    mesh = new THREE.Mesh(geo, Crowd.makeMaterial(uni)); mesh.frustumCulled = false; scene.add(mesh);
+    // bệ đứng và vòng sáng
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.35, 0.14, 40), new THREE.MeshBasicMaterial({ color: 0x14102a })); base.position.y = -0.07; scene.add(base);
+    const r1 = new THREE.Mesh(new THREE.RingGeometry(1.05, 1.2, 48), new THREE.MeshBasicMaterial({ color: 0x19e3ff })); r1.rotation.x = -Math.PI / 2; r1.position.y = 0.01; scene.add(r1);
+    const r2 = new THREE.Mesh(new THREE.RingGeometry(1.3, 1.36, 48), new THREE.MeshBasicMaterial({ color: 0xff2bd6 })); r2.rotation.x = -Math.PI / 2; r2.position.y = 0.01; scene.add(r2);
+    const arc = new THREE.Mesh(new THREE.RingGeometry(1.7, 1.82, 64), new THREE.MeshBasicMaterial({ color: 0xff2bd6, transparent: true, opacity: 0.8 })); arc.position.set(0, 1.25, -1.4); scene.add(arc);
+    const arc2 = new THREE.Mesh(new THREE.RingGeometry(1.35, 1.4, 64), new THREE.MeshBasicMaterial({ color: 0x19e3ff, transparent: true, opacity: 0.7 })); arc2.position.set(0, 1.25, -1.35); scene.add(arc2);
+    [[-1.6, 0x19e3ff], [1.6, 0xff2bd6]].forEach(([x, c]) => {
+      const s = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.9, 5, 16, 1, true), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+      s.position.set(x, 2.4, -0.8); scene.add(s);
+    });
+    const N = 70, pos = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) { const a = Math.random() * 6.28, r = 0.6 + Math.random() * 1.8; spk.push({ a, r, y: Math.random() * 3, s: 0.1 + Math.random() * 0.25 }); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    sparkles = new THREE.Points(g, new THREE.PointsMaterial({ size: 0.05, color: 0xffffff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
+    sparkles.frustumCulled = false; scene.add(sparkles);
+    ready = true;
+  }
+
+  function applyLook() { Crowd.Look.apply(geo, 0, look); Crowd.touch(geo); }
+
+  function renderTabs() {
+    const t = $('wdTabs'); t.innerHTML = '';
+    TABS.forEach((x, i) => {
+      const b = document.createElement('button'); b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', i === tab); b.textContent = x.name;
+      b.addEventListener('click', () => { tab = i; renderTabs(); renderOpts(); });
+      t.appendChild(b);
+    });
+  }
+  function renderOpts() {
+    const box = $('wdOpts'); box.innerHTML = '';
+    TABS[tab].groups.forEach(g => {
+      const d = document.createElement('div'); d.className = 'wd-g';
+      const h = document.createElement('h3'); h.textContent = g.label; d.appendChild(h);
+      const row = document.createElement('div'); row.className = g.swatch ? 'wd-row sw' : 'wd-row';
+      g.items.forEach(it => {
+        const b = document.createElement('button'); b.className = g.swatch ? 'swatch' : 'opt';
+        b.setAttribute('aria-pressed', look[g.i] === it.v); b.setAttribute('aria-label', it.name); b.title = it.name;
+        if (g.swatch) { b.style.setProperty('--c', it.c === 'follow' ? 'conic-gradient(#19e3ff,#ff2bd6,#ffd34d,#19e3ff)' : it.c); if (it.c === 'follow') b.classList.add('follow'); } else b.textContent = it.name;
+        b.addEventListener('click', () => { look[g.i] = it.v; applyLook(); renderOpts(); });
+        row.appendChild(b);
+      });
+      d.appendChild(row); box.appendChild(d);
+    });
+  }
+
+  function layout() {
+    if (!cam) return;
+    const w = window.innerWidth, h = window.innerHeight;
+    cam.aspect = w / h;
+    if (w >= 760) cam.setViewOffset(w, h, Math.min(420, w * 0.4) / 2, 0, w, h);
+    else cam.setViewOffset(w, h, 0, h * 0.2, w, h);
+    cam.updateProjectionMatrix();
+  }
+
+  function finish() {
+    confirmed = true; save(); active = false; $('wardrobe').hidden = true; onDone(look.slice());
+  }
+
+  function init(r) {
+    renderer = r;
+    $('wdDone').addEventListener('click', finish);
+    $('wdRandom').addEventListener('click', () => { look = Crowd.Look.random(); applyLook(); renderOpts(); });
+    document.addEventListener('keydown', e => { if (active && e.key === 'Escape') finish(); });
+  }
+
+  return {
+    init, resize: layout,
+    open(cb) {
+      if (!ready) build();
+      if (cb) onDone = cb;
+      if (!look) look = W.defaultLook.slice();
+      active = true; tab = 0; $('wardrobe').hidden = false;
+      applyLook(); renderTabs(); renderOpts(); layout();
+      const f = $('wdDone'); if (f) f.focus();
+    },
+    isActive() { return active; },
+    hasSaved() { return confirmed; },
+    getLook() { return look ? look.slice() : W.defaultLook.slice(); },
+    rotate(dx) { dragYaw += dx; idle = 0; },
+    render(time, dt) {
+      idle += dt; if (idle > 2.2) yaw += dt * 0.7;
+      uni.uYaw.value = Math.PI + yaw + dragYaw; uni.uTime.value = time; uni.uPulse.value = 0.5 + 0.5 * Math.sin(time * 2.2);
+      const p = sparkles.geometry.attributes.position.array;
+      for (let i = 0; i < spk.length; i++) { const s = spk[i]; s.y += dt * s.s; if (s.y > 3.2) s.y = 0; s.a += dt * 0.15; p[i * 3] = Math.cos(s.a) * s.r; p[i * 3 + 1] = s.y; p[i * 3 + 2] = Math.sin(s.a) * s.r - 0.4; }
+      sparkles.geometry.attributes.position.needsUpdate = true;
+      renderer.render(scene, cam);
+    }
+  };
+})();
+
+/* ===== net: khán giả thật. Ba cách kết nối, chọn tự động:
+   1) relay WebSocket riêng (bản đưa lên Cloudflare, không cần tài khoản)
+   2) capability room + user của Claude artifact
+   3) chạy một mình ===== */
+const Net = (() => {
+  let room = null, cb = () => { }, ws = null, wsTimer = null, tries = 0, closed = false;
+  const st = { uid: 'g-' + Math.random().toString(36).slice(2, 7), name: 'Khách', emote: null, et: 0, look: null };
+  let peers = [], status = 'offline', account = null, cap = 0;
+
+  function norm(p) {
+    let arr = [];
+    if (Array.isArray(p)) arr = p;
+    else if (p && typeof p === 'object') arr = Object.entries(p).map(([k, v]) => Object.assign({ __k: k }, typeof v === 'object' && v ? v : {}));
+    const out = [];
+    arr.forEach(it => {
+      if (!it || typeof it !== 'object') return;
+      const s = it.state || it.presence || it.data || it;
+      const id = s.uid || it.id || it.clientId || it.__k; if (!id) return;
+      out.push({ id: String(id), name: String(s.name || it.name || 'Khách'), emote: s.emote || null, et: s.et || 0, look: s.look || null, you: !!(it.you || it.self || it.isYou) });
+    });
+    return out;
+  }
+  function emit() {
+    let list = peers.slice();
+    const flagged = list.find(p => p.you);
+    if (flagged) flagged.id = st.uid;
+    if (!list.some(p => p.id === st.uid)) list.push({ id: st.uid, name: st.name, emote: st.emote, et: st.et, look: st.look, you: true });
+    const seen = new Set(); list = list.filter(p => seen.has(p.id) ? false : seen.add(p.id));
+    cb(list);
+  }
+
+  /* ---------- relay WebSocket ---------- */
+  function relayUrl() {
+    const r = window.NM_RELAY; if (!r) return null;
+    const room = 'main';
+    if (r === 'auto') {
+      if (!/^https?:$/.test(location.protocol)) return null;
+      return (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws?room=' + room;
+    }
+    return String(r) + (String(r).includes('?') ? '&' : '?') + 'room=' + room;
+  }
+  function wsSend(o) { if (ws && ws.readyState === 1) { try { ws.send(JSON.stringify(o)); } catch (e) { } } }
+  function connectWs(url, resolve) {
+    let settled = false; const done = s => { if (!settled) { settled = true; resolve(s); } };
+    try { ws = new WebSocket(url); } catch (e) { done('solo'); return; }
+    const to = setTimeout(() => { if (!settled) { try { ws.close(); } catch (e) { } status = 'solo'; emit(); done('solo'); } }, 6000);
+    ws.onmessage = ev => {
+      let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+      if (m.t === 'welcome') {
+        clearTimeout(to); tries = 0; st.uid = m.id; cap = m.cap || 0; status = 'relay';
+        wsSend({ t: 'state', name: st.name, look: st.look });
+        clearInterval(wsTimer); wsTimer = setInterval(() => { if (ws && ws.readyState === 1) ws.send('ping'); }, 20000);
+        emit(); done('relay');
+      } else if (m.t === 'full') {
+        clearTimeout(to); closed = true; cap = m.cap || 0; status = 'full'; emit(); done('full');
+      } else if (m.t === 'peers') {
+        const now = Date.now();
+        peers = m.list.map(p => ({ id: p.id, name: p.name, emote: p.emote, et: p.emote ? now - (p.ea || 0) : 0, look: p.look, you: p.id === st.uid }));
+        cap = m.cap || cap; emit();
+      }
+    };
+    ws.onclose = () => {
+      clearTimeout(to); clearInterval(wsTimer);
+      if (closed) return;
+      if (!settled) { status = 'solo'; emit(); done('solo'); return; }
+      status = 'reconnecting'; peers = []; emit();
+      const wait = Math.min(15000, 1000 * Math.pow(2, tries++)) + Math.random() * 500;
+      setTimeout(() => connectWs(url, () => { }), wait);
+    };
+    ws.onerror = () => { };
+  }
+
+  return {
+    async init(onPeers) {
+      cb = onPeers;
+      const url = relayUrl();
+      if (url) { status = await new Promise(res => connectWs(url, res)); emit(); return status; }
+      if (!(window.claude && typeof claude.use === 'function')) { status = 'offline'; emit(); return status; }
+      try {
+        const user = await claude.use('user');
+        if (user) {
+          let id = null, nm = '';
+          try { const me = user.me ? await user.me() : null; if (me && typeof me === 'object') { id = me.id || null; nm = me.name || ''; } else if (typeof me === 'string') id = me; } catch (e) { }
+          try { if (!id && user.id) { const v = await user.id(); if (typeof v === 'string' || typeof v === 'number') id = v; } } catch (e) { }
+          try { if (id && user.profiles) { const ps = await user.profiles([id]); nm = (ps && ps[id] && ps[id].name) || nm; } } catch (e) { }
+          if (id) st.uid = String(id).slice(0, 10) + '-' + Math.random().toString(36).slice(2, 7);
+          if (nm) { st.name = nm; account = nm; }
+        }
+      } catch (e) { }
+      try {
+        room = await claude.use('room');
+        if (room) {
+          room.onPeers(p => { peers = norm(p); emit(); });
+          room.presence({ uid: st.uid, name: st.name, emote: null, et: 0, look: st.look });
+          status = 'room';
+        }
+      } catch (e) { room = null; }
+      if (!room) status = 'solo';
+      emit();
+      return status;
+    },
+    setName(n) {
+      st.name = (n || 'Khách').slice(0, 20);
+      if (room) { try { room.presence({ uid: st.uid, name: st.name }); } catch (e) { } }
+      wsSend({ t: 'state', name: st.name }); emit();
+    },
+    setLook(l) {
+      st.look = l;
+      if (room) { try { room.presence({ look: l }); } catch (e) { } }
+      wsSend({ t: 'state', look: l }); emit();
+    },
+    emote(e) {
+      st.emote = e; st.et = Date.now();
+      if (room) { try { room.presence({ emote: e, et: st.et }); } catch (er) { } }
+      wsSend({ t: 'state', emote: e }); emit();
+    },
+    id() { return st.uid; }, name() { return st.name; }, status() { return status; }, account() { return account; }, cap() { return cap; },
+    relay() { return !!window.NM_RELAY; }
+  };
+})();
+
+/* ===== app: vòng lặp chính, giao diện, diễn tập ===== */
+(function () {
+  const $ = id => document.getElementById(id);
+  const errorLog = [];
+  window.addEventListener('error', e => errorLog.push(String(e.message || e)));
+
+  /* ---------- khởi tạo 3D ---------- */
+  const canvas = $('c');
+  try {
+    Stage.init(canvas); Env.setQuality(/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 0.5 : 1); Env.init(THREE, Stage.scene, SHOW.venue); Crowd.init(Stage.scene); Performers.init(Stage.scene); Wardrobe.init(Stage.renderer);
+  } catch (e) {
+    console.error(e); $('nowebgl').style.display = 'flex'; $('gateStatus').textContent = 'Không khởi tạo được WebGL.'; return;
+  }
+
+  /* ---------- chất lượng tự thích ứng ---------- */
+  const QUAL = [
+    { id: 'high', name: 'Cao', s: 1, max: 1.5, crowd: 900, beams: 14, fx: 1, led: 24 },
+    { id: 'mid', name: 'Vừa', s: 0.75, max: 1.1, crowd: 560, beams: 14, fx: 0.6, led: 15 },
+    { id: 'low', name: 'Thấp', s: 0.5, max: 0.8, crowd: 300, beams: 7, fx: 0.35, led: 10 }
+  ];
+  let qLevel = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 1 : 0, autoQ = true, upStreak = 0, lastQChange = 0;
+  function applyQuality() {
+    const q = QUAL[qLevel];
+    Crowd.setCount(q.crowd); Stage.setQuality({ beams: q.beams, fxScale: q.fx }); applySize();
+  }
+  function applySize() {
+    const q = QUAL[qLevel], dpr = window.devicePixelRatio || 1;
+    Stage.resize(window.innerWidth, window.innerHeight, clamp(dpr * q.s, 0.5, q.max)); Wardrobe.resize();
+  }
+  window.addEventListener('resize', applySize);
+  applyQuality();
+
+  /* ---------- trạng thái thế giới ---------- */
+  const lobbyColors = SHOW.palettes.deep;
+  const lobbyCue = { pal: 'deep', light: 'dim', led: 'countdown', cam: 'wide', energy: 0.22, layers: [], layerSet: new Set(), colors: lobbyColors, text: null, _idx: -1, crowd: null };
+  let E = 0.3;
+  function computeW(T, time, dt) {
+    const L = layout(T); let W;
+    if (L.phase === 'show') {
+      const cue = cueStateAt(L.t) || lobbyCue;
+      W = { phase: 'show', t: L.t, cue, seg: segAt(L.t), bi: beatInfo(L.t), energy: cue.energy, colors: cue.colors, countdown: 0 };
+    } else {
+      const p = Math.exp(-((time) % 1) * 4.5) * 0.35;
+      W = { phase: 'lobby', t: L.t, cue: lobbyCue, seg: null, bi: { beat: time, pulse: p, bpm: 60, bar: 0, f: 0 }, energy: 0.22, colors: lobbyColors, countdown: L.countdown };
+    }
+    E = lerp(E, W.energy, 1 - Math.exp(-dt * 3)); W.energy = E;
+    return W;
+  }
+
+  /* ---------- mạng: khán giả thật ---------- */
+  let realCount = 1; const seenEmote = {};
+  Net.init(list => {
+    realCount = list.length;
+    Crowd.setPeers(list, Net.id());
+    const views = Crowd.peersView();
+    list.forEach(p => {
+      if (p.id === Net.id()) return;
+      if (p.et && seenEmote[p.id] !== p.et && Date.now() - p.et < 5000) {
+        seenEmote[p.id] = p.et; const v = views.find(x => x.id === p.id);
+        if (v && p.emote) Crowd.spawnEmote(p.emote, v.x, v.z);
+      }
+    });
+  }).then(() => {
+    if (Wardrobe.hasSaved()) Net.setLook(Wardrobe.getLook());
+    if (Net.account()) { $('nameIn').value = Net.name(); $('loginNote').textContent = 'Bạn đang đăng nhập bằng tài khoản Claude: ' + Net.account() + '.'; }
+    else {
+      const s = Net.status();
+      $('loginNote').textContent = s === 'relay' ? 'Không cần tài khoản. Nhập tên rồi vào concert, tối đa ' + Net.cap() + ' người xem cùng lúc.'
+        : s === 'full' ? 'Phòng concert đã đủ ' + Net.cap() + ' người. Bạn vẫn xem được show cùng khán giả ảo, vào lại sau để có chỗ đứng.'
+        : s === 'room' ? 'Chưa đọc được tên tài khoản, bạn vào bằng tên nhập ở trên.'
+        : 'Đang xem ở chế độ một mình, khán giả thật sẽ hiện khi mở bằng link chia sẻ.';
+    }
+    try { const sv = localStorage.getItem('nm_name'); if (sv && !$('nameIn').value) $('nameIn').value = sv; } catch (e) { }
+  });
+
+  /* ---------- vào concert ---------- */
+  let entered = false;
+  async function enter(demo) {
+    if (entered && !demo) return;
+    entered = true;
+    const nm = $('nameIn').value.trim() || ('Khách ' + Math.floor(1000 + Math.random() * 9000));
+    Net.setName(nm); try { localStorage.setItem('nm_name', nm); } catch (e) { }
+    if (demo) Clock.startDemo(1); else Clock.goLive();
+    $('gate').hidden = true;
+    Stage.setCamMode('audience'); Stage.resetLook(); setCamBtn();
+    if (Wardrobe.hasSaved()) { Net.setLook(Wardrobe.getLook()); $('hud').hidden = false; } else openWardrobe(true);
+    const ok = await Aud.enable(); setSoundBtn();
+    if (!ok) toast('Trình duyệt chặn âm thanh. Bấm "Âm thanh" để bật.');
+    Aud.resync(); lastSegId = null;
+  }
+  $('enterBtn').addEventListener('click', () => enter(false));
+  $('demoBtn').addEventListener('click', () => enter(true));
+  $('nameIn').addEventListener('keydown', e => { if (e.key === 'Enter') enter(false); });
+
+  function openWardrobe(first) {
+    $('hud').hidden = true; $('wdDone').textContent = first ? 'Xong, vào concert' : 'Lưu và quay lại concert';
+    Wardrobe.open(look => { Net.setLook(look); $('hud').hidden = false; lastSegId = null; });
+  }
+  $('dressBtn').addEventListener('click', () => openWardrobe(false));
+  function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('on'), 3200); }
+  function setSoundBtn() { const b = $('soundBtn'); b.setAttribute('aria-pressed', Aud.isOn()); b.textContent = 'Âm thanh: ' + (Aud.isOn() ? 'bật' : 'tắt'); }
+  function setCamBtn() { $('camBtn').textContent = 'Góc nhìn: ' + (Stage.getCamMode() === 'audience' ? 'khán đài' : 'đạo diễn'); Crowd.setSelfVisible(Stage.getCamMode() === 'director'); }
+  $('soundBtn').addEventListener('click', async () => { if (Aud.isOn()) Aud.disable(); else await Aud.enable(); setSoundBtn(); });
+  $('camBtn').addEventListener('click', () => { Stage.setCamMode(Stage.getCamMode() === 'audience' ? 'director' : 'audience'); setCamBtn(); });
+  document.querySelectorAll('.emotes button').forEach(b => b.addEventListener('click', () => {
+    const e = b.dataset.e; Net.emote(e); const s = Crowd.mySlot(); Crowd.spawnEmote(e, s.x, s.z - 2.2);
+  }));
+
+  /* ---------- điều khiển nhìn quanh ---------- */
+  let drag = null;
+  canvas.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; canvas.classList.add('drag'); canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener('pointermove', e => { if (!drag) return; if (Wardrobe.isActive()) Wardrobe.rotate((e.clientX - drag.x) * 0.012); else if (Stage.getCamMode() === 'audience') Stage.look((e.clientX - drag.x) * 0.0045, -(e.clientY - drag.y) * 0.0035); drag.x = e.clientX; drag.y = e.clientY; });
+  const endDrag = () => { drag = null; canvas.classList.remove('drag'); };
+  canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('wheel', e => { e.preventDefault(); Stage.zoom(e.deltaY * 0.02); }, { passive: false });
+  canvas.addEventListener('dblclick', () => Stage.resetLook());
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) Aud.resync(); });
+
+  /* ---------- hậu trường ---------- */
+  const drawer = $('drawer');
+  $('stageBtn').addEventListener('click', () => { drawer.classList.toggle('open'); });
+  $('closeDrawer').addEventListener('click', () => drawer.classList.remove('open'));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') drawer.classList.remove('open'); });
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+    document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === 'p-' + b.dataset.p));
+  }));
+
+  const ROLE = { vocal: 'giọng chính', guitar: 'guitar', bass: 'bass', keys: 'keyboard', drums: 'trống' };
+  $('p-design').innerHTML = '<p>' + BANDS.brief + '</p>' + BANDS.bands.map(b =>
+    `<div class="band"><h4>${b.name}<span class="sw"><i style="background:${b.palette.main}"></i><i style="background:${b.palette.accent}"></i></span></h4>
+     <p>${b.tagline}</p><p style="margin:4px 0 8px">${b.genre}, ${b.bpm} BPM</p>` +
+    b.members.map(m => `<div class="mem"><b>${m.stage}</b><span>${ROLE[m.role] || m.role}</span><em></em><em>${m.trait}</em></div>`).join('') + '</div>').join('') +
+    `<h3>Tủ đồ</h3><p>${WARDROBE.brief}</p><p style="margin-top:6px">${WARDROBE.tops.length} kiểu áo, ${WARDROBE.topColors.length} màu áo, ${WARDROBE.hairStyles.length} kiểu tóc, ${WARDROBE.headAcc.length - 1} phụ kiện đầu, ${WARDROBE.backAcc.length - 1} phụ kiện lưng, ${WARDROBE.stickColors.length} màu gậy sáng, ${WARDROBE.skins.length} màu da.</p><h3>Khán giả</h3><p>${BANDS.audience.virtual}</p><p style="margin-top:6px">${BANDS.audience.real}</p><h3>Lưu ý tên gọi</h3><p>${BANDS.namingNotes}</p>`
+    + (SHOW.credits && SHOW.credits.length ? '<h3>Nhạc</h3>' + SHOW.credits.map(c => `<p>${c.title}, ${c.artist}, giấy phép ${c.license}. <a href="${c.source}" target="_blank" rel="noopener" style="color:inherit">Nguồn</a></p>`).join('') : '');
+
+  const SEGCOL = { none: '#8a5cff', solar: '#ff8a1f', luna: '#ff4fa3', both: '#19e3ff' };
+  $('p-script').innerHTML = `<h3>Chủ đề</h3><p>${SHOW.theme}</p><h3>Dòng thời gian (${SHOW_LEN} giây)</h3>
+    <div class="tl" id="tl">${SHOW.segments.map(s => `<div style="width:${(s.end - s.start) / SHOW_LEN * 100}%;background:${SEGCOL[s.band]}" title="${s.label}">${s.label}</div>`).join('')}<span class="ph" id="tlph"></span></div>
+    <table class="cues"><thead><tr><th>Giây</th><th>Đèn</th><th>LED</th><th>Camera</th><th>Nhạc</th></tr></thead><tbody id="cueRows">${SHOW.cues.map((c, i) =>
+      `<tr data-i="${i}"><td>${c.t}</td><td>${c.light || ''}</td><td>${c.led || ''}${c.fx ? ' + ' + c.fx : ''}</td><td>${c.cam || ''}</td><td>${(c.layers || []).join(', ')}</td></tr>`).join('')}</tbody></table>`;
+
+  /* ---------- hệ thống ---------- */
+  const frames = []; let rehearsing = null;
+  function renderSys() {
+    const info = Stage.info(), q = QUAL[qLevel];
+    const avg = frames.length ? frames.reduce((a, b) => a + b, 0) / frames.length : 0;
+    $('p-sys').innerHTML = `<h3>Hiệu năng</h3><div class="kv"><span>Khung hình</span><b>${avg ? (1000 / avg).toFixed(0) : '–'} FPS (${avg.toFixed(1)} ms)</b>
+      <span>Chất lượng</span><b>${autoQ ? 'Tự động, đang ở mức ' : ''}${q.name}</b><span>Độ phân giải vẽ</span><b>${(Stage.renderer.getPixelRatio()).toFixed(2)}x</b>
+      <span>Lệnh vẽ / tam giác</span><b>${info.calls} / ${info.triangles.toLocaleString('vi-VN')}</b>
+      <span>Khán giả ảo / thật</span><b>${Crowd.count()} / ${realCount}</b><span>Đồng hồ</span><b>${Clock.mode === 'live' ? 'Trực tiếp, đồng bộ mọi người' : 'Demo, chạy riêng'}</b>
+      <span>Kết nối khán giả thật</span><b>${{ relay: 'Đã kết nối máy chủ', room: 'Đã kết nối', full: 'Phòng đã đầy, chế độ xem', reconnecting: 'Đang kết nối lại', solo: 'Chạy một mình', offline: 'Không có' }[Net.status()] || Net.status()}</b></div>
+      <h3>Chọn chất lượng</h3><div class="seg" id="qSeg"><button data-q="auto" aria-pressed="${autoQ}">Tự động</button>${QUAL.map((x, i) => `<button data-q="${i}" aria-pressed="${!autoQ && qLevel === i}">${x.name}</button>`).join('')}</div>
+      <h3>Đồng hồ buổi diễn</h3><div class="seg"><button id="goLive" aria-pressed="${Clock.mode === 'live'}">Trực tiếp</button><button id="goDemo" aria-pressed="${Clock.mode === 'demo'}">Demo từ đầu</button></div>`;
+    $('qSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { if (b.dataset.q === 'auto') autoQ = true; else { autoQ = false; qLevel = +b.dataset.q; applyQuality(); } renderSys(); }));
+    $('goLive').addEventListener('click', () => { Clock.goLive(); Aud.resync(); renderSys(); });
+    $('goDemo').addEventListener('click', () => { Clock.startDemo(1); Aud.resync(); renderSys(); });
+  }
+
+  /* ---------- diễn tập ---------- */
+  function validateScript() {
+    const R = [], V = SHOW.vocabulary;
+    let pos = 0, gap = false;
+    SHOW.segments.forEach(s => {
+      if (Math.abs(s.start - pos) > 1e-6) { gap = true; R.push(['bad', `Đoạn "${s.id}" bắt đầu ở ${s.start}s nhưng đoạn trước kết thúc ở ${pos}s.`]); }
+      pos = s.end;
+      if (!SHOW.songs[s.song]) R.push(['bad', `Đoạn "${s.id}" dùng bài "${s.song}" không có trong thư viện.`]);
+      if (V.bands.indexOf(s.band) < 0) R.push(['bad', `Đoạn "${s.id}" có ban nhạc "${s.band}" không hợp lệ.`]);
+    });
+    if (!gap) R.push(pos === SHOW_LEN ? ['ok', `${SHOW.segments.length} đoạn nối liền nhau, tổng ${SHOW_LEN} giây.`] : ['bad', `Các đoạn kết thúc ở ${pos}s, không khớp độ dài buổi diễn ${SHOW_LEN}s.`]);
+    let sorted = true, vocab = true, prev = -1;
+    SHOW.cues.forEach(c => {
+      if (c.t < prev) sorted = false; prev = c.t;
+      if (c.t < 0 || c.t >= SHOW_LEN) { sorted = false; R.push(['bad', `Cue ${c.t}s nằm ngoài buổi diễn.`]); }
+      const chk = (v, list, name) => { if (v != null && list.indexOf(v) < 0) { vocab = false; R.push(['bad', `Cue ${c.t}s: ${name} "${v}" không hợp lệ.`]); } };
+      chk(c.light, V.light, 'đèn'); chk(c.led, V.led, 'LED'); chk(c.cam, V.cam, 'camera'); chk(c.fx, V.fx, 'hiệu ứng');
+      if (c.pal && !SHOW.palettes[c.pal]) { vocab = false; R.push(['bad', `Cue ${c.t}s: bảng màu "${c.pal}" không có.`]); }
+      (c.layers || []).forEach(l => chk(l, V.layers, 'lớp nhạc'));
+    });
+    if (SHOW.cues[0] && SHOW.cues[0].t !== 0) R.push(['bad', 'Cue đầu tiên phải ở giây 0.']);
+    if (sorted && vocab) R.push(['ok', `${SHOW.cues.length} cue đúng thứ tự, mọi giá trị đèn, LED, camera, màu, lớp nhạc đều hợp lệ.`]);
+    // cue có rơi đúng đầu ô nhịp không
+    let worst = 0, off = 0, n = 0;
+    SHOW.cues.forEach(c => { const sg = segAt(c.t); if (!sg || !SHOW.songs[sg.song]) return; const bar = 240 / SHOW.songs[sg.song].bpm; const d = (c.t - sg.start - (sg.grid || 0) + 1000 * bar) % bar; const o = Math.min(d, bar - d); worst = Math.max(worst, o); off += o; n++; });
+    if (n) R.push([worst > 1.2 ? 'warn' : 'ok', `Cue lệch đầu ô nhịp trung bình ${(off / n).toFixed(2)}s, tối đa ${worst.toFixed(2)}s. Đèn và nhạc đổi đúng cue nhưng có thể chưa khớp ô nhịp.`]);
+    return R;
+  }
+
+  async function rehearse() {
+    const out = $('rehOut'), btn = $('rehBtn'); out.innerHTML = ''; btn.disabled = true;
+    const add = (lvl, txt) => { const li = document.createElement('li'); li.innerHTML = `<span class="${lvl}">${{ ok: '✓', warn: '!', bad: '✕' }[lvl]}</span><span></span>`; li.lastChild.textContent = txt; out.appendChild(li); };
+    validateScript().forEach(r => add(r[0], r[1]));
+    const dry = Aud.dryRun();
+    let maxd = 0, empty = [];
+    SHOW.segments.forEach(s => { const d = dry[s.id]; if (!d) return; maxd = Math.max(maxd, d.perSec); if (SHOW.songs[s.song] && d.events === 0) empty.push(s.id); });
+    add(empty.length ? 'bad' : 'ok', empty.length ? 'Đoạn không có âm thanh: ' + empty.join(', ') : `Âm thanh: mọi đoạn đều có nhạc, đoạn dày nhất ${maxd.toFixed(0)} sự kiện mỗi giây.`);
+    add(maxd > 45 ? 'warn' : 'ok', maxd > 45 ? 'Quá nhiều nốt cùng lúc có thể làm máy yếu bị rè tiếng.' : 'Số nốt cùng lúc nằm trong ngưỡng an toàn cho điện thoại.');
+    const prev = { mode: Clock.mode, warp: Clock.warp, audio: Aud.isOn(), auto: autoQ, cam: Stage.getCamMode(), lvl: qLevel };
+    if (prev.audio) Aud.disable();
+    autoQ = false; const errs0 = errorLog.length;
+    add('ok', 'Đang chạy cả buổi diễn nhanh 12 lần để đo khung hình…');
+    Clock.startDemo(12); rehearsing = { f: [], t0: performance.now() };
+    await new Promise(r => setTimeout(r, (SHOW_LEN / 12 + 0.8) * 1000));
+    const f = rehearsing.f.slice(); rehearsing = null;
+    if (f.length > 10) {
+      f.sort((a, b) => a - b);
+      const avg = f.reduce((a, b) => a + b, 0) / f.length, p95 = f[Math.floor(f.length * 0.95)], worst = f[f.length - 1];
+      const lvl = p95 < 34 ? 'ok' : p95 < 55 ? 'warn' : 'bad';
+      add(lvl, `Hiệu năng ở mức "${QUAL[qLevel].name}": trung bình ${(1000 / avg).toFixed(0)} FPS, 95% khung hình dưới ${p95.toFixed(0)} ms, khung chậm nhất ${worst.toFixed(0)} ms.`);
+      if (lvl !== 'ok') add('warn', 'Máy này nên để chất lượng Tự động hoặc Thấp. Chế độ Tự động sẽ hạ mức khi tụt dưới 36 FPS.');
+    } else add('warn', 'Tab đang ở nền nên chưa đo được khung hình. Hãy giữ tab mở khi diễn tập.');
+    const newErr = errorLog.length - errs0;
+    add(newErr ? 'bad' : 'ok', newErr ? `Có ${newErr} lỗi JavaScript trong lúc chạy: ${errorLog.slice(-1)[0]}` : 'Không có lỗi JavaScript trong cả buổi diễn.');
+    autoQ = prev.auto;
+    if (prev.mode === 'live') Clock.goLive(); else Clock.startDemo(1);
+    if (prev.audio) await Aud.enable(); Aud.resync(); setSoundBtn();
+    btn.disabled = false;
+  }
+  $('rehBtn').addEventListener('click', rehearse);
+
+  /* ---------- vòng lặp ---------- */
+  let last = performance.now(), lastSegId = null, lastCueIdx = -2, lastT = 0, ledAcc = 0, hudAcc = 0, sysAcc = 0, qAcc = 0, frameN = 0, lowT = 0;
+  const lowerEl = $('lower');
+  function frame(now) {
+    requestAnimationFrame(frame);
+    const dtms = now - last; last = now;
+    const dt = Math.min(0.1, dtms / 1000), time = now / 1000;
+    frames.push(dtms); if (frames.length > 90) frames.shift();
+    if (rehearsing) rehearsing.f.push(dtms);
+
+    const W = computeW(Clock.now(), time, dt);
+    const lv = Aud.live(dt, W.energy);
+    if (lv && W.phase === 'show') { // nhạc thật đang phát: nhún nhảy theo nhịp và giọng thật thay vì nhịp ước lượng
+      W.bi = { beat: lv.beat, pulse: lv.pulse, bpm: 60 / lv.period, bar: Math.floor(lv.beat / 4), f: lv.beat - Math.floor(lv.beat) };
+      W.live = lv; W.energy = Math.min(1, W.energy * (0.8 + 0.6 * lv.level));
+    }
+    // kích hoạt hiệu ứng khi vào cue mới (chỉ khi thời gian trôi liên tục, không bắn lại khi tua)
+    const idx = W.cue._idx;
+    if (idx !== lastCueIdx) {
+      if (W.phase === 'show' && Math.abs(W.t - lastT) < 3 && lastCueIdx !== -2) {
+        if (W.cue.fx) Stage.burst(W.cue.fx, W.colors);
+        if (W.cue.cheer) Aud.cheer(W.cue.cheer);
+      }
+      lastCueIdx = idx;
+    }
+    lastT = W.t;
+
+    // đoạn mới thì hiện thanh tên bài
+    const sid = W.seg ? W.seg.id : 'lobby';
+    if (sid !== lastSegId) {
+      lastSegId = sid;
+      if (!$('hud').hidden) {
+        if (W.seg) {
+          const bn = W.seg.band === 'none' ? SHOW.title : W.seg.band === 'both' ? BANDS.bands.map(b => b.name).join(' x ') : BANDS.bands.find(b => b.id === W.seg.band).name;
+          $('lowTitle').textContent = W.seg.label; $('lowSub').textContent = bn;
+        } else { $('lowTitle').textContent = 'Mở cửa'; $('lowSub').textContent = 'Buổi diễn sắp bắt đầu'; }
+        lowerEl.classList.remove('off'); clearTimeout(lowerEl._t); lowerEl._t = setTimeout(() => lowerEl.classList.add('off'), 6500);
+        lowerEl.style.borderLeftColor = W.colors[0];
+      }
+    }
+
+    Performers.update(W, time, dt);
+    Crowd.update(W, time, dt);
+    Stage.updateLights(W, time, dt);
+    Env.update(W, time, dt);
+    Stage.updateCamera(W, time, dt);
+    Stage.updateFx(dt);
+
+    ledAcc += dt;
+    if (ledAcc > 1 / QUAL[qLevel].led) {
+      ledAcc = 0;
+      LED.draw(W.cue, W.t, W.bi, Aud.spectrum(32), W.phase === 'lobby' ? W.countdown : null);
+    }
+    if (Wardrobe.isActive()) Wardrobe.render(time, dt); else Stage.render();
+
+    // chất lượng tự thích ứng
+    qAcc += 1; frameN++;
+    if (qAcc >= 60 && autoQ && !rehearsing) {
+      qAcc = 0;
+      const avg = frames.reduce((a, b) => a + b, 0) / frames.length;
+      if (avg > 28 && qLevel < QUAL.length - 1 && now - lastQChange > 2500) { qLevel++; lastQChange = now; upStreak = 0; applyQuality(); }
+      else if (avg < 16.8 && qLevel > 0) { upStreak++; if (upStreak >= 6 && now - lastQChange > 8000) { qLevel--; lastQChange = now; upStreak = 0; applyQuality(); } }
+      else upStreak = 0;
+    }
+
+    // HUD
+    hudAcc += dt;
+    if (hudAcc > 0.25) {
+      hudAcc = 0;
+      const demo = Clock.mode === 'demo' ? 'Demo, ' : '';
+      const gs = W.phase === 'lobby' ? `Mở cửa. Bắt đầu sau ${fmtTime(W.countdown)}.` : `Đang diễn: ${W.seg ? W.seg.label : ''}.`;
+      $('gateStatus').textContent = W.phase === 'lobby' ? `Cửa đã mở. Buổi diễn bắt đầu sau ${fmtTime(W.countdown)}.` : `Đang diễn "${W.seg ? W.seg.label : ''}". Vào ngay để xem tiếp.`;
+      $('hudSub').textContent = demo + (W.phase === 'lobby' ? `Mở cửa, bắt đầu sau ${fmtTime(W.countdown)}` : `${W.seg ? W.seg.label : ''}, còn ${fmtTime(SHOW_LEN - W.t)}`);
+      $('hudCount').textContent = `${realCount}${Net.cap() ? '/' + Net.cap() : ''} người thật, ${Crowd.count()} khán giả ảo`;
+      $('liveDot').className = 'dot' + (W.phase === 'lobby' ? ' lobby' : '');
+      if (drawer.classList.contains('open')) {
+        document.querySelectorAll('#cueRows tr').forEach(r => r.classList.toggle('now', +r.dataset.i === W.cue._idx));
+        $('tlph').style.left = (W.phase === 'show' ? W.t / SHOW_LEN * 100 : 0) + '%';
+      }
+    }
+    sysAcc += dt;
+    if (sysAcc > 1 && drawer.classList.contains('open') && $('p-sys').classList.contains('on')) { sysAcc = 0; if (!document.activeElement || !$('p-sys').contains(document.activeElement)) renderSys(); }
+  }
+  renderSys();
+  requestAnimationFrame(frame);
+
+  window.__concert = { Clock, Stage, Crowd, Aud, Net, Wardrobe, rehearse, validateScript, setQ(i) { autoQ = false; qLevel = i; applyQuality(); }, enter, errorLog, frames };
+})();
+
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@
   /* ---------- khởi tạo 3D ---------- */
   const canvas = $('c');
   try {
-    Stage.init(canvas); Crowd.init(Stage.scene); Performers.init(Stage.scene); Wardrobe.init(Stage.renderer);
+    Stage.init(canvas); Env.setQuality(/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 0.5 : 1); Env.init(THREE, Stage.scene, SHOW.venue); Crowd.init(Stage.scene); Performers.init(Stage.scene); Wardrobe.init(Stage.renderer);
   } catch (e) {
     console.error(e); $('nowebgl').style.display = 'flex'; $('gateStatus').textContent = 'Không khởi tạo được WebGL.'; return;
   }
@@ -262,6 +262,7 @@
     Performers.update(W, time, dt);
     Crowd.update(W, time, dt);
     Stage.updateLights(W, time, dt);
+    Env.update(W, time, dt);
     Stage.updateCamera(W, time, dt);
     Stage.updateFx(dt);
 

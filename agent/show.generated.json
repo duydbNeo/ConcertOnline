@@ -1,0 +1,818 @@
+{
+ "agent": "Event Agent",
+ "title": "NEON MIDNIGHT",
+ "theme": "Đêm nhạc Việt: hai ban nhạc ảo trình diễn ba bản nhạc Việt Nam, từ nhịp lễ hội rộn ràng đến giai điệu pop, rồi cùng khán giả đón cao trào.",
+ "venue": {
+  "preset": "festival",
+  "name": "Hội làng đêm trăng",
+  "sky": {
+   "top": "#02010a",
+   "mid": "#160a36",
+   "horizon": "#4a1a58"
+  },
+  "searchlights": 5,
+  "lanterns": true,
+  "fireworks": true,
+  "towers": true,
+  "moon": true,
+  "stars": true
+ },
+ "cycle": {
+  "lobby": 60,
+  "show": 240
+ },
+ "palettes": {
+  "deep": [
+   "#3b4cff",
+   "#19e3ff"
+  ],
+  "neon": [
+   "#19e3ff",
+   "#ff2bd6"
+  ],
+  "sunset": [
+   "#ff8a1f",
+   "#19e3ff"
+  ],
+  "bloom": [
+   "#ff4fa3",
+   "#8a5cff"
+  ],
+  "gold": [
+   "#ffd34d",
+   "#ff2bd6"
+  ]
+ },
+ "segments": [
+  {
+   "id": "overture",
+   "start": 0.0,
+   "end": 20.0,
+   "band": "none",
+   "song": "overture",
+   "label": "Mở màn"
+  },
+  {
+   "id": "s1",
+   "start": 20.0,
+   "end": 95.0,
+   "band": "solar",
+   "song": "trk_upbeat_vn_festival_105",
+   "label": "Ngày hội",
+   "track": {
+    "src": "/audio/upbeat_vn_festival.mp3",
+    "offset": 105
+   },
+   "grid": 0.188
+  },
+  {
+   "id": "mc1",
+   "start": 95.0,
+   "end": 107.0,
+   "band": "none",
+   "song": "interlude",
+   "label": "Vẫy đèn nào"
+  },
+  {
+   "id": "s2",
+   "start": 107.0,
+   "end": 177.0,
+   "band": "luna",
+   "song": "trk_nam_thang_ben_nhau_15",
+   "label": "Năm tháng bên nhau",
+   "track": {
+    "src": "/audio/nam_thang_ben_nhau.mp3",
+    "offset": 15
+   },
+   "grid": 0.639
+  },
+  {
+   "id": "mc2",
+   "start": 177.0,
+   "end": 189.0,
+   "band": "none",
+   "song": "interlude",
+   "label": "Hai ban nhạc, một đêm"
+  },
+  {
+   "id": "finale",
+   "start": 189.0,
+   "end": 224.0,
+   "band": "both",
+   "song": "trk_vn_festival_vibe_40",
+   "label": "Hội làng, cao trào",
+   "track": {
+    "src": "/audio/vn_festival_vibe.mp3",
+    "offset": 40
+   },
+   "grid": 0.601
+  },
+  {
+   "id": "outro",
+   "start": 224.0,
+   "end": 240.0,
+   "band": "both",
+   "song": "outro",
+   "label": "Cảm ơn"
+  }
+ ],
+ "cues": [
+  {
+   "t": 0,
+   "pal": "deep",
+   "light": "dim",
+   "led": "title",
+   "text": [
+    "NEON",
+    "MIDNIGHT"
+   ],
+   "cam": "wide",
+   "energy": 0.3,
+   "layers": [
+    "pad",
+    "kick"
+   ],
+   "cheer": 0.4
+  },
+  {
+   "t": 8.0,
+   "pal": "neon",
+   "light": "fan",
+   "led": "stars",
+   "cam": "crane",
+   "energy": 0.5,
+   "layers": [
+    "pad",
+    "kick",
+    "hat",
+    "riser"
+   ]
+  },
+  {
+   "t": 20.0,
+   "pal": "sunset",
+   "light": "cross",
+   "led": "grid",
+   "cam": "wide",
+   "energy": 0.7,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat"
+   ],
+   "text": [
+    "SOLAR DRIFT"
+   ],
+   "cheer": 1.0
+  },
+  {
+   "t": 32.38,
+   "pal": "sunset",
+   "light": "spot",
+   "led": "rings",
+   "cam": "closeup",
+   "energy": 0.75,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat",
+    "vocal"
+   ]
+  },
+  {
+   "t": 47.62,
+   "pal": "sunset",
+   "light": "sweep",
+   "led": "grid",
+   "cam": "stagel",
+   "energy": 0.85,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat",
+    "arp",
+    "vocal"
+   ]
+  },
+  {
+   "t": 56.76,
+   "pal": "sunset",
+   "light": "fan",
+   "led": "bars",
+   "cam": "crane",
+   "energy": 1.0,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat",
+    "arp",
+    "vocal",
+    "clap"
+   ],
+   "fx": "confetti",
+   "cheer": 1.0
+  },
+  {
+   "t": 75.05,
+   "pal": "sunset",
+   "light": "chase",
+   "led": "sunburst",
+   "cam": "stager",
+   "energy": 1.0,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat",
+    "arp",
+    "vocal",
+    "clap"
+   ],
+   "fx": "sparks",
+   "cheer": 1.0
+  },
+  {
+   "t": 87.24,
+   "pal": "sunset",
+   "light": "converge",
+   "led": "bars",
+   "cam": "closeup",
+   "energy": 0.9,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "arp",
+    "vocal"
+   ]
+  },
+  {
+   "t": 95.0,
+   "pal": "deep",
+   "light": "dim",
+   "led": "wave",
+   "text": [
+    "VẪY ĐÈN NÀO"
+   ],
+   "cam": "wide",
+   "energy": 0.45,
+   "layers": [
+    "pad",
+    "clap"
+   ],
+   "crowd": "wave",
+   "cheer": 0.8
+  },
+  {
+   "t": 107.0,
+   "pal": "bloom",
+   "light": "cross",
+   "led": "grid",
+   "cam": "wide",
+   "energy": 0.7,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat"
+   ],
+   "text": [
+    "LUNA VOLT"
+   ],
+   "cheer": 1.0
+  },
+  {
+   "t": 117.92,
+   "pal": "bloom",
+   "light": "spot",
+   "led": "rings",
+   "cam": "closeup",
+   "energy": 0.75,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat",
+    "vocal"
+   ]
+  },
+  {
+   "t": 131.64,
+   "pal": "bloom",
+   "light": "sweep",
+   "led": "grid",
+   "cam": "stagel",
+   "energy": 0.85,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat",
+    "arp",
+    "vocal"
+   ]
+  },
+  {
+   "t": 141.92,
+   "pal": "bloom",
+   "light": "fan",
+   "led": "bars",
+   "cam": "crane",
+   "energy": 1.0,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat",
+    "arp",
+    "vocal",
+    "clap"
+   ],
+   "fx": "confetti",
+   "cheer": 1.0
+  },
+  {
+   "t": 159.07,
+   "pal": "bloom",
+   "light": "chase",
+   "led": "sunburst",
+   "cam": "stager",
+   "energy": 1.0,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat",
+    "arp",
+    "vocal",
+    "clap"
+   ],
+   "fx": "sparks",
+   "cheer": 1.0
+  },
+  {
+   "t": 169.35,
+   "pal": "bloom",
+   "light": "converge",
+   "led": "bars",
+   "cam": "closeup",
+   "energy": 0.9,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "arp",
+    "vocal"
+   ]
+  },
+  {
+   "t": 177.0,
+   "pal": "deep",
+   "light": "dim",
+   "led": "wave",
+   "text": [
+    "HAI BAN NHẠC",
+    "MỘT ĐÊM"
+   ],
+   "cam": "wide",
+   "energy": 0.45,
+   "layers": [
+    "pad",
+    "clap"
+   ],
+   "crowd": "wave",
+   "cheer": 0.8
+  },
+  {
+   "t": 189.0,
+   "pal": "gold",
+   "light": "strobe",
+   "led": "sunburst",
+   "cam": "wide",
+   "energy": 0.7,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat"
+   ],
+   "text": [
+    "SOLAR DRIFT",
+    "x LUNA VOLT"
+   ],
+   "cheer": 1.0
+  },
+  {
+   "t": 193.03,
+   "pal": "gold",
+   "light": "spot",
+   "led": "rings",
+   "cam": "closeup",
+   "energy": 0.75,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat",
+    "vocal"
+   ]
+  },
+  {
+   "t": 199.89,
+   "pal": "gold",
+   "light": "sweep",
+   "led": "grid",
+   "cam": "stagel",
+   "energy": 0.85,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat",
+    "arp",
+    "vocal"
+   ]
+  },
+  {
+   "t": 206.74,
+   "pal": "gold",
+   "light": "fan",
+   "led": "bars",
+   "cam": "crane",
+   "energy": 1.0,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat",
+    "arp",
+    "vocal",
+    "clap"
+   ],
+   "fx": "fireworks",
+   "cheer": 1.0
+  },
+  {
+   "t": 213.6,
+   "pal": "gold",
+   "light": "chase",
+   "led": "sunburst",
+   "cam": "stager",
+   "energy": 1.0,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "hat",
+    "arp",
+    "vocal",
+    "clap"
+   ],
+   "fx": "sparks",
+   "cheer": 1.0
+  },
+  {
+   "t": 220.46,
+   "pal": "gold",
+   "light": "converge",
+   "led": "bars",
+   "cam": "closeup",
+   "energy": 0.9,
+   "layers": [
+    "kick",
+    "snare",
+    "bass",
+    "pad",
+    "arp",
+    "vocal"
+   ]
+  },
+  {
+   "t": 224.0,
+   "pal": "gold",
+   "light": "fan",
+   "led": "thanks",
+   "text": [
+    "CẢM ƠN",
+    "HẸN ĐÊM SAU"
+   ],
+   "cam": "crane",
+   "energy": 0.7,
+   "layers": [
+    "pad",
+    "arp",
+    "clap"
+   ],
+   "crowd": "wave",
+   "fx": "fireworks",
+   "cheer": 1.0
+  },
+  {
+   "t": 232.0,
+   "pal": "gold",
+   "light": "dim",
+   "led": "thanks",
+   "cam": "wide",
+   "energy": 0.4,
+   "layers": [
+    "pad"
+   ],
+   "fx": "fireworks",
+   "cheer": 0.8
+  }
+ ],
+ "songs": {
+  "overture": {
+   "title": "Overture",
+   "bpm": 110,
+   "root": 45,
+   "voice": "none",
+   "prog": [
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": -4,
+     "q": "M"
+    },
+    {
+     "r": 3,
+     "q": "M"
+    },
+    {
+     "r": -2,
+     "q": "M"
+    }
+   ],
+   "drums": {
+    "kick": "x.......x.......",
+    "snare": "................",
+    "hat": "..x...x...x...x.",
+    "clap": "................"
+   },
+   "bass": "x.......x.......",
+   "arp": "x.x.x.x.x.x.x.x.",
+   "hook": []
+  },
+  "interlude": {
+   "title": "Interlude",
+   "bpm": 100,
+   "root": 57,
+   "voice": "none",
+   "prog": [
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": -4,
+     "q": "M"
+    },
+    {
+     "r": 3,
+     "q": "M"
+    },
+    {
+     "r": -2,
+     "q": "M"
+    }
+   ],
+   "drums": {
+    "kick": "................",
+    "snare": "................",
+    "hat": "................",
+    "clap": "x...x...x...x..."
+   },
+   "bass": "x.......x.......",
+   "arp": "x...x...x...x...",
+   "hook": []
+  },
+  "outro": {
+   "title": "Outro",
+   "bpm": 100,
+   "root": 50,
+   "voice": "none",
+   "prog": [
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": -4,
+     "q": "M"
+    },
+    {
+     "r": 3,
+     "q": "M"
+    },
+    {
+     "r": -2,
+     "q": "M"
+    }
+   ],
+   "drums": {
+    "kick": "................",
+    "snare": "................",
+    "hat": "................",
+    "clap": "x...x...x...x..."
+   },
+   "bass": "x.......x.......",
+   "arp": "x.x.x.x.x.x.x.x.",
+   "hook": []
+  },
+  "trk_upbeat_vn_festival_105": {
+   "title": "Upbeat Vietnam Festival Day",
+   "bpm": 78.75,
+   "root": 50,
+   "voice": "none",
+   "prog": [
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": 0,
+     "q": "m"
+    }
+   ],
+   "drums": {
+    "kick": "................",
+    "snare": "................",
+    "hat": "................",
+    "clap": "................"
+   },
+   "bass": "................",
+   "arp": "................",
+   "hook": []
+  },
+  "trk_nam_thang_ben_nhau_15": {
+   "title": "Năm tháng bên nhau",
+   "bpm": 70,
+   "root": 50,
+   "voice": "none",
+   "prog": [
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": 0,
+     "q": "m"
+    }
+   ],
+   "drums": {
+    "kick": "................",
+    "snare": "................",
+    "hat": "................",
+    "clap": "................"
+   },
+   "bass": "................",
+   "arp": "................",
+   "hook": []
+  },
+  "trk_vn_festival_vibe_40": {
+   "title": "Vietnamese Festival Vibe",
+   "bpm": 70,
+   "root": 50,
+   "voice": "none",
+   "prog": [
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": 0,
+     "q": "m"
+    },
+    {
+     "r": 0,
+     "q": "m"
+    }
+   ],
+   "drums": {
+    "kick": "................",
+    "snare": "................",
+    "hat": "................",
+    "clap": "................"
+   },
+   "bass": "................",
+   "arp": "................",
+   "hook": []
+  }
+ },
+ "credits": [
+  {
+   "title": "Upbeat Vietnam Festival Day",
+   "artist": "VPRODMUSIC_Asia_BGM",
+   "license": "Pixabay Content License",
+   "source": "https://pixabay.com/vi/music/l%E1%BA%A1c-quan-upbeat-vietnam-festival-day-nh%E1%BA%A1c-n%E1%BB%81n-cho-vlog-editor-212512/"
+  },
+  {
+   "title": "Năm tháng bên nhau",
+   "artist": "u_y28d8m0e4k (ILOVESONG)",
+   "license": "Pixabay Content License",
+   "source": "https://pixabay.com/vi/music/nh%E1%BA%A1c-pop-n%C4%83m-th%C3%A1ng-b%C3%AAn-nhau-ilovesong-411626/"
+  },
+  {
+   "title": "Vietnamese Festival Vibe",
+   "artist": "VPRODMUSIC_Asia_BGM",
+   "license": "Pixabay Content License",
+   "source": "https://pixabay.com/vi/music/th%E1%BA%BF-gi%E1%BB%9Bi-vietnamese-festival-vibe-143594/"
+  }
+ ],
+ "vocabulary": {
+  "light": [
+   "dim",
+   "sweep",
+   "fan",
+   "cross",
+   "chase",
+   "strobe",
+   "spot",
+   "converge"
+  ],
+  "led": [
+   "title",
+   "grid",
+   "bars",
+   "rings",
+   "stars",
+   "sunburst",
+   "wave",
+   "countdown",
+   "thanks"
+  ],
+  "cam": [
+   "wide",
+   "crane",
+   "stagel",
+   "stager",
+   "closeup",
+   "orbit"
+  ],
+  "layers": [
+   "kick",
+   "snare",
+   "hat",
+   "clap",
+   "bass",
+   "pad",
+   "arp",
+   "vocal",
+   "riser"
+  ],
+  "fx": [
+   "confetti",
+   "sparks",
+   "fireworks"
+  ],
+  "bands": [
+   "none",
+   "solar",
+   "luna",
+   "both"
+  ]
+ }
+}

@@ -2,6 +2,21 @@
  "agent": "Event Agent",
  "title": "NEON MIDNIGHT",
  "theme": "Đêm nhạc Việt: hai ban nhạc ảo trình diễn ba bản nhạc Việt Nam, từ nhịp lễ hội rộn ràng đến giai điệu pop, rồi cùng khán giả đón cao trào.",
+ "venue": {
+  "preset": "festival",
+  "name": "Hội làng đêm trăng",
+  "sky": {
+   "top": "#02010a",
+   "mid": "#160a36",
+   "horizon": "#4a1a58"
+  },
+  "searchlights": 5,
+  "lanterns": true,
+  "fireworks": true,
+  "towers": true,
+  "moon": true,
+  "stars": true
+ },
  "cycle": {
   "lobby": 60,
   "show": 240

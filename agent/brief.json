@@ -1,40 +1,55 @@
 {
-  "title": "NEON MIDNIGHT",
-  "theme": "Đêm nhạc Việt: hai ban nhạc ảo trình diễn ba bản nhạc Việt Nam, từ nhịp lễ hội rộn ràng đến giai điệu pop, rồi cùng khán giả đón cao trào.",
-  "cycle": {
-    "lobby": 60,
-    "show": 240
+ "title": "NEON MIDNIGHT",
+ "theme": "Đêm nhạc Việt: hai ban nhạc ảo trình diễn ba bản nhạc Việt Nam, từ nhịp lễ hội rộn ràng đến giai điệu pop, rồi cùng khán giả đón cao trào.",
+ "cycle": {
+  "lobby": 60,
+  "show": 240
+ },
+ "setlist": [
+  {
+   "id": "s1",
+   "track": "upbeat_vn_festival",
+   "offset": 105,
+   "band": "solar",
+   "label": "Ngày hội",
+   "len": 75,
+   "pal": "sunset"
   },
-  "setlist": [
-    {
-      "id": "s1",
-      "track": "upbeat_vn_festival",
-      "offset": 105,
-      "band": "solar",
-      "label": "Ngày hội",
-      "len": 75,
-      "pal": "sunset"
-    },
-    {
-      "id": "s2",
-      "track": "nam_thang_ben_nhau",
-      "offset": 15,
-      "band": "luna",
-      "label": "Năm tháng bên nhau",
-      "len": 70,
-      "pal": "bloom"
-    },
-    {
-      "id": "finale",
-      "track": "vn_festival_vibe",
-      "offset": 40,
-      "band": "both",
-      "label": "Hội làng, cao trào",
-      "len": 35,
-      "pal": "gold"
-    }
-  ],
-  "overture": 20,
-  "interlude": 12,
-  "outro": 16
+  {
+   "id": "s2",
+   "track": "nam_thang_ben_nhau",
+   "offset": 15,
+   "band": "luna",
+   "label": "Năm tháng bên nhau",
+   "len": 70,
+   "pal": "bloom"
+  },
+  {
+   "id": "finale",
+   "track": "vn_festival_vibe",
+   "offset": 40,
+   "band": "both",
+   "label": "Hội làng, cao trào",
+   "len": 35,
+   "pal": "gold"
+  }
+ ],
+ "overture": 20,
+ "interlude": 12,
+ "outro": 16,
+ "venue": {
+  "preset": "festival",
+  "name": "Hội làng đêm trăng",
+  "sky": {
+   "top": "#02010a",
+   "mid": "#160a36",
+   "horizon": "#4a1a58"
+  },
+  "searchlights": 5,
+  "lanterns": true,
+  "fireworks": true,
+  "towers": true,
+  "moon": true,
+  "stars": true
+ }
 }

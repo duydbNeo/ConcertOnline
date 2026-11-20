@@ -110,8 +110,13 @@ export default {
       return new Response(buf, { headers: { 'content-type': 'audio/mpeg', 'cache-control': 'public, max-age=86400' } });
     }
     if (p === '/' || p === '/index.html') {
-      let html = null;
-      try { const r = await fetch(PAGE_URL, { cf: { cacheTtl: 60, cacheEverything: true } }); if (r.ok) html = await r.text(); } catch (e) { }
+      let html = null, src = 'kv';
+      try {
+        // 'ref' trong KV là mã commit của trang cần phát (không bị cache cũ của GitHub)
+        const ref = (await env.PAGE.get('ref')) || 'main';
+        const r = await fetch(PAGE_URL.replace('/main/', '/' + ref + '/'), { cf: { cacheTtl: 300, cacheEverything: true } });
+        if (r.ok) { html = await r.text(); src = 'github'; }
+      } catch (e) { }
       if (!html) {
         const n = parseInt(await env.PAGE.get('n'), 10);
         const parts = await Promise.all(Array.from({ length: n }, (_, i) => env.PAGE.get('p' + i)));
@@ -119,7 +124,7 @@ export default {
         const show = await env.PAGE.get('show');
         if (show) html = html.replace(/(<script type="application\/json" id="show-data">)[\s\S]*?(<\/script>)/, (m2, a, b) => a + show + b);
       }
-      return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=60' } });
+      return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=60', 'x-page-src': src } });
     }
     return new Response('Not found', { status: 404 });
   }

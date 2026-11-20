@@ -1,6 +1,6 @@
 {
   "title": "NEON MIDNIGHT",
-  "theme": "Đêm nhạc điện tử: hai ban nhạc ảo mở màn bằng synth rock rồi đẩy lên nhịp dance, kết bằng cao trào cùng khán giả.",
+  "theme": "Đêm nhạc Việt: hai ban nhạc ảo trình diễn ba bản nhạc Việt Nam, từ nhịp lễ hội rộn ràng đến giai điệu pop, rồi cùng khán giả đón cao trào.",
   "cycle": {
     "lobby": 60,
     "show": 240
@@ -8,28 +8,28 @@
   "setlist": [
     {
       "id": "s1",
-      "track": "blacksheep",
-      "offset": 0,
+      "track": "upbeat_vn_festival",
+      "offset": 105,
       "band": "solar",
-      "label": "Black Sheep",
+      "label": "Ngày hội",
       "len": 75,
       "pal": "sunset"
     },
     {
       "id": "s2",
-      "track": "mister_blues",
-      "offset": 0,
+      "track": "nam_thang_ben_nhau",
+      "offset": 15,
       "band": "luna",
-      "label": "Mister Blues",
+      "label": "Năm tháng bên nhau",
       "len": 70,
       "pal": "bloom"
     },
     {
       "id": "finale",
-      "track": "mister_blues",
-      "offset": 125,
+      "track": "vn_festival_vibe",
+      "offset": 40,
       "band": "both",
-      "label": "Mister Blues, cao trào",
+      "label": "Hội làng, cao trào",
       "len": 35,
       "pal": "gold"
     }

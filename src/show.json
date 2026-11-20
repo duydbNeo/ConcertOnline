@@ -1,7 +1,7 @@
 {
  "agent": "Event Agent",
  "title": "NEON MIDNIGHT",
- "theme": "Đêm nhạc điện tử: hai ban nhạc ảo mở màn bằng synth rock rồi đẩy lên nhịp dance, kết bằng cao trào cùng khán giả.",
+ "theme": "Đêm nhạc Việt: hai ban nhạc ảo trình diễn ba bản nhạc Việt Nam, từ nhịp lễ hội rộn ràng đến giai điệu pop, rồi cùng khán giả đón cao trào.",
  "cycle": {
   "lobby": 60,
   "show": 240
@@ -42,13 +42,13 @@
    "start": 20.0,
    "end": 95.0,
    "band": "solar",
-   "song": "trk_blacksheep",
-   "label": "Black Sheep",
+   "song": "trk_upbeat_vn_festival_105",
+   "label": "Ngày hội",
    "track": {
-    "src": "/audio/blacksheep.mp3",
-    "offset": 0
+    "src": "/audio/upbeat_vn_festival.mp3",
+    "offset": 105
    },
-   "grid": 0.5
+   "grid": 0.188
   },
   {
    "id": "mc1",
@@ -63,13 +63,13 @@
    "start": 107.0,
    "end": 177.0,
    "band": "luna",
-   "song": "trk_mister_blues",
-   "label": "Mister Blues",
+   "song": "trk_nam_thang_ben_nhau_15",
+   "label": "Năm tháng bên nhau",
    "track": {
-    "src": "/audio/mister_blues.mp3",
-    "offset": 0
+    "src": "/audio/nam_thang_ben_nhau.mp3",
+    "offset": 15
    },
-   "grid": 0.205
+   "grid": 0.639
   },
   {
    "id": "mc2",
@@ -84,13 +84,13 @@
    "start": 189.0,
    "end": 224.0,
    "band": "both",
-   "song": "trk_mister_blues_125",
-   "label": "Mister Blues, cao trào",
+   "song": "trk_vn_festival_vibe_40",
+   "label": "Hội làng, cao trào",
    "track": {
-    "src": "/audio/mister_blues.mp3",
-    "offset": 125
+    "src": "/audio/vn_festival_vibe.mp3",
+    "offset": 40
    },
-   "grid": 0.005
+   "grid": 0.601
   },
   {
    "id": "outro",
@@ -153,7 +153,7 @@
    "cheer": 1.0
   },
   {
-   "t": 32.5,
+   "t": 32.38,
    "pal": "sunset",
    "light": "spot",
    "led": "rings",
@@ -169,7 +169,7 @@
    ]
   },
   {
-   "t": 47.5,
+   "t": 47.62,
    "pal": "sunset",
    "light": "sweep",
    "led": "grid",
@@ -186,7 +186,7 @@
    ]
   },
   {
-   "t": 56.5,
+   "t": 56.76,
    "pal": "sunset",
    "light": "fan",
    "led": "bars",
@@ -206,7 +206,7 @@
    "cheer": 1.0
   },
   {
-   "t": 74.5,
+   "t": 75.05,
    "pal": "sunset",
    "light": "chase",
    "led": "sunburst",
@@ -226,7 +226,7 @@
    "cheer": 1.0
   },
   {
-   "t": 86.5,
+   "t": 87.24,
    "pal": "sunset",
    "light": "converge",
    "led": "bars",
@@ -278,7 +278,7 @@
    "cheer": 1.0
   },
   {
-   "t": 116.8,
+   "t": 117.92,
    "pal": "bloom",
    "light": "spot",
    "led": "rings",
@@ -294,7 +294,7 @@
    ]
   },
   {
-   "t": 132.16,
+   "t": 131.64,
    "pal": "bloom",
    "light": "sweep",
    "led": "grid",
@@ -311,7 +311,7 @@
    ]
   },
   {
-   "t": 141.76,
+   "t": 141.92,
    "pal": "bloom",
    "light": "fan",
    "led": "bars",
@@ -331,7 +331,7 @@
    "cheer": 1.0
   },
   {
-   "t": 157.12,
+   "t": 159.07,
    "pal": "bloom",
    "light": "chase",
    "led": "sunburst",
@@ -351,7 +351,7 @@
    "cheer": 1.0
   },
   {
-   "t": 170.56,
+   "t": 169.35,
    "pal": "bloom",
    "light": "converge",
    "led": "bars",
@@ -405,7 +405,7 @@
    "cheer": 1.0
   },
   {
-   "t": 194.76,
+   "t": 193.03,
    "pal": "gold",
    "light": "spot",
    "led": "rings",
@@ -421,7 +421,7 @@
    ]
   },
   {
-   "t": 200.53,
+   "t": 199.89,
    "pal": "gold",
    "light": "sweep",
    "led": "grid",
@@ -438,7 +438,7 @@
    ]
   },
   {
-   "t": 206.28,
+   "t": 206.74,
    "pal": "gold",
    "light": "fan",
    "led": "bars",
@@ -458,7 +458,7 @@
    "cheer": 1.0
   },
   {
-   "t": 213.97,
+   "t": 213.6,
    "pal": "gold",
    "light": "chase",
    "led": "sunburst",
@@ -478,7 +478,7 @@
    "cheer": 1.0
   },
   {
-   "t": 219.72,
+   "t": 220.46,
    "pal": "gold",
    "light": "converge",
    "led": "bars",
@@ -627,9 +627,9 @@
    "arp": "x.x.x.x.x.x.x.x.",
    "hook": []
   },
-  "trk_blacksheep": {
-   "title": "Black Sheep",
-   "bpm": 80,
+  "trk_upbeat_vn_festival_105": {
+   "title": "Upbeat Vietnam Festival Day",
+   "bpm": 78.75,
    "root": 50,
    "voice": "none",
    "prog": [
@@ -660,9 +660,9 @@
    "arp": "................",
    "hook": []
   },
-  "trk_mister_blues": {
-   "title": "Mister Blues",
-   "bpm": 125,
+  "trk_nam_thang_ben_nhau_15": {
+   "title": "Năm tháng bên nhau",
+   "bpm": 70,
    "root": 50,
    "voice": "none",
    "prog": [
@@ -693,9 +693,9 @@
    "arp": "................",
    "hook": []
   },
-  "trk_mister_blues_125": {
-   "title": "Mister Blues",
-   "bpm": 125,
+  "trk_vn_festival_vibe_40": {
+   "title": "Vietnamese Festival Vibe",
+   "bpm": 70,
    "root": 50,
    "voice": "none",
    "prog": [
@@ -729,16 +729,22 @@
  },
  "credits": [
   {
-   "title": "Black Sheep",
-   "artist": "iamoneabe",
-   "license": "CC0",
-   "source": "https://opengameart.org/content/black-sheep"
+   "title": "Upbeat Vietnam Festival Day",
+   "artist": "VPRODMUSIC_Asia_BGM",
+   "license": "Pixabay Content License",
+   "source": "https://pixabay.com/vi/music/l%E1%BA%A1c-quan-upbeat-vietnam-festival-day-nh%E1%BA%A1c-n%E1%BB%81n-cho-vlog-editor-212512/"
   },
   {
-   "title": "Mister Blues",
-   "artist": "iamoneabe",
-   "license": "CC0",
-   "source": "https://opengameart.org/content/mister-blues"
+   "title": "Năm tháng bên nhau",
+   "artist": "u_y28d8m0e4k (ILOVESONG)",
+   "license": "Pixabay Content License",
+   "source": "https://pixabay.com/vi/music/nh%E1%BA%A1c-pop-n%C4%83m-th%C3%A1ng-b%C3%AAn-nhau-ilovesong-411626/"
+  },
+  {
+   "title": "Vietnamese Festival Vibe",
+   "artist": "VPRODMUSIC_Asia_BGM",
+   "license": "Pixabay Content License",
+   "source": "https://pixabay.com/vi/music/th%E1%BA%BF-gi%E1%BB%9Bi-vietnamese-festival-vibe-143594/"
   }
  ],
  "vocabulary": {

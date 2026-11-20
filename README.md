@@ -28,4 +28,4 @@ Nên giữ không quá khoảng 120, vì game chỉ vẽ tối đa 115 chỗ đ�
 - Mỗi tin nhắn máy chủ nhận đều được kiểm tra: tên tối đa 20 ký tự, đồ hợp lệ, emote nằm trong danh sách, tối đa 8 tin mỗi giây mỗi người.
 
 ## Nhạc trong concert (thử nghiệm)
-Hai bản nhạc giấy phép CC0 của iamoneabe (OpenGameArt): [Black Sheep](https://opengameart.org/content/black-sheep) và [Mister Blues](https://opengameart.org/content/mister-blues). Tệp mp3 nằm trong Cloudflare KV, phát qua đường `/audio/<tên>.mp3`. Lịch diễn do `agent/event_agent.py` dựng từ `agent/brief.json`.
+Nhạc thử nghiệm: ba bản nhạc Việt từ Pixabay (giấy phép Pixabay Content License) gồm Upbeat Vietnam Festival Day, Năm tháng bên nhau, Vietnamese Festival Vibe. Hai bài CC0 của iamoneabe (Black Sheep, Mister Blues) vẫn nằm trong KV. Tệp mp3 nằm trong Cloudflare KV, phát qua đường `/audio/<tên>.mp3`. Lịch diễn do `agent/event_agent.py` dựng từ `agent/brief.json`.

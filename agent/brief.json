@@ -1,0 +1,11 @@
+{
+  "title": "NEON MIDNIGHT",
+  "theme": "Đêm dân ca: hai ban nhạc ảo mang hai làn điệu dân ca Nam Bộ lên sân khấu neon, từ nhịp phi nước đại đến lời ru chậm, rồi hợp ca cùng khán giả.",
+  "cycle": {"lobby": 60, "show": 240},
+  "setlist": [
+    {"id": "s1", "song": "ly_ngua_o", "band": "solar", "label": "Lý ngựa ô", "len": 75, "pal": "sunset"},
+    {"id": "s2", "song": "ly_cay_bong", "band": "luna", "label": "Lý cây bông", "len": 70, "pal": "bloom"},
+    {"id": "finale", "song": "ly_ngua_o", "band": "both", "label": "Hợp ca Lý ngựa ô", "len": 35, "pal": "gold", "voice": "duet"}
+  ],
+  "overture": 20, "interlude": 12, "outro": 16
+}

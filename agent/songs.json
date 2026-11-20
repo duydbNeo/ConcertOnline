@@ -1,0 +1,30 @@
+{
+  "ly_ngua_o": {
+    "title": "Lý ngựa ô",
+    "bpm": 120, "root": 55, "voice": "boy",
+    "prog": [{"r":0,"q":"M"},{"r":-3,"q":"m"},{"r":5,"q":"M"},{"r":-5,"q":"M"}],
+    "drums": {"kick":"x...x...x...x...","snare":"....x.......x...","hat":"x.x.x.x.x.x.x.x.","clap":"....x.......x..."},
+    "bass": "x..xx..xx..xx..x", "arp": "x.xxx.xxx.xxx.xx",
+    "hook": [
+      [[7,0,2],[7,2,2],[9,4,2],[7,6,2],[4,8,4],[0,12,4]],
+      [[4,0,2],[4,2,2],[7,4,2],[4,6,2],[2,8,4],[0,12,4]],
+      [[7,0,2],[9,2,2],[12,4,4],[9,8,2],[7,10,2],[4,12,4]],
+      [[2,0,2],[4,2,2],[7,4,2],[4,6,2],[0,8,8]]
+    ],
+    "legal": {"kind": "dân ca Nam Bộ", "melody": "dân gian, không rõ tác giả", "arrangement": "phối synth gốc của dự án", "note": "Giai điệu là bản rút gọn theo âm hưởng, cần người am hiểu dân ca duyệt lại."}
+  },
+  "ly_cay_bong": {
+    "title": "Lý cây bông",
+    "bpm": 96, "root": 52, "voice": "girl",
+    "prog": [{"r":0,"q":"M"},{"r":-3,"q":"m"},{"r":5,"q":"M"},{"r":-5,"q":"M"}],
+    "drums": {"kick":"x.......x.......","snare":"....x.......x...","hat":"x.x.x.x.x.x.x.x.","clap":"................"},
+    "bass": "x.......x...x...", "arp": "x.x.x.x.x.x.x.x.",
+    "hook": [
+      [[4,0,4],[7,4,4],[9,8,6],[7,14,2]],
+      [[4,0,4],[2,4,4],[0,8,8]],
+      [[4,0,4],[7,4,2],[9,6,2],[12,8,6],[9,14,2]],
+      [[7,0,4],[4,4,4],[2,8,2],[0,10,6]]
+    ],
+    "legal": {"kind": "dân ca Nam Bộ", "melody": "dân gian, không rõ tác giả", "arrangement": "phối synth gốc của dự án", "note": "Giai điệu là bản rút gọn theo âm hưởng, cần người am hiểu dân ca duyệt lại."}
+  }
+}

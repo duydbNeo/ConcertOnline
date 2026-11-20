@@ -1,0 +1,117 @@
+{
+  "agent": "Event Agent",
+  "title": "NEON MIDNIGHT",
+  "theme": "Một đêm thành phố không ngủ: hai ban nhạc thay nhau dẫn khán giả từ hoàng hôn cam đến nửa đêm tím, rồi cùng nhau đón pháo hoa.",
+  "cycle": { "lobby": 60, "show": 240 },
+  "palettes": {
+    "deep":   ["#3b4cff", "#19e3ff"],
+    "neon":   ["#19e3ff", "#ff2bd6"],
+    "sunset": ["#ff8a1f", "#19e3ff"],
+    "bloom":  ["#ff4fa3", "#8a5cff"],
+    "gold":   ["#ffd34d", "#ff2bd6"]
+  },
+  "segments": [
+    { "id": "overture", "start": 0,   "end": 20,  "band": "none",  "song": "overture",         "label": "Overture" },
+    { "id": "s1",       "start": 20,  "end": 80,  "band": "solar", "song": "midnight_signal",  "label": "Midnight Signal" },
+    { "id": "mc1",      "start": 80,  "end": 95,  "band": "none",  "song": "interlude",        "label": "Wave Your Lights" },
+    { "id": "s2",       "start": 95,  "end": 155, "band": "luna",  "song": "voltage_hearts",   "label": "Voltage Hearts" },
+    { "id": "mc2",      "start": 155, "end": 170, "band": "none",  "song": "interlude",        "label": "Two Bands, One Night" },
+    { "id": "finale",   "start": 170, "end": 225, "band": "both",  "song": "neon_midnight",    "label": "Neon Midnight" },
+    { "id": "outro",    "start": 225, "end": 240, "band": "both",  "song": "outro",            "label": "Thank You" }
+  ],
+  "cues": [
+    { "t": 0,   "pal": "deep",   "light": "dim",      "led": "title",    "text": ["NEON", "MIDNIGHT"], "cam": "wide",   "energy": 0.30, "layers": ["pad", "kick"], "cheer": 0.4 },
+    { "t": 8,   "pal": "neon",   "light": "fan",      "led": "stars",    "cam": "crane",  "energy": 0.50, "layers": ["pad", "kick", "hat", "riser"] },
+    { "t": 16,  "pal": "sunset", "light": "sweep",    "led": "sunburst", "text": ["SOLAR", "DRIFT"], "cam": "wide", "energy": 0.70, "layers": ["pad", "kick", "hat", "riser"], "cheer": 0.8 },
+
+    { "t": 20,  "pal": "sunset", "light": "cross",    "led": "grid",     "text": ["SOLAR DRIFT"], "cam": "wide",   "energy": 0.70, "layers": ["kick", "snare", "bass", "pad", "hat"], "cheer": 1.0 },
+    { "t": 30,  "pal": "sunset", "light": "spot",     "led": "rings",    "cam": "closeup", "energy": 0.75, "layers": ["kick", "snare", "bass", "pad", "hat", "vocal"] },
+    { "t": 44,  "pal": "sunset", "light": "sweep",    "led": "grid",     "cam": "stagel", "energy": 0.85, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal"] },
+    { "t": 52,  "pal": "sunset", "light": "fan",      "led": "bars",     "cam": "crane",  "energy": 1.00, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal", "clap"], "fx": "confetti", "cheer": 1.0 },
+    { "t": 64,  "pal": "sunset", "light": "chase",    "led": "sunburst", "cam": "stager", "energy": 1.00, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal", "clap"], "fx": "sparks", "cheer": 1.0 },
+    { "t": 74,  "pal": "sunset", "light": "converge", "led": "bars",     "cam": "closeup", "energy": 0.90, "layers": ["kick", "snare", "bass", "pad", "arp", "vocal"] },
+
+    { "t": 80,  "pal": "deep",   "light": "dim",      "led": "wave",     "text": ["WAVE YOUR", "LIGHTS"], "cam": "wide", "energy": 0.45, "layers": ["pad", "clap"], "crowd": "wave", "cheer": 0.8 },
+
+    { "t": 95,  "pal": "bloom",  "light": "cross",    "led": "rings",    "text": ["LUNA VOLT"], "cam": "wide",   "energy": 0.75, "layers": ["kick", "snare", "bass", "pad", "hat"], "cheer": 1.0 },
+    { "t": 105, "pal": "bloom",  "light": "spot",     "led": "wave",     "cam": "closeup", "energy": 0.80, "layers": ["kick", "snare", "bass", "pad", "hat", "vocal"] },
+    { "t": 118, "pal": "bloom",  "light": "sweep",    "led": "stars",    "cam": "stager", "energy": 0.90, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal"] },
+    { "t": 126, "pal": "bloom",  "light": "fan",      "led": "bars",     "cam": "crane",  "energy": 1.00, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal", "clap"], "fx": "confetti", "cheer": 1.0 },
+    { "t": 138, "pal": "bloom",  "light": "chase",    "led": "sunburst", "cam": "stagel", "energy": 1.00, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal", "clap"], "fx": "sparks", "cheer": 1.0 },
+    { "t": 148, "pal": "bloom",  "light": "converge", "led": "rings",    "cam": "closeup", "energy": 0.90, "layers": ["kick", "snare", "bass", "pad", "arp", "vocal"] },
+
+    { "t": 155, "pal": "deep",   "light": "dim",      "led": "stars",    "text": ["TWO BANDS", "ONE NIGHT"], "cam": "wide", "energy": 0.45, "layers": ["pad", "clap"], "crowd": "wave", "cheer": 0.8 },
+
+    { "t": 170, "pal": "neon",   "light": "strobe",   "led": "sunburst", "text": ["SOLAR DRIFT", "x LUNA VOLT"], "cam": "wide", "energy": 0.95, "layers": ["kick", "snare", "bass", "pad", "hat", "clap"], "cheer": 1.0 },
+    { "t": 182, "pal": "neon",   "light": "fan",      "led": "grid",     "cam": "orbit",  "energy": 1.00, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal", "clap"], "fx": "confetti" },
+    { "t": 196, "pal": "neon",   "light": "chase",    "led": "bars",     "cam": "crane",  "energy": 1.00, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal", "clap"], "fx": "sparks", "cheer": 1.0 },
+    { "t": 210, "pal": "gold",   "light": "cross",    "led": "rings",    "cam": "closeup", "energy": 1.00, "layers": ["kick", "snare", "bass", "pad", "hat", "arp", "vocal", "clap"], "fx": "fireworks", "cheer": 1.0 },
+
+    { "t": 225, "pal": "gold",   "light": "fan",      "led": "thanks",   "text": ["THANK YOU", "SEE YOU NEXT NIGHT"], "cam": "crane", "energy": 0.70, "layers": ["pad", "arp", "clap"], "crowd": "wave", "fx": "fireworks", "cheer": 1.0 },
+    { "t": 233, "pal": "gold",   "light": "dim",      "led": "thanks",   "cam": "wide", "energy": 0.40, "layers": ["pad"], "fx": "fireworks", "cheer": 0.8 }
+  ],
+  "songs": {
+    "overture": {
+      "title": "Overture", "bpm": 110, "root": 45, "voice": "none",
+      "prog": [ { "r": 0, "q": "m" }, { "r": -4, "q": "M" }, { "r": 3, "q": "M" }, { "r": -2, "q": "M" } ],
+      "drums": { "kick": "x.......x.......", "snare": "................", "hat": "..x...x...x...x.", "clap": "................" },
+      "bass": "x.......x.......", "arp": "x.x.x.x.x.x.x.x.", "hook": []
+    },
+    "midnight_signal": {
+      "title": "Midnight Signal", "bpm": 118, "root": 57, "voice": "boy",
+      "prog": [ { "r": 0, "q": "m" }, { "r": -4, "q": "M" }, { "r": 3, "q": "M" }, { "r": -2, "q": "M" } ],
+      "drums": { "kick": "x...x...x..xx...", "snare": "....x.......x...", "hat": "x.x.x.x.x.x.x.xx", "clap": "....x.......x..." },
+      "bass": "x..xx..xx..xx..x", "arp": "xxxxxxxxxxxxxxxx",
+      "hook": [
+        [[7,0,3],[5,4,2],[3,6,2],[0,8,4],[3,12,2],[5,14,2]],
+        [[7,0,3],[10,4,2],[7,6,2],[5,8,6]],
+        [[3,0,3],[5,4,2],[7,6,2],[10,8,4],[12,12,4]],
+        [[10,0,2],[7,2,2],[5,4,4],[3,8,4],[0,12,4]]
+      ]
+    },
+    "voltage_hearts": {
+      "title": "Voltage Hearts", "bpm": 124, "root": 52, "voice": "girl",
+      "prog": [ { "r": 0, "q": "m" }, { "r": 5, "q": "m" }, { "r": -4, "q": "M" }, { "r": -2, "q": "M" } ],
+      "drums": { "kick": "x...x...x...x...", "snare": "....x.......x...", "hat": "..x...x...x...x.", "clap": "....x.......x..." },
+      "bass": "x.x.x.xxx.x.x.xx", "arp": "x.xxx.xxx.xxx.xx",
+      "hook": [
+        [[12,0,2],[10,2,2],[7,4,4],[10,8,2],[12,10,2],[14,12,4]],
+        [[12,0,2],[10,2,2],[7,4,2],[5,6,2],[7,8,8]],
+        [[5,0,2],[7,2,2],[10,4,4],[12,8,4],[10,12,4]],
+        [[14,0,4],[12,4,2],[10,6,2],[7,8,4],[5,12,4]]
+      ]
+    },
+    "neon_midnight": {
+      "title": "Neon Midnight", "bpm": 120, "root": 50, "voice": "duet",
+      "prog": [ { "r": 0, "q": "m" }, { "r": -4, "q": "M" }, { "r": 3, "q": "M" }, { "r": -2, "q": "M" } ],
+      "drums": { "kick": "x...x...x...x..x", "snare": "....x.......x...", "hat": "x.x.x.x.x.x.x.xx", "clap": "....x.......x..." },
+      "bass": "x.xxx.xxx.xxx.xx", "arp": "xxxxxxxxxxxxxxxx",
+      "hook": [
+        [[7,0,4],[10,4,2],[12,6,2],[14,8,8]],
+        [[12,0,4],[10,4,2],[7,6,2],[5,8,8]],
+        [[7,0,2],[7,2,2],[10,4,4],[12,8,4],[14,12,4]],
+        [[15,0,4],[14,4,2],[12,6,2],[10,8,8]]
+      ]
+    },
+    "interlude": {
+      "title": "Interlude", "bpm": 100, "root": 57, "voice": "none",
+      "prog": [ { "r": 0, "q": "m" }, { "r": -4, "q": "M" }, { "r": 3, "q": "M" }, { "r": -2, "q": "M" } ],
+      "drums": { "kick": "................", "snare": "................", "hat": "................", "clap": "x...x...x...x..." },
+      "bass": "x.......x.......", "arp": "x...x...x...x...", "hook": []
+    },
+    "outro": {
+      "title": "Outro", "bpm": 100, "root": 50, "voice": "none",
+      "prog": [ { "r": 0, "q": "m" }, { "r": -4, "q": "M" }, { "r": 3, "q": "M" }, { "r": -2, "q": "M" } ],
+      "drums": { "kick": "................", "snare": "................", "hat": "................", "clap": "x...x...x...x..." },
+      "bass": "x.......x.......", "arp": "x.x.x.x.x.x.x.x.", "hook": []
+    }
+  },
+  "vocabulary": {
+    "light": ["dim", "sweep", "fan", "cross", "chase", "strobe", "spot", "converge"],
+    "led": ["title", "grid", "bars", "rings", "stars", "sunburst", "wave", "countdown", "thanks"],
+    "cam": ["wide", "crane", "stagel", "stager", "closeup", "orbit"],
+    "layers": ["kick", "snare", "hat", "clap", "bass", "pad", "arp", "vocal", "riser"],
+    "fx": ["confetti", "sparks", "fireworks"],
+    "bands": ["none", "solar", "luna", "both"]
+  }
+}

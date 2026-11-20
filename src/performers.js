@@ -107,7 +107,7 @@ const Performers = (() => {
 
   function update(W, time, dt) {
     const mode = W.seg ? W.seg.band : 'none';
-    const e = W.energy, beat = W.bi.beat, h = Math.abs(Math.sin(Math.PI * beat)), P = W.bi.pulse;
+    const e = W.energy, beat = W.bi.beat, h = Math.abs(Math.sin(Math.PI * beat)), P = W.bi.pulse, M = W.live ? W.live.mid : 0;
     for (const id in bands) {
       const B = bands[id];
       const active = mode === 'both' || mode === id;
@@ -117,7 +117,7 @@ const Performers = (() => {
       B.group.position.x = B.offX; B.group.position.y = lerp(-7, 0, B.enter);
       B.group.visible = B.enter > 0.02;
       if (!B.group.visible) continue;
-      B.members.forEach((m, i) => animate(m, time, beat, h, P, e, id === 'luna'));
+      B.members.forEach((m, i) => animate(m, time, beat, h, P, e, id === 'luna', M));
     }
     // điểm nhấn: ca sĩ đang hát
     let target = null;
@@ -128,21 +128,22 @@ const Performers = (() => {
     }
   }
 
-  function animate(m, time, beat, h, P, e, girl) {
+  function animate(m, time, beat, h, P, e, girl, M) {
+    M = M || 0;
     const s = m.seed, r = m.role, body = m.body;
     const sway = Math.sin(time * (1.6 + girl * 0.3) + s) * e;
     m.head.rotation.x = h * 0.12 * e; m.head.rotation.z = sway * 0.06;
     if (r === 'vocal') {
       m.root.position.x = m.base.x + Math.sin(time * 0.45 + s) * 2.6 * e;
       m.root.position.z = m.base.z + 0.5 + Math.sin(time * 0.3 + s) * 0.6 * e;
-      body.position.y = h * 0.22 * e; body.rotation.z = sway * 0.05;
+      body.position.y = h * 0.22 * e + M * 0.3; body.rotation.z = sway * 0.05 + (M - 0.2) * 0.12; m.head.rotation.x += M * 0.25;
       m.armR.rotation.x = -2.1 + P * 0.15; m.armR.rotation.z = -0.15;
       const hype = e > 0.85;
       m.armL.rotation.z = hype ? 2.6 + Math.sin(time * 5 + s) * 0.35 : 0.35 + Math.sin(time * 2) * 0.1;
       m.armL.rotation.x = 0;
       m.legs[0].rotation.x = Math.sin(time * 3 + s) * 0.2 * e; m.legs[1].rotation.x = -m.legs[0].rotation.x;
     } else if (r === 'guitar' || r === 'bass') {
-      body.position.y = h * 0.12 * e; body.rotation.z = sway * 0.1; body.rotation.y = Math.sin(time * 0.7 + s) * 0.2;
+      body.position.y = h * 0.12 * e + P * 0.05; body.rotation.z = sway * 0.1; body.rotation.y = Math.sin(time * 0.7 + s) * 0.2;
       m.armR.rotation.x = -0.9 + Math.sin(time * (r === 'guitar' ? 15 : 8) + s) * 0.3 * e;
       m.armL.rotation.x = -1.15; m.armL.rotation.z = -0.5;
       m.legs[0].rotation.z = 0.12 + h * 0.05; m.legs[1].rotation.z = -0.12 - h * 0.05;

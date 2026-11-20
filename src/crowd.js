@@ -62,7 +62,7 @@ const Crowd = (() => {
       float hyped=step(1.5,stick), hasStick=step(0.5,stick);
       p.y*=hs;
       float act=clamp(uEnergy+hyped*0.6,0.0,1.0);
-      float hop=abs(sin(uTime*sp+ph))*0.3*act*(0.35+0.65*fract(ph*7.0));
+      float hop=abs(sin(uTime*sp+ph))*0.3*act*(0.35+0.65*fract(ph*7.0))+uPulse*0.14*act*(0.3+0.7*fract(ph*13.0));
       if(part>1.5 && part<4.5){
         float side=(part<2.5)?-1.0:1.0;
         float R=step(0.35,fract(ph*5.0+0.2));

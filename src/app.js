@@ -229,6 +229,11 @@
     if (rehearsing) rehearsing.f.push(dtms);
 
     const W = computeW(Clock.now(), time, dt);
+    const lv = Aud.live(dt, W.energy);
+    if (lv && W.phase === 'show') { // nhạc thật đang phát: nhún nhảy theo nhịp và giọng thật thay vì nhịp ước lượng
+      W.bi = { beat: lv.beat, pulse: lv.pulse, bpm: 60 / lv.period, bar: Math.floor(lv.beat / 4), f: lv.beat - Math.floor(lv.beat) };
+      W.live = lv; W.energy = Math.min(1, W.energy * (0.8 + 0.6 * lv.level));
+    }
     // kích hoạt hiệu ứng khi vào cue mới (chỉ khi thời gian trôi liên tục, không bắn lại khi tua)
     const idx = W.cue._idx;
     if (idx !== lastCueIdx) {

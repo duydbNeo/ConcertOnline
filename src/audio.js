@@ -1,6 +1,6 @@
 /* ===== audio: nhạc tổng hợp gốc bằng WebAudio, cộng bản nhạc CC0 phát từ tệp khi lịch diễn có track ===== */
 const Aud = (() => {
-  let ctx = null, master, comp, analyser, noiseBuf, murmurGain;
+  let ctx = null, master, comp, analyser, noiseBuf, murmurGain, beatAn, bbuf;
   let on = false, timer = null, nextT = 0, DRY = null;
   const TR = { buf: {}, loading: {}, src: null, gain: null, segId: null };
   const fbuf = new Uint8Array(64);
@@ -16,6 +16,7 @@ const Aud = (() => {
     comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = 0.005; comp.release.value = 0.2;
     analyser = ctx.createAnalyser(); analyser.fftSize = 128; analyser.smoothingTimeConstant = 0.78;
     master.connect(comp); comp.connect(analyser); analyser.connect(ctx.destination);
+    beatAn = ctx.createAnalyser(); beatAn.fftSize = 1024; beatAn.smoothingTimeConstant = 0.15; comp.connect(beatAn); bbuf = new Uint8Array(512);
     const len = ctx.sampleRate * 1.5;
     noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
     const d = noiseBuf.getChannelData(0);
@@ -112,7 +113,27 @@ const Aud = (() => {
       const n = ctx.createGain(); n.gain.setValueAtTime(0.0001, t); n.gain.exponentialRampToValueAtTime(0.16, t + dur); n.gain.linearRampToValueAtTime(0.0001, t + dur + 0.05);
       s.connect(f); f.connect(n); n.connect(master);
     },
+    whoop(t, amt) { // vài giọng hò reo trượt lên, lệch nhau
+      for (let i = 0; i < 6; i++) {
+        const st = t + Math.random() * 0.35, f0 = 260 + Math.random() * 260, dur = 0.5 + Math.random() * 0.5;
+        const o = ctx.createOscillator(); o.type = 'sawtooth';
+        o.frequency.setValueAtTime(f0, st); o.frequency.exponentialRampToValueAtTime(f0 * (1.35 + Math.random() * 0.5), st + dur * 0.7);
+        const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 800 + Math.random() * 500; f.Q.value = 2.5;
+        const n = g(st, 0.05 * amt, 0.06, dur * 0.5, 0.4, 0.15, dur);
+        o.connect(f); f.connect(n); n.connect(master); o.start(st); o.stop(st + dur + 0.3);
+      }
+    },
+    clap(t, amt) { // một tràng vỗ tay: nhiều cú nhỏ lệch nhau vài chục ms
+      const n = 9 + Math.floor(Math.random() * 6);
+      for (let i = 0; i < n; i++) {
+        const st = t + Math.random() * 0.07, s = noiseSrc(st, 0.08);
+        const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1500 + Math.random() * 2500; f.Q.value = 1.1;
+        const gg = ctx.createGain(); gg.gain.setValueAtTime(0.0001, st); gg.gain.linearRampToValueAtTime(0.03 * amt, st + 0.003); gg.gain.exponentialRampToValueAtTime(0.0001, st + 0.06);
+        s.connect(f); f.connect(gg); gg.connect(master);
+      }
+    },
     cheer(t, amt, dur) {
+      V.whoop(t, amt);
       [[900, 0.6], [2400, 0.9]].forEach(([fr, q]) => {
         const s = noiseSrc(t, dur + 1), f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = fr; f.Q.value = q;
         const n = ctx.createGain(); n.gain.setValueAtTime(0.0001, t);
@@ -192,6 +213,33 @@ const Aud = (() => {
     return true;
   }
 
+  /* Nhịp thật từ âm thanh đang phát: dò cú đánh ở dải trầm, dựng pha nhịp, đo độ to và dải giọng. */
+  const LV = { on: false, pulse: 0, level: 0, mid: 0, beat: 0, period: 0.5, last: -9, prev: 0, mean: 0.02, dev: 0.02, iv: [], n: 0, clock: 0 };
+  function band(a, b) { let s = 0; for (let i = a; i < b; i++) s += bbuf[i]; return s / (b - a) / 255; }
+  function liveUpdate(dt, energy) {
+    if (!on || !beatAn || !TR.src) { LV.on = false; return null; }
+    LV.clock += dt;
+    beatAn.getByteFrequencyData(bbuf);
+    const bass = band(1, 7), mid = band(10, 46), all = band(1, 120);
+    const flux = Math.max(0, bass - LV.prev); LV.prev = bass;
+    LV.mean += (flux - LV.mean) * Math.min(1, dt * 1.5);
+    LV.dev += (Math.abs(flux - LV.mean) - LV.dev) * Math.min(1, dt * 1.5);
+    const hit = flux > LV.mean + 2.2 * LV.dev + 0.02 && bass > 0.3 && LV.clock - LV.last > 0.25;
+    if (hit) {
+      const iv = LV.clock - LV.last;
+      if (iv > 0.3 && iv < 1.0) { LV.iv.push(iv); if (LV.iv.length > 8) LV.iv.shift(); const s = LV.iv.slice().sort((x, y) => x - y); LV.period = s[Math.floor(s.length / 2)]; }
+      LV.last = LV.clock; LV.pulse = 1;
+      const fr = LV.beat - Math.floor(LV.beat), tgt = fr > 0.5 ? Math.ceil(LV.beat) : Math.floor(LV.beat);
+      LV.beat += (tgt - LV.beat) * 0.45;
+      LV.n++;
+      if (energy > 0.6 && LV.n % 2 === 0 && ctx) V.clap(ctx.currentTime + 0.02, Math.min(1, energy));
+    } else { LV.pulse *= Math.exp(-dt * 6); LV.beat += dt / LV.period; }
+    LV.level += (all - LV.level) * Math.min(1, dt * 6);
+    LV.mid += (mid - LV.mid) * Math.min(1, dt * 10);
+    if (ctx) murmurGain.gain.setTargetAtTime(0.012 + 0.05 * LV.level * energy, ctx.currentTime, 0.4);
+    LV.on = true; return LV;
+  }
+
   function tick() {
     if (!ctx || !on) return;
     const T = Clock.now(), horizon = T + 0.35;
@@ -214,7 +262,7 @@ const Aud = (() => {
       nextT = absStep + stepDur;
     }
     const L0 = layout(T);
-    murmurGain.gain.setTargetAtTime(L0.phase === 'lobby' ? 0.05 : 0.018, ctx.currentTime, 0.6);
+    if (!TR.src) murmurGain.gain.setTargetAtTime(L0.phase === 'lobby' ? 0.05 : 0.018, ctx.currentTime, 0.6);
   }
 
   return {
@@ -233,6 +281,8 @@ const Aud = (() => {
     trackInfo() { return { seg: TR.segId, playing: !!TR.src, loaded: Object.keys(TR.buf).filter(k => TR.buf[k]), failed: !!TR.failed }; },
     resync() { nextT = Clock.now(); stopTrack(); },
     cheer(amt) { if (on && ctx) V.cheer(ctx.currentTime, amt, 2.2); },
+    live(dt, energy) { return liveUpdate(dt, energy); },
+    liveState() { return { on: LV.on, period: +LV.period.toFixed(3), n: LV.n, level: +LV.level.toFixed(2), mid: +LV.mid.toFixed(2) }; },
     spectrum(n) {
       if (!on || !analyser) return null;
       analyser.getByteFrequencyData(fbuf);

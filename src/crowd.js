@@ -2,7 +2,7 @@
 const Crowd = (() => {
   const MAXV = 1100, MAXR = 128;
   let scene, rings, shared;
-  let vCount = 520, vTotal = 0;
+  let vCount = 460, vTotal = 0;
   const tags = [], emotes = [];
   const tagCache = new Map(), emoTex = {};
   const peersView = [];
@@ -165,6 +165,19 @@ const Crowd = (() => {
   let vScale = null;
   function vAt(i) { return vM[i % NV].geo; }
   function vJ(i) { return (i / NV) | 0; }
+  let vOver = new Uint8Array(MAXV), ghost = new Set();
+  function applyHide() {
+    for (let i = 0; i < vTotal; i++) vAt(i).attributes.iAnim.array[vJ(i) * 4 + 2] = (vOver[i] || ghost.has(i)) ? 0.0001 : vScale[i];
+    vM.forEach(x => x.geo.attributes.iAnim.needsUpdate = true);
+  }
+  function nearest(x, z, k) {
+    if (!loaded) return [];
+    const n = Math.min(vCount, vTotal), r = [];
+    for (let i = 0; i < n; i++) { if (vOver[i]) continue; const dx = vX[i] - x, dz = vZ[i] - z; r.push([dx * dx + dz * dz, i]); }
+    r.sort((a, b) => a[0] - b[0]);
+    return r.slice(0, k).map(a => ({ i: a[1], x: vX[a[1]], z: vZ[a[1]] }));
+  }
+  function setGhost(arr) { ghost = new Set(arr); if (loaded) applyHide(); }
   function vCountApply() {
     const n = Math.min(vCount, vTotal);
     vM.forEach((m, k) => { m.geo.instanceCount = Math.max(0, Math.ceil((n - k) / NV)); });
@@ -232,7 +245,7 @@ const Crowd = (() => {
     for (let i = 0; i < 24; i++) {
       const sp = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false, fog: false })); sp.scale.set(1, 1, 1); sp.visible = false; sp.userData.life = 0; scene.add(sp); emotes.push(sp);
     }
-    const base = (window.NM_ASSET_BASE != null ? window.NM_ASSET_BASE : '') + '/a3d/crowd2.json';
+    const base = (window.NM_ASSET_BASE != null ? window.NM_ASSET_BASE : '') + '/a3d/crowd3.json';
     fetch(base).then(r => r.json()).then(j => {
       variants = j.variants; variants.pF = j.pivotF; variants.pM = j.pivotM;
       mkSet(CAPV, vM); mkSet(CAPR, rM); gen(); loaded = true;
@@ -275,10 +288,10 @@ const Crowd = (() => {
     });
     for (; ti < tags.length; ti++) tags[ti].visible = false;
     if (loaded) {
-      // ẩn khán giả ảo đứng trùng chỗ với khán giả thật
-      for (let i = 0; i < vTotal; i++) vAt(i).attributes.iAnim.array[vJ(i) * 4 + 2] = vScale[i];
-      peersView.forEach(pv => { for (let i = 0; i < vTotal; i++) { const dx = vX[i] - pv.x, dz = vZ[i] - pv.z; if (pv.mine ? (Math.abs(dx) < 1.4 && dz > -2.7 && dz < 1.0) : (dx * dx + dz * dz < 0.8)) vAt(i).attributes.iAnim.array[vJ(i) * 4 + 2] = 0.0001; } });
-      vM.forEach(x => x.geo.attributes.iAnim.needsUpdate = true);
+      // đánh dấu khán giả ảo đứng trùng chỗ với khán giả thật
+      vOver.fill(0);
+      peersView.forEach(pv => { for (let i = 0; i < vTotal; i++) { const dx = vX[i] - pv.x, dz = vZ[i] - pv.z; if (pv.mine ? (Math.abs(dx) < 1.4 && dz > -2.7 && dz < 1.0) : (dx * dx + dz * dz < 0.8)) vOver[i] = 1; } });
+      applyHide();
       rM.forEach((x, k) => { touch(x.geo); x.geo.instanceCount = rCnt[k]; });
     }
     rings.count = n; rings.instanceMatrix.needsUpdate = true; if (rings.instanceColor) rings.instanceColor.needsUpdate = true;
@@ -315,6 +328,7 @@ const Crowd = (() => {
   return {
     init, setPeers, update, spawnEmote, setSelfVisible,
     makeInstGeo, makeMaterial, newUniforms, touch, Look,
+    nearest, setGhost,
     setCount(n) { vCount = n; if (loaded) vCountApply(); },
     total() { return vTotal; },
     count() { return loaded ? Math.min(vCount, vTotal) : 0; },

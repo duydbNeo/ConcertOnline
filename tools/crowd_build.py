@@ -7,7 +7,7 @@ ANIM=sys.argv[sys.argv.index('--')+2]
 OUT=sys.argv[sys.argv.index('--')+3]
 CAT=json.load(open('/home/claude/concertonline/src/wardrobe.json'))['v3']['G'][gk]
 VAR={'F':[(0,0,0,0),(2,4,1,1),(4,2,0,3),(5,3,0,2)],'M':[(2,0,0,0),(1,2,0,1),(5,1,1,0),(3,3,0,1)]}[gk]
-TARGET={'skin':900,'top':520,'bot':520,'shoe':180,'hair':320}
+TARGET={'skin':1200,'top':850,'bot':650,'shoe':240,'hair':400}
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=AS+f'kit_{G}.glb')
 arm=[o for o in bpy.data.objects if o.type=='ARMATURE'][0]

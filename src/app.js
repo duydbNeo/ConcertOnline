@@ -14,9 +14,9 @@
 
   /* ---------- chất lượng tự thích ứng ---------- */
   const QUAL = [
-    { id: 'high', name: 'Cao', s: 1, max: 1.5, crowd: 520, beams: 14, fx: 1, led: 24 },
-    { id: 'mid', name: 'Vừa', s: 0.75, max: 1.1, crowd: 340, beams: 14, fx: 0.6, led: 15 },
-    { id: 'low', name: 'Thấp', s: 0.5, max: 0.8, crowd: 200, beams: 7, fx: 0.35, led: 10 }
+    { id: 'high', name: 'Cao', s: 1, max: 1.5, crowd: 460, beams: 14, fx: 1, led: 24 },
+    { id: 'mid', name: 'Vừa', s: 0.75, max: 1.1, crowd: 300, beams: 14, fx: 0.6, led: 15 },
+    { id: 'low', name: 'Thấp', s: 0.5, max: 0.8, crowd: 180, beams: 7, fx: 0.35, led: 10 }
   ];
   let qLevel = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 1 : 0, autoQ = true, upStreak = 0, lastQChange = 0;
   function applyQuality() {
@@ -76,18 +76,37 @@
       if (changed) Crowd.setAvatarIds(ids());
       else Crowd.setAvatarIds(ids());
     }
+    /* khán giả ảo đứng gần mình được thay bằng nhân vật xương thật (mượt như nhân vật chính) */
+    const gmap = new Map(), gpend = new Set(); const GN = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 3 : 10;
+    function gsync() {
+      const ms = Crowd.mySlot(); const want = Crowd.nearest(ms.x, ms.z - 1.2, GN);
+      const keep = new Set(want.map(w => w.i));
+      gmap.forEach((e, i) => { if (!keep.has(i)) { Stage.scene.remove(e.root); gmap.delete(i); } });
+      want.forEach(w => {
+        const e = gmap.get(w.i); if (e) { e.root.position.set(w.x, 0, w.z); return; }
+        if (gpend.has(w.i)) return; gpend.add(w.i);
+        const g = Math.random() < 0.5 ? 0 : 1, look = Avatar.Look.random(g); look[14] = 0; look[10] = 0;
+        Avatar.create(look).then(a => {
+          a.root.rotation.y = Math.PI; a.root.position.set(w.x, 0, w.z); a.root.scale.setScalar(0.94 + Math.random() * 0.12); Stage.scene.add(a.root);
+          if (a.has('dance')) { a.play('dance', 0.01); a.speed('dance', 0.8 + Math.random() * 0.5); }
+          gmap.set(w.i, { root: a.root, a }); Crowd.setGhost([...gmap.keys()]);
+        }).catch(() => { }).finally(() => gpend.delete(w.i));
+      });
+      Crowd.setGhost([...gmap.keys()]);
+    }
     function setSelf(on) { selfOn = on; if (!on) { const me = Net.id(); const e = map.get(me); if (e) { Stage.scene.remove(e.root); map.delete(me); Crowd.setAvatarIds(ids()); } } else if (list.length) sync(list, Crowd.peersView()); }
-    function update(dt, bpm) { map.forEach(e => e.a.update(dt, bpm)); }
-    return { sync, update, setSelf };
+    function update(dt, bpm) { map.forEach(e => e.a.update(dt, bpm)); gmap.forEach(e => e.a.update(dt, bpm)); }
+    return { sync, update, setSelf, gsync };
   })();
 
+  setInterval(() => AV.gsync(), 2500);
   /* ---------- mạng: khán giả thật ---------- */
   let realCount = 1; const seenEmote = {};
   Net.init(list => {
     realCount = list.length;
     Crowd.setPeers(list, Net.id());
     const views = Crowd.peersView();
-    AV.sync(list, views);
+    AV.sync(list, views); AV.gsync();
     list.forEach(p => {
       if (p.id === Net.id()) return;
       if (p.et && seenEmote[p.id] !== p.et && Date.now() - p.et < 5000) {

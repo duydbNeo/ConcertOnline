@@ -52,6 +52,7 @@
   <div class="wd-panel">
     <h2>Phòng thay đồ</h2>
     <p class="wd-sub">Chọn đồ đi concert. Mọi người trong buổi diễn sẽ thấy bạn mặc đúng bộ này. Kéo nhân vật để xoay.</p>
+    <p class="wd-load" id="wdLoad" hidden>Đang tải nhân vật 3D…</p>
     <div class="wd-tabs" role="tablist" id="wdTabs"></div>
     <div class="wd-opts" id="wdOpts"></div>
     <div class="row wd-foot">
@@ -87,6 +88,9 @@
 <script type="application/json" id="bands-data">{{BANDS}}</script>
 <script type="application/json" id="wardrobe-data">{{WARDROBE}}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+{{VENDOR}}
+</script>
 <script>
 {{JS}}
 </script>

@@ -121,3 +121,5 @@ button.chip:hover{background:rgba(40,30,80,.85)}
   .wd-panel{height:48%;border-left:0;border-top:1px solid var(--line);background:rgba(7,5,15,.92);padding:14px 16px}
   .wd-sub{display:none}
 }
+
+.wd-load{color:var(--mute);font:500 13px var(--f-body);margin:6px 0 10px}

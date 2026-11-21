@@ -1,0 +1,331 @@
+{
+ "gender": "Female",
+ "units": "m",
+ "skin": {
+  "mesh": "skin"
+ },
+ "face": [
+  "eyes",
+  "brows"
+ ],
+ "tops": {
+  "crop_tank": {
+   "name": "Tank crop",
+   "atlas": "peasant",
+   "cover": [
+    [
+     "y",
+     1.07,
+     1.5
+    ]
+   ],
+   "parts": [
+    "top_crop_tank_0"
+   ]
+  },
+  "tank_long": {
+   "name": "Tank dài",
+   "atlas": "peasant",
+   "cover": [
+    [
+     "y",
+     0.95,
+     1.5
+    ]
+   ],
+   "parts": [
+    "top_tank_long_0"
+   ]
+  },
+  "tee": {
+   "name": "Áo thun",
+   "atlas": "peasant",
+   "cover": [
+    [
+     "y",
+     0.95,
+     1.5
+    ],
+    [
+     "x",
+     0.2,
+     0.36
+    ]
+   ],
+   "parts": [
+    "top_tee_b_0",
+    "top_tee_s_0"
+   ]
+  },
+  "vest": {
+   "name": "Gile",
+   "atlas": "ranger",
+   "cover": [
+    [
+     "y",
+     0.95,
+     1.5
+    ]
+   ],
+   "parts": [
+    "top_vest_0",
+    "top_vest_1",
+    "top_vest_2"
+   ]
+  },
+  "crop_jacket": {
+   "name": "Jacket crop",
+   "atlas": "ranger",
+   "cover": [
+    [
+     "y",
+     1.07,
+     1.5
+    ],
+    [
+     "x",
+     0.2,
+     0.6
+    ]
+   ],
+   "parts": [
+    "top_cjk_b_0",
+    "top_cjk_s_0",
+    "top_cjk_s_1"
+   ]
+  },
+  "jacket": {
+   "name": "Jacket",
+   "atlas": "ranger",
+   "cover": [
+    [
+     "y",
+     0.95,
+     1.5
+    ],
+    [
+     "x",
+     0.2,
+     0.6
+    ]
+   ],
+   "parts": [
+    "top_jk_b_0",
+    "top_jk_b_1",
+    "top_jk_b_2",
+    "top_jk_s_0",
+    "top_jk_s_1"
+   ]
+  }
+ },
+ "bottoms": {
+  "pants": {
+   "name": "Quần dài",
+   "atlas": "peasant",
+   "cover": [
+    [
+     "y",
+     0.44,
+     1.05
+    ]
+   ],
+   "parts": [
+    "bot_pants_0"
+   ]
+  },
+  "cargo": {
+   "name": "Quần cargo",
+   "atlas": "ranger",
+   "cover": [
+    [
+     "y",
+     0.42,
+     1.05
+    ]
+   ],
+   "parts": [
+    "bot_cargo_0"
+   ]
+  },
+  "shorts": {
+   "name": "Quần short",
+   "atlas": "ranger",
+   "cover": [
+    [
+     "y",
+     0.7,
+     1.05
+    ]
+   ],
+   "parts": [
+    "bot_shorts_0"
+   ]
+  },
+  "capri": {
+   "name": "Quần capri",
+   "atlas": "peasant",
+   "cover": [
+    [
+     "y",
+     0.52,
+     1.05
+    ]
+   ],
+   "parts": [
+    "bot_capri_0"
+   ]
+  },
+  "skirt": {
+   "name": "Váy xếp ly",
+   "atlas": "solid",
+   "cover": [
+    [
+     "y",
+     0.66,
+     1.05
+    ]
+   ],
+   "parts": [
+    "bot_skirt_0",
+    "bot_skirt_1"
+   ],
+   "trim": true
+  }
+ },
+ "shoes": {
+  "sneakers": {
+   "name": "Sneaker",
+   "atlas": "peasant",
+   "cover": [
+    [
+     "y",
+     -0.05,
+     0.13
+    ]
+   ],
+   "parts": [
+    "shoe_sneakers_0"
+   ]
+  },
+  "boots": {
+   "name": "Ủng neon",
+   "atlas": "ranger",
+   "cover": [
+    [
+     "y",
+     -0.05,
+     0.5
+    ]
+   ],
+   "parts": [
+    "shoe_boots_0"
+   ]
+  }
+ },
+ "extras": {
+  "belt": {
+   "name": "Đai lưng",
+   "atlas": "ranger",
+   "slot": "waist",
+   "parts": [
+    "ex_belt_0",
+    "ex_belt_1"
+   ]
+  },
+  "pauldron": {
+   "name": "Giáp vai",
+   "atlas": "ranger",
+   "slot": "shoulder",
+   "parts": [
+    "ex_pauldron_0"
+   ]
+  },
+  "bracer": {
+   "name": "Bảo vệ cổ tay",
+   "atlas": "ranger",
+   "slot": "arm",
+   "parts": [
+    "ex_bracer_0"
+   ]
+  },
+  "hood": {
+   "name": "Mũ trùm",
+   "atlas": "ranger",
+   "slot": "head",
+   "parts": [
+    "ex_hood_0"
+   ]
+  }
+ },
+ "hair": {
+  "long": {
+   "name": "Tóc dài",
+   "tex": "1",
+   "slot": "hair",
+   "parts": [
+    "hair_long_0"
+   ]
+  },
+  "buns": {
+   "name": "Tóc búi",
+   "tex": "2",
+   "slot": "hair",
+   "parts": [
+    "hair_buns_0"
+   ]
+  },
+  "buzzedfemale": {
+   "name": "Tóc cắt sát",
+   "tex": "1",
+   "slot": "hair",
+   "parts": [
+    "hair_buzzedfemale_0"
+   ]
+  },
+  "simpleparted": {
+   "name": "Tóc rẽ ngôi",
+   "tex": "1",
+   "slot": "hair",
+   "parts": [
+    "hair_simpleparted_0"
+   ]
+  }
+ },
+ "tris": {
+  "bot_capri_0": 1376,
+  "bot_cargo_0": 1158,
+  "bot_pants_0": 1740,
+  "bot_shorts_0": 510,
+  "bot_skirt_0": 672,
+  "bot_skirt_1": 576,
+  "brows": 1480,
+  "ex_belt_0": 804,
+  "ex_belt_1": 804,
+  "ex_bracer_0": 3636,
+  "ex_hood_0": 2136,
+  "ex_pauldron_0": 1376,
+  "eyes": 768,
+  "hair_buns_0": 3284,
+  "hair_buzzedfemale_0": 830,
+  "hair_long_0": 2906,
+  "hair_simpleparted_0": 1301,
+  "shoe_boots_0": 9172,
+  "shoe_sneakers_0": 1020,
+  "skin": 12812,
+  "top_cjk_b_0": 2492,
+  "top_cjk_s_0": 3000,
+  "top_cjk_s_1": 3636,
+  "top_crop_tank_0": 1998,
+  "top_jk_b_0": 2962,
+  "top_jk_b_1": 804,
+  "top_jk_b_2": 804,
+  "top_jk_s_0": 3000,
+  "top_jk_s_1": 3636,
+  "top_tank_long_0": 2188,
+  "top_tee_b_0": 2188,
+  "top_tee_s_0": 688,
+  "top_vest_0": 2962,
+  "top_vest_1": 804,
+  "top_vest_2": 804
+ }
+}

@@ -17,6 +17,13 @@ function cleanLook(l) {
   return l;
 }
 
+function cleanL3(l) {
+  if (!Array.isArray(l) || l.length !== 17) return null;
+  if (l[0] !== 0 && l[0] !== 1) return null;
+  for (let i = 1; i < 17; i++) { const lim = i === 10 ? 65536 : 64; if (!Number.isInteger(l[i]) || l[i] < 0 || l[i] >= lim) return null; }
+  return l;
+}
+
 export class Room {
   constructor(ctx, env) {
     this.ctx = ctx; this.env = env;
@@ -57,6 +64,7 @@ export class Room {
     const a = ws.deserializeAttachment() || {};
     if ('name' in m) a.name = cleanName(m.name);
     if ('look' in m) { const l = cleanLook(m.look); if (l) a.look = l; }
+    if ('l3' in m) { const l = cleanL3(m.l3); a.l3 = l || null; }
     if ('emote' in m && EMOTES.includes(m.emote)) { a.emote = m.emote; a.et = now; }
     ws.serializeAttachment(a);
     this.schedule();
@@ -73,7 +81,7 @@ export class Room {
     const list = [];
     for (const ws of sockets) {
       const a = ws.deserializeAttachment(); if (!a) continue;
-      list.push({ id: a.id, name: a.name, look: a.look, emote: a.emote, ea: a.emote ? now - a.et : 0 });
+      list.push({ id: a.id, name: a.name, look: a.look, l3: a.l3 || null, emote: a.emote, ea: a.emote ? now - a.et : 0 });
     }
     const msg = JSON.stringify({ t: 'peers', list, cap: this.cap });
     for (const ws of sockets) { try { ws.send(msg); } catch (e) { } }
@@ -94,6 +102,7 @@ async function inject(html, env) {
   return html;
 }
 
+const ASSET_URL = 'https://raw.githubusercontent.com/duydbNeo/ConcertOnline/@REF/assets/';
 const PAGE_URL = 'https://raw.githubusercontent.com/duydbNeo/ConcertOnline/main/public/index.html';
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'authorization,content-type', 'access-control-allow-methods': 'PUT,OPTIONS' };
 
@@ -126,6 +135,16 @@ export default {
     if (p === '/show.json' || p === '/bands.json' || p === '/wardrobe.json') {
       const raw = await env.PAGE.get(p.slice(1, -5));
       return raw ? new Response(raw, { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'access-control-allow-origin': '*' } }) : new Response('Not found', { status: 404 });
+    }
+    if (p.startsWith('/a3d/')) {
+      const rel = p.slice(5);
+      if (!/^(acc\/)?(tex\/)?[A-Za-z0-9_-]+\.(glb|jpg|png)$/.test(rel)) return new Response('Not found', { status: 404 });
+      const ref = (await env.PAGE.get('ref')) || 'main';
+      const path = rel.startsWith('acc/') ? 'accessories/' + rel.slice(4) : 'char/' + rel;
+      const r = await fetch(ASSET_URL.replace('@REF', ref) + path, { cf: { cacheTtl: 86400, cacheEverything: true } });
+      if (!r.ok) return new Response('Not found', { status: 404 });
+      const ct = rel.endsWith('.glb') ? 'model/gltf-binary' : rel.endsWith('.png') ? 'image/png' : 'image/jpeg';
+      return new Response(r.body, { headers: { 'content-type': ct, 'cache-control': 'public, max-age=86400', 'access-control-allow-origin': '*' } });
     }
     if (p === '/' || p === '/index.html') {
       let html = null, src = 'kv';

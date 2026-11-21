@@ -256,7 +256,10 @@ const Crowd = (() => {
     gen();
   }
 
+  let avIds = new Set(), lastList = [], lastMy = null;
+  function setAvatarIds(s) { avIds = s; if (lastList.length) setPeers(lastList, lastMy); }
   function setPeers(list, myId) {
+    lastList = list; lastMy = myId;
     const sorted = list.slice().sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
     peersView.length = 0; myIdx = -1;
     const off = rGeo.attributes.iOff.array, an = rGeo.attributes.iAnim.array;
@@ -271,7 +274,7 @@ const Crowd = (() => {
         off[n * 3] = sl[0]; off[n * 3 + 1] = 0; off[n * 3 + 2] = sl[1];
         Look.apply(rGeo, n, look);
         const em = p.et && (Date.now() - p.et < 6000);
-        an[n * 4] = (h % 1000) / 10 + 0.3; an[n * 4 + 1] = 3.2 + (h % 7) * 0.3; an[n * 4 + 2] = (mine && !selfVisible) ? 0.0001 : 1.0; an[n * 4 + 3] = em ? 2 : 1;
+        an[n * 4] = (h % 1000) / 10 + 0.3; an[n * 4 + 1] = 3.2 + (h % 7) * 0.3; an[n * 4 + 2] = ((mine && !selfVisible) || avIds.has(p.id)) ? 0.0001 : 1.0; an[n * 4 + 3] = em ? 2 : 1;
         m.makeTranslation(sl[0], 0.02, sl[1]); rings.setMatrixAt(n, m); col.set(WARDROBE.topColors[look[1]]); rings.setColorAt(n, col);
         if (mine) myIdx = n;
         if (!mine && ti < tags.length) {
@@ -294,7 +297,7 @@ const Crowd = (() => {
 
   function setSelfVisible(v) {
     selfVisible = v;
-    if (myIdx >= 0) { rGeo.attributes.iAnim.array[myIdx * 4 + 2] = v ? 1.0 : 0.0001; rGeo.attributes.iAnim.needsUpdate = true; }
+    if (myIdx >= 0) { rGeo.attributes.iAnim.array[myIdx * 4 + 2] = (v && !avIds.has(lastMy)) ? 1.0 : 0.0001; rGeo.attributes.iAnim.needsUpdate = true; }
   }
 
   function spawnEmote(e, x, z) {
@@ -326,6 +329,6 @@ const Crowd = (() => {
     total() { return vTotal; },
     count() { return vGeo.instanceCount; },
     mySlot() { return mySlot; },
-    peersView() { return peersView; }
+    peersView() { return peersView; }, setAvatarIds
   };
 })();

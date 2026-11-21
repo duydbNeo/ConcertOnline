@@ -47,12 +47,47 @@
     return W;
   }
 
+
+  /* ---------- nhân vật 3D (GLB) cho mình và tối đa vài người thật ở gần ---------- */
+  const AV = (() => {
+    const map = new Map(), pending = new Set();
+    const MAXN = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 4 : 12;
+    let list = [], selfOn = false, cams = 'audience';
+    function place(e, v) { e.root.position.set(v.x, 0, v.z); e.root.rotation.y = Math.PI; }
+    function ids() { return new Set(map.keys()); }
+    async function sync(peers, views) {
+      list = peers;
+      const me = Net.id(), mv = views.find(v => v.id === me);
+      const want = peers.filter(p => Avatar.Look.valid(p.l3) && (p.id !== me || selfOn));
+      want.forEach(p => { const v = views.find(x => x.id === p.id); p._d = v && mv ? Math.hypot(v.x - mv.x, v.z - mv.z) : 0; });
+      want.sort((a, b) => (a.id === me ? -1 : b.id === me ? 1 : a._d - b._d));
+      const keep = new Set(want.slice(0, MAXN).map(p => p.id));
+      map.forEach((e, id) => { if (!keep.has(id)) { Stage.scene.remove(e.root); map.delete(id); } });
+      let changed = false;
+      for (const p of want.slice(0, MAXN)) {
+        const v = views.find(x => x.id === p.id); if (!v) continue;
+        const key = p.l3.join(','); let e = map.get(p.id);
+        if (e && e.a.g !== (p.l3[0] ? 'M' : 'F')) { Stage.scene.remove(e.root); map.delete(p.id); e = null; changed = true; }
+        if (e) { place(e, v); if (e.key !== key) { e.key = key; e.a.setLook(p.l3); } continue; }
+        if (pending.has(p.id)) continue;
+        pending.add(p.id);
+        try { const a = await Avatar.create(p.l3); const ent = { a, root: a.root, key }; a.root.visible = true; place(ent, v); Stage.scene.add(a.root); map.set(p.id, ent); changed = true; } catch (err) { } finally { pending.delete(p.id); }
+      }
+      if (changed) Crowd.setAvatarIds(ids());
+      else Crowd.setAvatarIds(ids());
+    }
+    function setSelf(on) { selfOn = on; if (!on) { const me = Net.id(); const e = map.get(me); if (e) { Stage.scene.remove(e.root); map.delete(me); Crowd.setAvatarIds(ids()); } } else if (list.length) sync(list, Crowd.peersView()); }
+    function update(dt, bpm) { map.forEach(e => e.a.update(dt, bpm)); }
+    return { sync, update, setSelf };
+  })();
+
   /* ---------- mạng: khán giả thật ---------- */
   let realCount = 1; const seenEmote = {};
   Net.init(list => {
     realCount = list.length;
     Crowd.setPeers(list, Net.id());
     const views = Crowd.peersView();
+    AV.sync(list, views);
     list.forEach(p => {
       if (p.id === Net.id()) return;
       if (p.et && seenEmote[p.id] !== p.et && Date.now() - p.et < 5000) {
@@ -61,7 +96,7 @@
       }
     });
   }).then(() => {
-    if (Wardrobe.hasSaved()) Net.setLook(Wardrobe.getLook());
+    if (Wardrobe.hasSaved()) pushLook();
     if (Net.account()) { $('nameIn').value = Net.name(); $('loginNote').textContent = 'Bạn đang đăng nhập bằng tài khoản Claude: ' + Net.account() + '.'; }
     else {
       const s = Net.status();
@@ -83,7 +118,7 @@
     if (demo) Clock.startDemo(1); else Clock.goLive();
     $('gate').hidden = true;
     Stage.setCamMode('audience'); Stage.resetLook(); setCamBtn();
-    if (Wardrobe.hasSaved()) { Net.setLook(Wardrobe.getLook()); $('hud').hidden = false; } else openWardrobe(true);
+    if (Wardrobe.hasSaved()) { pushLook(); $('hud').hidden = false; } else openWardrobe(true);
     const ok = await Aud.enable(); setSoundBtn();
     if (!ok) toast('Trình duyệt chặn âm thanh. Bấm "Âm thanh" để bật.');
     Aud.resync(); lastSegId = null;
@@ -92,14 +127,15 @@
   $('demoBtn').addEventListener('click', () => enter(true));
   $('nameIn').addEventListener('keydown', e => { if (e.key === 'Enter') enter(false); });
 
+  function pushLook() { const l3 = Wardrobe.getLook(); Net.setLook(Avatar.Look.legacy(l3), l3); }
   function openWardrobe(first) {
     $('hud').hidden = true; $('wdDone').textContent = first ? 'Xong, vào concert' : 'Lưu và quay lại concert';
-    Wardrobe.open(look => { Net.setLook(look); $('hud').hidden = false; lastSegId = null; });
+    Wardrobe.open(look => { pushLook(); $('hud').hidden = false; lastSegId = null; });
   }
   $('dressBtn').addEventListener('click', () => openWardrobe(false));
   function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('on'), 3200); }
   function setSoundBtn() { const b = $('soundBtn'); b.setAttribute('aria-pressed', Aud.isOn()); b.textContent = 'Âm thanh: ' + (Aud.isOn() ? 'bật' : 'tắt'); }
-  function setCamBtn() { $('camBtn').textContent = 'Góc nhìn: ' + (Stage.getCamMode() === 'audience' ? 'khán đài' : 'đạo diễn'); Crowd.setSelfVisible(Stage.getCamMode() === 'director'); }
+  function setCamBtn() { $('camBtn').textContent = 'Góc nhìn: ' + (Stage.getCamMode() === 'audience' ? 'khán đài' : 'đạo diễn'); Crowd.setSelfVisible(Stage.getCamMode() === 'director'); if (typeof AV !== 'undefined') AV.setSelf(Stage.getCamMode() === 'director'); }
   $('soundBtn').addEventListener('click', async () => { if (Aud.isOn()) Aud.disable(); else await Aud.enable(); setSoundBtn(); });
   $('camBtn').addEventListener('click', () => { Stage.setCamMode(Stage.getCamMode() === 'audience' ? 'director' : 'audience'); setCamBtn(); });
   document.querySelectorAll('.emotes button').forEach(b => b.addEventListener('click', () => {
@@ -271,6 +307,7 @@
       ledAcc = 0;
       LED.draw(W.cue, W.t, W.bi, Aud.spectrum(32), W.phase === 'lobby' ? W.countdown : null);
     }
+    AV.update(dt, W.bi && W.bi.bpm > 40 ? W.bi.bpm : 118);
     if (Wardrobe.isActive()) Wardrobe.render(time, dt); else Stage.render();
 
     // chất lượng tự thích ứng

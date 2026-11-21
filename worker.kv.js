@@ -138,12 +138,12 @@ export default {
     }
     if (p.startsWith('/a3d/')) {
       const rel = p.slice(5);
-      if (!/^(acc\/)?(tex\/)?[A-Za-z0-9_-]+\.(glb|jpg|png)$/.test(rel)) return new Response('Not found', { status: 404 });
+      if (!/^(acc\/)?(tex\/)?[A-Za-z0-9_-]+\.(glb|jpg|png|json)$/.test(rel)) return new Response('Not found', { status: 404 });
       const ref = (await env.PAGE.get('ref')) || 'main';
       const path = rel.startsWith('acc/') ? 'accessories/' + rel.slice(4) : 'char/' + rel;
       const r = await fetch(ASSET_URL.replace('@REF', ref) + path, { cf: { cacheTtl: 86400, cacheEverything: true } });
       if (!r.ok) return new Response('Not found', { status: 404 });
-      const ct = rel.endsWith('.glb') ? 'model/gltf-binary' : rel.endsWith('.png') ? 'image/png' : 'image/jpeg';
+      const ct = rel.endsWith('.json') ? 'application/json' : rel.endsWith('.glb') ? 'model/gltf-binary' : rel.endsWith('.png') ? 'image/png' : 'image/jpeg';
       return new Response(r.body, { headers: { 'content-type': ct, 'cache-control': 'public, max-age=86400', 'access-control-allow-origin': '*' } });
     }
     if (p === '/' || p === '/index.html') {

@@ -92,7 +92,7 @@ const Avatar = (() => {
     function resetPose() { mixer.stopAllAction(); Object.keys(restP).forEach(n => { const b = bones[n], r = restP[n]; b.position.copy(r[0]); b.quaternion.copy(r[1]); b.scale.copy(r[2]); }); }
     let handQ = new THREE.Quaternion();
     if (A.dance && bones.hand_r) { A.dance.reset().play(); mixer.update(0.0001); body.updateMatrixWorld(true); bones.hand_r.getWorldQuaternion(handQ); resetPose(); body.updateMatrixWorld(true); }
-    let cur = null, look = null, accObjs = [];
+    let cur = null, look = null, accObjs = []; const fixed = {};
     const skinMat = new THREE.MeshStandardMaterial({ skinning: true, map: meshes[D.skin].material.map, roughness: 0.55, color: new THREE.Color(1, 1, 1) });
     meshes[D.skin].material = skinMat;
     const hairMats = {};
@@ -158,8 +158,9 @@ const Avatar = (() => {
     }
     apply(look0); play('dance'); mixer.update(Math.random() * 0.8);
     return {
-      root, g, mixer, resetPose, setLook: apply, play, getLook: () => look.slice(),
-      update(dt, bpm) { if (A.dance) A.dance.timeScale = (bpm || 118) / 75; mixer.update(dt); },
+      root, g, mixer, resetPose, setLook: apply, play, getLook: () => look.slice(), bones, has: n => !!A[n], current: () => cur,
+      speed(n, v) { if (A[n]) { A[n].timeScale = v; fixed[n] = true; } },
+      update(dt, bpm) { if (A.dance && !fixed.dance) A.dance.timeScale = (bpm || 118) / 75; mixer.update(dt); },
       dispose() { root.parent && root.parent.remove(root); }
     };
   }

@@ -1,108 +1,99 @@
-/* ===== performers: ban nhạc dựng bằng khối hình, hoạt ảnh theo nhịp ===== */
+/* ===== performers: ban nhạc là nhân vật 3D thật (cùng bộ xương, tủ đồ với khán giả), nhạc cụ dựng bằng hình học trơn ===== */
 const Performers = (() => {
   const root = new THREE.Group();
   const bands = {};
   const focus = { x: 0, z: -7 };
-  const G = { box: new THREE.BoxGeometry(1, 1, 1), sph: new THREE.SphereGeometry(1, 14, 10), cyl: new THREE.CylinderGeometry(1, 1, 1, 16), cone: new THREE.ConeGeometry(1, 1, 6), cap: new THREE.SphereGeometry(1, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2) };
-  const dark = new THREE.MeshLambertMaterial({ color: 0x15121f, emissive: 0x050408 });
-  const metal = new THREE.MeshLambertMaterial({ color: 0x3a3650, emissive: 0x0c0b12 });
-
-  function lam(c, em) { const m = new THREE.MeshLambertMaterial({ color: c }); m.emissive = new THREE.Color(c).multiplyScalar(em == null ? 0.18 : em); return m; }
+  const SC = 2.6;
+  const dark = new THREE.MeshStandardMaterial({ color: 0x15121f, roughness: 0.6, metalness: 0.3 });
+  const metal = new THREE.MeshStandardMaterial({ color: 0x8a86a0, roughness: 0.35, metalness: 0.8 });
+  const gold = new THREE.MeshStandardMaterial({ color: 0xd9c36a, roughness: 0.3, metalness: 0.85 });
+  function paint(c, em) { const col = new THREE.Color(c); return new THREE.MeshStandardMaterial({ color: col, roughness: 0.35, metalness: 0.2, emissive: col.clone().multiplyScalar(em == null ? 0.25 : em) }); }
   function neon(c) { return new THREE.MeshBasicMaterial({ color: c }); }
-  function mesh(geo, mat, sx, sy, sz, x, y, z) { const m = new THREE.Mesh(geo, mat); m.scale.set(sx, sy, sz); m.position.set(x || 0, y || 0, z || 0); return m; }
+  function put(parent, geo, mat, x, y, z, sx, sy, sz) { const m = new THREE.Mesh(geo, mat); m.position.set(x || 0, y || 0, z || 0); if (sx != null) m.scale.set(sx, sy, sz); parent.add(m); return m; }
+  const cyl = (r, h, n) => new THREE.CylinderGeometry(r, r, h, n || 24);
+  const sph = () => new THREE.SphereGeometry(1, 20, 14);
 
-  function makeHair(style, color, head) {
-    const m = lam(color, 0.25);
-    if (style === 'spiky') {
-      for (let i = 0; i < 5; i++) { const c = mesh(G.cone, m, 0.11, 0.34, 0.11, (i - 2) * 0.13, 0.34, (i % 2) * 0.06 - 0.03); c.rotation.z = -(i - 2) * 0.22; head.add(c); }
-      head.add(mesh(G.cap, m, 0.325, 0.3, 0.325, 0, 0.02, -0.01));
-    } else if (style === 'swoop') {
-      head.add(mesh(G.cap, m, 0.335, 0.32, 0.335, 0, 0.03, -0.02));
-      const s = mesh(G.box, m, 0.4, 0.12, 0.3, 0.12, 0.2, 0.18); s.rotation.z = -0.35; head.add(s);
-    } else if (style === 'ponytail') {
-      head.add(mesh(G.cap, m, 0.33, 0.32, 0.33, 0, 0.03, -0.02));
-      const t = mesh(G.sph, m, 0.12, 0.4, 0.12, 0, -0.12, -0.36); t.rotation.x = 0.4; head.add(t);
-      head.add(mesh(G.sph, neon(0xffffff), 0.06, 0.06, 0.06, 0, 0.1, -0.33));
-    } else if (style === 'bob') {
-      head.add(mesh(G.cap, m, 0.34, 0.32, 0.34, 0, 0.03, -0.02));
-      head.add(mesh(G.box, m, 0.68, 0.38, 0.36, 0, -0.08, -0.12));
-    } else {
-      head.add(mesh(G.cap, m, 0.33, 0.3, 0.33, 0, 0.03, -0.01));
-    }
+  function near(list, hex) {
+    const t = new THREE.Color(hex); let bi = 0, bd = 9;
+    list.forEach((c, i) => { const k = new THREE.Color(c), d = (k.r - t.r) ** 2 + (k.g - t.g) ** 2 + (k.b - t.b) ** 2; if (d < bd) { bd = d; bi = i; } });
+    return bi;
+  }
+  const OUT = {
+    M: { vocal: [5, 0, 1, 1], guitar: [4, 1, 1, 0], bass: [2, 0, 1, 1], drums: [1, 2, 0, 1], keys: [3, 0, 1, 0] },
+    F: { vocal: [5, 4, 1, 0], guitar: [4, 2, 1, 1], bass: [2, 3, 1, 0], drums: [1, 3, 0, 0], keys: [3, 0, 1, 0] }
+  };
+  const HAIR = { M: { spiky: 0, swoop: 0, short: 1, bob: 0, ponytail: 0 }, F: { ponytail: 0, bob: 3, spiky: 2, swoop: 3, short: 2 } };
+  function lookFor(spec, band) {
+    const g = band.type === 'girl' ? 0 : 1, G = g ? 'M' : 'F', V = Avatar.V3, cw = band.id === 'luna' ? V.colorways.findIndex(c => c.id === 'sakura') : V.colorways.findIndex(c => c.id === 'solar');
+    const o = OUT[G][spec.role] || OUT[G].guitar, cwi = Math.max(0, cw);
+    const l = Avatar.Look.def(g);
+    l[1] = o[0]; l[2] = cwi; l[3] = o[1]; l[4] = cwi; l[5] = o[2]; l[6] = cwi;
+    l[7] = HAIR[G][spec.hairStyle] != null ? HAIR[G][spec.hairStyle] : 0; l[8] = near(V.hairColors, spec.hair); l[9] = near(V.skins, spec.skin);
+    return l;
   }
 
-  function makeMember(spec, pal) {
-    const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
-    const skin = lam(spec.skin, 0.2), outfit = lam(spec.outfit, 0.3), accent = neon(pal.accent);
-    const legs = [-1, 1].map(s => {
-      const p = new THREE.Group(); p.position.set(s * 0.17, 0.88, 0);
-      p.add(mesh(G.box, dark, 0.3, 0.85, 0.32, 0, -0.43, 0));
-      p.add(mesh(G.box, neon(pal.main), 0.32, 0.1, 0.38, 0, -0.84, 0.03));
-      body.add(p); return p;
-    });
-    body.add(mesh(G.box, outfit, 0.8, 0.96, 0.44, 0, 1.36, 0));
-    body.add(mesh(G.box, accent, 0.82, 0.07, 0.46, 0, 1.62, 0));
-    body.add(mesh(G.box, accent, 0.07, 0.96, 0.46, 0, 1.36, 0));
-    const head = new THREE.Group(); head.position.set(0, 2.12, 0); body.add(head);
-    head.add(mesh(G.sph, skin, 0.3, 0.31, 0.3));
-    [-1, 1].forEach(s => head.add(mesh(G.sph, dark, 0.04, 0.05, 0.03, s * 0.11, 0.03, 0.27)));
-    head.add(mesh(G.box, lam(0xb04a5a, 0.1), 0.11, 0.03, 0.03, 0, -0.1, 0.285));
-    makeHair(spec.hairStyle, spec.hair, head);
-    const arms = [-1, 1].map(s => {
-      const p = new THREE.Group(); p.position.set(s * 0.52, 1.74, 0);
-      p.add(mesh(G.box, outfit, 0.22, 0.42, 0.24, 0, -0.2, 0));
-      p.add(mesh(G.box, skin, 0.19, 0.4, 0.21, 0, -0.62, 0));
-      body.add(p); return p;
-    });
-    const m = { root, body, head, legs, armL: arms[0], armR: arms[1], role: spec.role, seed: hashStr(spec.stage) % 100 / 100 * 6.28, parts: {} };
-
+  function props(m, spec, pal) {
+    const g = new THREE.Group(); m.rig = g; m.root.add(g);
+    const main = new THREE.Color(pal.main), acc = new THREE.Color(pal.accent);
     if (spec.role === 'vocal') {
-      const mic = new THREE.Group();
-      mic.add(mesh(G.cyl, metal, 0.04, 0.22, 0.04, 0, 0, 0));
-      mic.add(mesh(G.sph, neon(0xffffff), 0.075, 0.075, 0.075, 0, 0.15, 0));
-      mic.position.set(0, -0.82, 0.08); m.armR.add(mic);
+      const hb = m.a.bones.hand_r;
+      if (hb) {
+        const mic = new THREE.Group();
+        put(mic, cyl(0.016, 0.16, 12), dark, 0, 0.05, 0);
+        put(mic, sph(), metal, 0, 0.16, 0, 0.034, 0.04, 0.034);
+        hb.add(mic); mic.position.set(0, 0.02, 0.02); mic.rotation.set(0.5, 0, 0);
+        m.mic = mic;
+      }
     } else if (spec.role === 'guitar' || spec.role === 'bass') {
-      const g = new THREE.Group();
-      const bodyM = lam(spec.role === 'bass' ? 0x2a1f3d : parseInt(pal.main.slice(1), 16), 0.3);
-      g.add(mesh(G.box, bodyM, 0.62, 0.5, 0.14, 0, 0, 0));
-      g.add(mesh(G.box, accent, 0.64, 0.05, 0.16, 0, 0.22, 0));
-      const len = spec.role === 'bass' ? 1.25 : 1.0;
-      g.add(mesh(G.box, dark, len, 0.09, 0.08, -0.5 - len / 2 + 0.3, 0.12, 0));
-      g.position.set(0.05, 1.12, 0.3); g.rotation.z = -0.28; body.add(g); m.parts.inst = g;
+      const gt = new THREE.Group(), bass = spec.role === 'bass';
+      const col = bass ? 0x2a1f3d : main.getHex();
+      put(gt, sph(), paint(col, 0.3), 0, -0.04, 0, 0.15, 0.19, 0.035);
+      put(gt, sph(), paint(col, 0.3), 0, 0.15, 0, 0.11, 0.13, 0.035);
+      put(gt, sph(), neon(acc.getHex()), 0, -0.02, 0.037, 0.045, 0.045, 0.006);
+      const nl = bass ? 0.8 : 0.68;
+      const neck = put(gt, cyl(0.022, nl, 10), dark, 0, 0.23 + nl / 2, 0.0); neck.scale.set(1, 1, 0.6);
+      put(gt, sph(), gold, 0, 0.23 + nl + 0.05, 0, 0.035, 0.06, 0.018);
+      gt.rotation.z = -1.15; gt.position.set(0.0, 1.0, 0.23); gt.rotation.y = 0.0;
+      g.add(gt); m.inst = gt;
     } else if (spec.role === 'keys') {
       const k = new THREE.Group();
-      k.add(mesh(G.box, dark, 2.0, 0.14, 0.7, 0, 0, 0));
-      k.add(mesh(G.box, lam(0xf0f0f8, 0.4), 1.9, 0.05, 0.3, 0, 0.1, 0.14));
-      k.add(mesh(G.box, accent, 2.0, 0.05, 0.05, 0, 0.1, -0.3));
-      [-0.8, 0.8].forEach(x => k.add(mesh(G.box, metal, 0.08, 1.0, 0.08, x, -0.55, 0)));
-      k.position.set(0, 1.5, 0.75); root.add(k);
+      put(k, new THREE.BoxGeometry(1.25, 0.08, 0.42), dark, 0, 0, 0);
+      put(k, new THREE.BoxGeometry(1.15, 0.03, 0.2), paint(0xf0f0f8, 0.5), 0, 0.055, 0.08);
+      put(k, new THREE.BoxGeometry(1.2, 0.03, 0.03), neon(acc.getHex()), 0, 0.06, -0.17);
+      [-0.5, 0.5].forEach(x => put(k, cyl(0.025, 0.95, 10), metal, x, -0.5, 0));
+      k.position.set(0, 1.0, 0.52); g.add(k);
     } else if (spec.role === 'drums') {
-      const kit = new THREE.Group();
-      const shell = lam(parseInt(pal.main.slice(1), 16), 0.25);
-      const kick = mesh(G.cyl, shell, 0.62, 0.5, 0.62, 0, 0.75, 1.15); kick.rotation.x = Math.PI / 2; kit.add(kick);
-      const sn = mesh(G.cyl, metal, 0.36, 0.16, 0.36, -0.55, 1.2, 0.75); kit.add(sn);
-      [-0.3, 0.3].forEach((x, i) => kit.add(mesh(G.cyl, shell, 0.3, 0.2, 0.3, x, 1.55, 1.1 + i * 0.0)));
-      m.parts.cym = [-1.2, 1.2].map(x => { const c = mesh(G.cyl, lam(0xd9c36a, 0.6), 0.5, 0.025, 0.5, x, 2.05, 0.7); kit.add(c); kit.add(mesh(G.cyl, metal, 0.025, 2.0, 0.025, x, 1.0, 0.7)); return c; });
-      kit.add(mesh(G.cyl, dark, 0.38, 0.8, 0.38, 0, 0.4, -0.2));
-      root.add(kit);
-      m.legs.forEach(l => l.rotation.x = -1.35);
-      body.position.y = -0.05;
+      const kit = new THREE.Group(), shell = paint(main.getHex(), 0.22);
+      const kick = put(kit, cyl(0.26, 0.4, 28), shell, 0, 0.3, 0.62); kick.rotation.x = Math.PI / 2;
+      put(kit, cyl(0.1, 0.3, 20), metal, 0, 0.3, 0.42).rotation.x = Math.PI / 2;
+      put(kit, cyl(0.15, 0.12, 24), metal, -0.34, 0.82, 0.38);
+      [-0.16, 0.18].forEach(x => put(kit, cyl(0.12, 0.14, 24), shell, x, 0.82, 0.62));
+      put(kit, cyl(0.17, 0.18, 24), shell, 0.52, 0.55, 0.45);
+      m.cym = [-0.7, 0.72].map((x, i) => { const c = put(kit, cyl(0.24, 0.012, 32), gold, x, 1.12, 0.38 + i * 0.1); put(kit, cyl(0.01, 1.1, 8), metal, x, 0.56, 0.38 + i * 0.1); return c; });
+      put(kit, cyl(0.2, 0.05, 24), dark, 0, 0.5, -0.32);
+      g.add(kit);
     }
-    return m;
   }
 
   function init(THREE_scene) {
     BANDS.bands.forEach(b => {
-      const g = new THREE.Group(); root.add(g);
-      const members = b.members.map(spec => {
-        const m = makeMember(spec, b.palette); const f = b.formation[spec.role] || [0, -9];
-        m.base = new THREE.Vector3(f[0], 1.5, f[1]); m.root.position.copy(m.base);
-        m.root.scale.setScalar(2.0); g.add(m.root); return m;
-      });
-      bands[b.id] = { spec: b, group: g, members, enter: 0, offX: 0, vocal: members.find(x => x.role === 'vocal') };
-      g.position.y = -7; g.visible = false;
+      const gp = new THREE.Group(); root.add(gp);
+      const B = { spec: b, group: gp, members: [], enter: 0, offX: 0, vocal: null, ready: false };
+      bands[b.id] = B; gp.position.y = -7; gp.visible = false;
+      Promise.all(b.members.map(async spec => {
+        const a = await Avatar.create(lookFor(spec, b));
+        const m = { a, root: new THREE.Group(), role: spec.role, seed: hashStr(spec.stage) % 100 / 100 * 6.28, mode: '' };
+        const f = b.formation[spec.role] || [0, -9];
+        m.base = new THREE.Vector3(f[0], 1.5, f[1]); m.root.position.copy(m.base); m.root.scale.setScalar(SC);
+        m.body = a.root; m.root.add(a.root); gp.add(m.root); m.a = a;
+        props(m, spec, b.palette);
+        const clip = { vocal: 'talk', guitar: 'strum', bass: 'strum', keys: 'keys', drums: 'hit' }[spec.role];
+        a.play(clip, 0.01); m.mode = clip; m.clip = clip;
+        if (spec.role === 'guitar' || spec.role === 'bass') m.root.rotation.y = spec.role === 'guitar' ? 0.25 : -0.25;
+        B.members.push(m); if (spec.role === 'vocal') B.vocal = m;
+      })).then(() => { B.ready = true; }).catch(e => console.warn('band', e));
+      THREE_scene.add(root);
     });
-    THREE_scene.add(root);
   }
 
   function update(W, time, dt) {
@@ -115,49 +106,38 @@ const Performers = (() => {
       const targetX = mode === 'both' ? (id === 'solar' ? -7.5 : 7.5) : 0;
       B.offX = lerp(B.offX, targetX, 1 - Math.exp(-dt * 2));
       B.group.position.x = B.offX; B.group.position.y = lerp(-7, 0, B.enter);
-      B.group.visible = B.enter > 0.02;
+      B.group.visible = B.enter > 0.02 && B.ready;
       if (!B.group.visible) continue;
-      B.members.forEach((m, i) => animate(m, time, beat, h, P, e, id === 'luna', M));
+      B.members.forEach(m => animate(m, B, dt, time, beat, h, P, e, id === 'luna', M));
     }
-    // điểm nhấn: ca sĩ đang hát
     let target = null;
     if (mode === 'both') target = bands[Math.floor(W.bi.bar) % 2 === 0 ? 'solar' : 'luna']; else target = bands[mode];
-    if (target) {
+    if (target && target.vocal) {
       const v = target.vocal, wx = target.group.position.x + v.root.position.x;
       focus.x = lerp(focus.x, wx, 0.08); focus.z = lerp(focus.z, v.root.position.z, 0.08);
     }
   }
 
-  function animate(m, time, beat, h, P, e, girl, M) {
-    M = M || 0;
-    const s = m.seed, r = m.role, body = m.body;
-    const sway = Math.sin(time * (1.6 + girl * 0.3) + s) * e;
-    m.head.rotation.x = h * 0.12 * e; m.head.rotation.z = sway * 0.06;
+  function animate(m, B, dt, time, beat, h, P, e, girl, M) {
+    const s = m.seed, r = m.role, bpm = B.spec.bpm || 118;
     if (r === 'vocal') {
+      const want = e > 0.85 ? 'dance' : 'talk';
+      if (want !== m.mode) { m.a.play(want, 0.5); m.mode = want; }
       m.root.position.x = m.base.x + Math.sin(time * 0.45 + s) * 2.6 * e;
       m.root.position.z = m.base.z + 0.5 + Math.sin(time * 0.3 + s) * 0.6 * e;
-      body.position.y = h * 0.22 * e + M * 0.3; body.rotation.z = sway * 0.05 + (M - 0.2) * 0.12; m.head.rotation.x += M * 0.25;
-      m.armR.rotation.x = -2.1 + P * 0.15; m.armR.rotation.z = -0.15;
-      const hype = e > 0.85;
-      m.armL.rotation.z = hype ? 2.6 + Math.sin(time * 5 + s) * 0.35 : 0.35 + Math.sin(time * 2) * 0.1;
-      m.armL.rotation.x = 0;
-      m.legs[0].rotation.x = Math.sin(time * 3 + s) * 0.2 * e; m.legs[1].rotation.x = -m.legs[0].rotation.x;
-    } else if (r === 'guitar' || r === 'bass') {
-      body.position.y = h * 0.12 * e + P * 0.05; body.rotation.z = sway * 0.1; body.rotation.y = Math.sin(time * 0.7 + s) * 0.2;
-      m.armR.rotation.x = -0.9 + Math.sin(time * (r === 'guitar' ? 15 : 8) + s) * 0.3 * e;
-      m.armL.rotation.x = -1.15; m.armL.rotation.z = -0.5;
-      m.legs[0].rotation.z = 0.12 + h * 0.05; m.legs[1].rotation.z = -0.12 - h * 0.05;
-    } else if (r === 'keys') {
-      body.position.y = h * 0.1 * e; body.rotation.z = sway * 0.08;
-      m.armL.rotation.x = -1.2 + Math.sin(time * 6 + s) * 0.25 * e; m.armR.rotation.x = -1.2 + Math.sin(time * 7 + 1) * 0.25 * e;
+      m.root.position.y = m.base.y + h * 0.08 * e;
     } else if (r === 'drums') {
-      const a = beat * Math.PI * 4;
-      m.armR.rotation.x = -1.0 - Math.max(0, Math.sin(a)) * 0.9 * e - 0.2;
-      m.armL.rotation.x = -1.0 - Math.max(0, Math.sin(a + Math.PI)) * 0.9 * e - 0.2;
-      m.armR.rotation.z = -0.4; m.armL.rotation.z = 0.4;
-      body.position.y = -0.05 + h * 0.06 * e;
-      if (m.parts.cym) m.parts.cym.forEach((c, i) => { c.rotation.z = Math.sin(time * 30 + i) * 0.04 * P * e; });
+      m.a.speed('hit', bpm / 62);
+      m.root.position.y = m.base.y + h * 0.02 * e;
+      if (m.cym) m.cym.forEach((c, i) => { c.rotation.z = Math.sin(time * 30 + i) * 0.04 * P * e; });
+    } else if (r === 'keys') {
+      m.root.position.y = m.base.y + h * 0.03 * e; m.root.rotation.z = Math.sin(time * 1.6 + s) * 0.02 * e;
+    } else {
+      m.a.speed('strum', 0.8 + e * 1.2);
+      m.root.position.y = m.base.y + h * 0.05 * e + P * 0.02;
+      m.root.rotation.z = Math.sin(time * 1.6 + s) * 0.04 * e;
     }
+    m.a.update(dt, bpm);
   }
 
   return { init, update, root, focusPoint() { return focus; } };

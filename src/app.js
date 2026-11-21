@@ -14,9 +14,9 @@
 
   /* ---------- chất lượng tự thích ứng ---------- */
   const QUAL = [
-    { id: 'high', name: 'Cao', s: 1, max: 1.5, crowd: 900, beams: 14, fx: 1, led: 24 },
-    { id: 'mid', name: 'Vừa', s: 0.75, max: 1.1, crowd: 560, beams: 14, fx: 0.6, led: 15 },
-    { id: 'low', name: 'Thấp', s: 0.5, max: 0.8, crowd: 300, beams: 7, fx: 0.35, led: 10 }
+    { id: 'high', name: 'Cao', s: 1, max: 1.5, crowd: 520, beams: 14, fx: 1, led: 24 },
+    { id: 'mid', name: 'Vừa', s: 0.75, max: 1.1, crowd: 340, beams: 14, fx: 0.6, led: 15 },
+    { id: 'low', name: 'Thấp', s: 0.5, max: 0.8, crowd: 200, beams: 7, fx: 0.35, led: 10 }
   ];
   let qLevel = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 1 : 0, autoQ = true, upStreak = 0, lastQChange = 0;
   function applyQuality() {

@@ -80,7 +80,7 @@ const Performers = (() => {
       const gp = new THREE.Group(); root.add(gp);
       const B = { spec: b, group: gp, members: [], enter: 0, offX: 0, vocal: null, ready: false };
       bands[b.id] = B; gp.position.y = -7; gp.visible = false;
-      Promise.all(b.members.map(async spec => {
+      Promise.all(b.members.filter(sp => sp.role === "vocal").map(async spec => {
         const a = await Avatar.create(lookFor(spec, b));
         const m = { a, root: new THREE.Group(), role: spec.role, seed: hashStr(spec.stage) % 100 / 100 * 6.28, mode: '' };
         const f = b.formation[spec.role] || [0, -9];

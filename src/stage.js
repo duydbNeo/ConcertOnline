@@ -69,10 +69,10 @@ const Stage = (() => {
 
     // tường LED
     const tex = LED.init(THREE);
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(25, 11.5, 0.5), new THREE.MeshLambertMaterial({ color: 0x0c0a16 }));
-    frame.position.set(0, 7.9, -17.7); scene.add(frame);
-    const wall = new THREE.Mesh(new THREE.PlaneGeometry(24, 10.5), new THREE.MeshBasicMaterial({ map: tex.main, fog: false }));
-    wall.position.set(0, 7.9, -17.4); scene.add(wall);
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(32.5, 14.9, 0.5), new THREE.MeshLambertMaterial({ color: 0x0c0a16 }));
+    frame.position.set(0, 10.1, -17.7); scene.add(frame);
+    const wall = new THREE.Mesh(new THREE.PlaneGeometry(31.2, 13.65), new THREE.MeshBasicMaterial({ map: tex.main, fog: false }));
+    wall.position.set(0, 10.1, -17.4); scene.add(wall);
     [-1, 1].forEach(sx => {
       const sc = new THREE.Mesh(new THREE.PlaneGeometry(5, 11.25), new THREE.MeshBasicMaterial({ map: tex.side, fog: false }));
       sc.position.set(sx * 17.6, 7.6, -9.5); sc.rotation.y = -sx * 0.42; scene.add(sc);

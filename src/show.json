@@ -3,14 +3,14 @@
  "title": "NEON MIDNIGHT",
  "theme": "Đêm nhạc Việt: hai ban nhạc ảo trình diễn ba bản nhạc Việt Nam, từ nhịp lễ hội rộn ràng đến giai điệu pop, rồi cùng khán giả đón cao trào.",
  "venue": {
-  "preset": "festival",
-  "name": "Hội làng đêm trăng",
+  "preset": "stadium",
+  "name": "Sân vận động Neon Midnight",
   "sky": {
    "top": "#02010a",
    "mid": "#160a36",
    "horizon": "#4a1a58"
   },
-  "searchlights": 5,
+  "searchlights": 8,
   "lanterns": true,
   "fireworks": true,
   "towers": true,

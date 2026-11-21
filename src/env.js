@@ -113,7 +113,7 @@ const Env = (() => {
       });
       const geo = new THREE.CylinderGeometry(0.5, 7, 260, 14, 1, true); geo.translate(0, 130, 0);
       const mesh = new THREE.Mesh(geo, m), pv = new THREE.Group(), a = (i / n) * Math.PI - Math.PI * 0.5;
-      pv.position.set(Math.sin(a) * 150 * 1.2, 0, -90 - Math.cos(a) * 60 - 40); pv.add(mesh); root.add(pv);
+      if (V.preset === 'stadium') { const aa = (i / n) * Math.PI * 2; pv.position.set(Math.sin(aa) * 86, 0, ST.cz - Math.cos(aa) * 94); } else pv.position.set(Math.sin(a) * 150 * 1.2, 0, -90 - Math.cos(a) * 60 - 40); pv.add(mesh); root.add(pv);
       lights.push({ pv, m, ph: i * 1.7, sp: 0.25 + rnd() * 0.3 });
     }
   }
@@ -169,14 +169,86 @@ const Env = (() => {
     }
   }
 
+
+  /* ---------- sân vận động: khán đài bậc thang bao quanh, vòng LED, cột đèn pha, mái che ---------- */
+  const ST = { cx: 0, cz: 12, A: 46, B: 55 };
+  function stP(a, d, h) { return [Math.sin(a) * (ST.A + d), h, ST.cz - Math.cos(a) * (ST.B + d)]; }
+  function stadium() {
+    const N = quality > 0.6 ? 120 : 72;
+    // mặt cắt khán đài: [d (ra ngoài), h (độ cao), hệ số sáng, cờ ghế]
+    const prof = [[0, 0, 0.5, 0], [0, 2.2, 0.35, 0]];
+    for (let t = 0; t < 5; t++) {
+      const d0 = 1 + 7 * t, h0 = 2.2 + 5.2 * t;
+      prof.push([d0, h0, 0.4, 0], [d0 + 6, h0 + 4.2, 1.0, 1], [d0 + 6.4, h0 + 5.2, 0.45, 0]);
+    }
+    const dEnd = prof[prof.length - 1][0], hEnd = prof[prof.length - 1][1];
+    prof.push([dEnd + 1, hEnd + 6, 0.3, 0]);
+    const pos = [], aT = [], aL = [], idx = [];
+    for (let i = 0; i <= N; i++) {
+      const a = (i / N) * Math.PI * 2;
+      prof.forEach((q, j) => { pos.push(...stP(a, q[0], q[1])); aT.push(j / (prof.length - 1)); aL.push(q[2]); });
+    }
+    const M = prof.length;
+    for (let i = 0; i < N; i++) for (let j = 0; j < M - 1; j++) { const a = i * M + j, b = a + 1, c = a + M, d = c + 1; idx.push(a, b, c, b, d, c); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('aT', new THREE.Float32BufferAttribute(aT, 1)); g.setAttribute('aL', new THREE.Float32BufferAttribute(aL, 1)); g.setIndex(idx);
+    const m = new THREE.ShaderMaterial({
+      side: THREE.DoubleSide, fog: false,
+      uniforms: Object.assign({}, U),
+      vertexShader: 'attribute float aT; attribute float aL; varying float vT; varying float vL; varying vec3 vW; void main(){ vT=aT; vL=aL; vW=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+      fragmentShader: `uniform float uTime,uE,uP; uniform vec3 uC0,uC1; varying float vT; varying float vL; varying vec3 vW;
+        void main(){
+          vec3 base=vec3(0.05,0.045,0.09)*(0.7+0.3*sin(vT*150.0));
+          float dist=length(vW-vec3(0.0,8.0,-12.0));
+          vec3 tint=mix(uC0,uC1,0.5+0.5*sin(atan(vW.x,vW.z+12.0)*1.5+uTime*0.3));
+          float glow=exp(-dist/48.0)*(0.14+0.9*uE+0.3*uP*uE)*vL;
+          vec3 c=base+tint*glow*0.55+vec3(0.02,0.02,0.04)*vL;
+          gl_FragColor=vec4(c,1.0);
+        }`
+    });
+    const bowl = new THREE.Mesh(g, m); bowl.frustumCulled = false; root.add(bowl);
+    // vòng LED ở mép từng bậc và đỉnh khán đài
+    const rim = new THREE.MeshBasicMaterial({ color: 0x19e3ff, side: THREE.DoubleSide, fog: false }); poles.rim = rim;
+    const rim2 = new THREE.MeshBasicMaterial({ color: 0xff2bd6, side: THREE.DoubleSide, fog: false }); poles.rim2 = rim2;
+    function band(d, h, hh, mat) {
+      const bp = [], bi = [];
+      for (let i = 0; i <= N; i++) { const a = (i / N) * Math.PI * 2; bp.push(...stP(a, d, h), ...stP(a, d, h + hh)); if (i < N) { const k = i * 2; bi.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); } }
+      const bg = new THREE.BufferGeometry(); bg.setAttribute('position', new THREE.Float32BufferAttribute(bp, 3)); bg.setIndex(bi);
+      const b = new THREE.Mesh(bg, mat); b.frustumCulled = false; root.add(b);
+    }
+    band(0, 2.2, 0.35, rim);
+    for (let t = 0; t < 5; t++) band(1 + 7 * t + 6.4, 2.2 + 5.2 * t + 5.2, 0.28, t % 2 ? rim : rim2);
+    band(dEnd + 1, hEnd + 6, 0.8, rim2);
+    // khán giả trên khán đài: chấm sáng nhấp nháy (đèn điện thoại, gậy sáng)
+    const pp = [], ps = [], pt = []; const per = Math.floor(330 * Math.min(1, quality + 0.25));
+    for (let t = 0; t < 5; t++) for (let r = 0; r < 3; r++) for (let i = 0; i < per; i++) {
+      const a = ((i + rnd() * 0.8) / per) * Math.PI * 2, u = (r + 0.5) / 3, d = 1 + 7 * t + 0.4 + 5.2 * u, h = 2.2 + 5.2 * t + 4.2 * u + 0.9;
+      if (rnd() < 0.18) continue;
+      pp.push(...stP(a, d, h)); ps.push(rnd()); pt.push(rnd());
+    }
+    const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(pp, 3)); sg.setAttribute('aS', new THREE.Float32BufferAttribute(ps, 1)); sg.setAttribute('aT', new THREE.Float32BufferAttribute(pt, 1));
+    const seats = new THREE.Points(sg, windowMat(2.3)); seats.frustumCulled = false; root.add(seats);
+    // cột đèn pha quanh sân
+    const dark = new THREE.MeshBasicMaterial({ color: 0x1b1730 }); const head = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false }); poles.mast = head;
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2 + Math.PI / 8, P = stP(a, dEnd + 2, 0);
+      const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.9, 52, 8), dark); mast.position.set(P[0], 26, P[2]); root.add(mast);
+      const hd = new THREE.Group(); hd.position.set(P[0], 52, P[2]); hd.lookAt(0, 8, ST.cz);
+      for (let r = 0; r < 3; r++) for (let c = 0; c < 5; c++) { const l = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.1, 0.4), head); l.position.set((c - 2) * 1.8, (1 - r) * 1.4, 0); hd.add(l); }
+      root.add(hd);
+    }
+    // vòng LED trên cao phía sau sân khấu
+    const rl = new THREE.Mesh(new THREE.BoxGeometry(40, 0.3, 0.3), rim); rl.position.set(0, 19.2, -18.2); root.add(rl);
+  }
+
   function init(THREE_, sc, venue) {
     scene = sc; V = merge(venue); root = new THREE.Group(); scene.add(root);
     U.uC0.value = col('#19e3ff'); U.uC1.value = col('#ff2bd6');
     skyDome(); ground();
-    if (V.preset === 'city') cityline(); else hillring();
+    if (V.preset === 'city' || V.preset === 'stadium') cityline(); else hillring();
+    if (V.preset === 'stadium') stadium();
     if (V.searchlights > 0) searchlights();
     if (V.towers) towers();
-    if (V.lanterns && V.preset !== 'city') lanternRows();
+    if (V.lanterns && V.preset !== 'city' && V.preset !== 'stadium') lanternRows();
     if (V.fireworks) fireworks();
   }
 
@@ -192,6 +264,7 @@ const Env = (() => {
       L.pv.rotation.x = Math.cos(time * L.sp * 0.8 + L.ph) * 0.3 - 0.1;
       L.m.uniforms.uColor.value.copy(i % 2 ? U.uC0.value : U.uC1.value); L.m.uniforms.uI.value = (W.phase === 'show' ? 0.2 + 0.7 * e : 0.12) * (0.75 + 0.25 * p);
     });
+    if (poles.rim) { poles.rim.color.copy(U.uC0.value).multiplyScalar(0.55 + 0.9 * p * e); poles.rim2.color.copy(U.uC1.value).multiplyScalar(0.55 + 0.9 * p * e); poles.mast.color.setRGB(1, 1, 1).lerp(U.uC0.value, 0.3).multiplyScalar(0.45 + 0.7 * e + 0.5 * p * e); }
     if (poles.glow) poles.glow.color.copy(U.uC0.value).multiplyScalar(0.5 + 0.8 * p * e);
     if (poles.lanA) {
       poles.lanA.color.setRGB(1, 0.2 + 0.1 * p, 0.2).multiplyScalar(0.65 + 0.5 * e + 0.4 * p * e);

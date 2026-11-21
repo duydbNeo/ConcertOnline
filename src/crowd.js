@@ -232,7 +232,7 @@ const Crowd = (() => {
     for (let i = 0; i < 24; i++) {
       const sp = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false, fog: false })); sp.scale.set(1, 1, 1); sp.visible = false; sp.userData.life = 0; scene.add(sp); emotes.push(sp);
     }
-    const base = (window.NM_ASSET_BASE != null ? window.NM_ASSET_BASE : '') + '/a3d/crowd.json';
+    const base = (window.NM_ASSET_BASE != null ? window.NM_ASSET_BASE : '') + '/a3d/crowd2.json';
     fetch(base).then(r => r.json()).then(j => {
       variants = j.variants; variants.pF = j.pivotF; variants.pM = j.pivotM;
       mkSet(CAPV, vM); mkSet(CAPR, rM); gen(); loaded = true;

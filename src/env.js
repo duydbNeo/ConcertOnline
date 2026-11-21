@@ -113,7 +113,7 @@ const Env = (() => {
       });
       const geo = new THREE.CylinderGeometry(0.5, 7, 260, 14, 1, true); geo.translate(0, 130, 0);
       const mesh = new THREE.Mesh(geo, m), pv = new THREE.Group(), a = (i / n) * Math.PI - Math.PI * 0.5;
-      if (V.preset === 'stadium') { const aa = (i / n) * Math.PI * 2; pv.position.set(Math.sin(aa) * 86, 0, ST.cz - Math.cos(aa) * 94); } else pv.position.set(Math.sin(a) * 150 * 1.2, 0, -90 - Math.cos(a) * 60 - 40); pv.add(mesh); root.add(pv);
+      if (V.preset === 'stadium') { const aa = (i / n) * Math.PI * 2; pv.position.set(Math.sin(aa) * 106, 0, ST.cz - Math.cos(aa) * 112); } else pv.position.set(Math.sin(a) * 150 * 1.2, 0, -90 - Math.cos(a) * 60 - 40); pv.add(mesh); root.add(pv);
       lights.push({ pv, m, ph: i * 1.7, sp: 0.25 + rnd() * 0.3 });
     }
   }
@@ -122,7 +122,7 @@ const Env = (() => {
     const dark = new THREE.MeshLambertMaterial({ color: 0x14102a }), glow = new THREE.MeshBasicMaterial({ color: 0x19e3ff });
     poles.glow = glow;
     [-1, 1].forEach(sx => {
-      const x = sx * 21;
+      const x = sx * 27;
       const t = new THREE.Mesh(new THREE.BoxGeometry(1.1, 17, 1.1), dark); t.position.set(x, 8.5, -9); root.add(t);
       for (let i = 0; i < 5; i++) {
         const sp = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.6, 1.7), dark); sp.position.set(x, 1.4 + i * 1.75, -8.2); root.add(sp);
@@ -171,7 +171,7 @@ const Env = (() => {
 
 
   /* ---------- sân vận động: khán đài bậc thang bao quanh, vòng LED, cột đèn pha, mái che ---------- */
-  const ST = { cx: 0, cz: 12, A: 46, B: 55 };
+  const ST = { cx: 0, cz: 12, A: 66, B: 68 };
   function stP(a, d, h) { return [Math.sin(a) * (ST.A + d), h, ST.cz - Math.cos(a) * (ST.B + d)]; }
   function stadium() {
     const N = quality > 0.6 ? 120 : 72;
@@ -237,7 +237,7 @@ const Env = (() => {
       root.add(hd);
     }
     // vòng LED trên cao phía sau sân khấu
-    const rl = new THREE.Mesh(new THREE.BoxGeometry(40, 0.3, 0.3), rim); rl.position.set(0, 19.2, -18.2); root.add(rl);
+    const rl = new THREE.Mesh(new THREE.BoxGeometry(56, 0.3, 0.3), rim); rl.position.set(0, 21.5, -19); root.add(rl);
   }
 
   function init(THREE_, sc, venue) {

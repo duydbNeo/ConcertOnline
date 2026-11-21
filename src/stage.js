@@ -13,10 +13,10 @@ const Stage = (() => {
   let quality = { beams: 14, fxScale: 1 };
 
   const PRESET = {
-    wide: [[0, 5.5, 32], [0, 6, -10]],
+    wide: [[0, 7, 34], [0, 8, -10]],
     crane: [[0, 16, 25], [0, 3, -10]],
-    stagel: [[-21, 4, 12], [0, 3.5, -9]],
-    stager: [[21, 4, 12], [0, 3.5, -9]]
+    stagel: [[-30, 4, 12], [0, 3.5, -9]],
+    stager: [[30, 4, 12], [0, 3.5, -9]]
   };
 
   function gridTexture(c) {
@@ -49,43 +49,44 @@ const Stage = (() => {
     ptB = new THREE.PointLight(0xff2bd6, 1.3, 70, 1.6); ptB.position.set(13, 11, -2); scene.add(ptB);
 
     // sàn khán đài
-    const ft = gridTexture('#6a5cff'); ft.repeat.set(60, 60);
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(130, 130), new THREE.MeshLambertMaterial({ map: ft }));
+    const ft = gridTexture('#6a5cff'); ft.repeat.set(88, 88);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(190, 190), new THREE.MeshLambertMaterial({ map: ft }));
     floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0, 10); scene.add(floor);
 
     // sân khấu
-    const deck = new THREE.Mesh(new THREE.BoxGeometry(32, 1.5, 13.4), new THREE.MeshLambertMaterial({ color: 0x17122a }));
-    deck.position.set(0, 0.75, -10.7); scene.add(deck);
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(56, 1.5, 15), new THREE.MeshLambertMaterial({ color: 0x17122a }));
+    deck.position.set(0, 0.75, -11.5); scene.add(deck);
     edgeMat = new THREE.MeshBasicMaterial({ color: 0x19e3ff });
-    const edge = new THREE.Mesh(new THREE.BoxGeometry(32, 0.14, 0.16), edgeMat); edge.position.set(0, 1.46, -4.05); scene.add(edge);
-    const edge2 = new THREE.Mesh(new THREE.BoxGeometry(32, 0.14, 0.16), edgeMat); edge2.position.set(0, 0.2, -4.02); scene.add(edge2);
+    const edge = new THREE.Mesh(new THREE.BoxGeometry(56, 0.14, 0.16), edgeMat); edge.position.set(0, 1.46, -4.05); scene.add(edge);
+    const edge2 = new THREE.Mesh(new THREE.BoxGeometry(56, 0.14, 0.16), edgeMat); edge2.position.set(0, 0.2, -4.02); scene.add(edge2);
     for (let i = 0; i < 9; i++) {
       const m = new THREE.MeshBasicMaterial({ color: 0xff2bd6 }); panelMats.push(m);
-      const s = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.04, 11.6), m); s.position.set(-12.8 + i * 3.2, 1.52, -10.7); scene.add(s);
+      const s = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.04, 13.2), m); s.position.set(-24 + i * 6, 1.52, -11.5); scene.add(s);
     }
     // barrier trước đám đông
-    barrier = new THREE.Mesh(new THREE.BoxGeometry(34, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: 0x6a5cff }));
+    barrier = new THREE.Mesh(new THREE.BoxGeometry(58, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: 0x6a5cff }));
     barrier.position.set(0, 1.1, 1.6); scene.add(barrier);
 
     // tường LED
     const tex = LED.init(THREE);
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(32.5, 14.9, 0.5), new THREE.MeshLambertMaterial({ color: 0x0c0a16 }));
-    frame.position.set(0, 10.1, -17.7); scene.add(frame);
-    const wall = new THREE.Mesh(new THREE.PlaneGeometry(31.2, 13.65), new THREE.MeshBasicMaterial({ map: tex.main, fog: false }));
-    wall.position.set(0, 10.1, -17.4); scene.add(wall);
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(41.5, 19.2, 0.5), new THREE.MeshLambertMaterial({ color: 0x0c0a16 }));
+    frame.position.set(0, 11.6, -18.7); scene.add(frame);
+    const wall = new THREE.Mesh(new THREE.PlaneGeometry(40, 17.5), new THREE.MeshBasicMaterial({ map: tex.main, fog: false }));
+    wall.position.set(0, 11.6, -18.4); scene.add(wall);
     [-1, 1].forEach(sx => {
-      const sc = new THREE.Mesh(new THREE.PlaneGeometry(5, 11.25), new THREE.MeshBasicMaterial({ map: tex.side, fog: false }));
-      sc.position.set(sx * 17.6, 7.6, -9.5); sc.rotation.y = -sx * 0.42; scene.add(sc);
-      const post = new THREE.Mesh(new THREE.BoxGeometry(5.4, 11.7, 0.4), new THREE.MeshLambertMaterial({ color: 0x0c0a16 }));
-      post.position.set(sx * 17.6, 7.6, -9.62); post.rotation.y = -sx * 0.42; scene.add(post);
+      const sc = new THREE.Mesh(new THREE.PlaneGeometry(17.8, 40), new THREE.MeshBasicMaterial({ map: tex.side, fog: false }));
+      sc.position.set(sx * 40, 21.5, -12); sc.rotation.y = -sx * 0.38; scene.add(sc);
+      const post = new THREE.Mesh(new THREE.BoxGeometry(18.6, 41.2, 0.6), new THREE.MeshLambertMaterial({ color: 0x0c0a16 }));
+      post.position.set(sx * 40, 21.5, -12.35); post.rotation.y = -sx * 0.38; scene.add(post);
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(2, 1.0, 2), new THREE.MeshBasicMaterial({ color: 0x19e3ff })); leg.position.set(sx * 40, 0.5, -12); scene.add(leg);
     });
 
     // giàn truss
     const metal = new THREE.MeshLambertMaterial({ color: 0x2a2a3e });
     [[-6, 14], [-14, 14]].forEach(([z, y]) => {
-      const b = new THREE.Mesh(new THREE.BoxGeometry(32, 0.4, 0.4), metal); b.position.set(0, y, z); scene.add(b);
+      const b = new THREE.Mesh(new THREE.BoxGeometry(50, 0.4, 0.4), metal); b.position.set(0, y, z); scene.add(b);
     });
-    [-15.5, 15.5].forEach(x => {
+    [-24.5, 24.5].forEach(x => {
       const p = new THREE.Mesh(new THREE.BoxGeometry(0.4, 14, 8.4), metal); p.position.set(x, 7, -10); scene.add(p);
     });
 
@@ -93,7 +94,7 @@ const Stage = (() => {
     const geo = new THREE.CylinderGeometry(0.15, 2.7, 34, 14, 1, true); geo.translate(0, -17, 0);
     for (let i = 0; i < 14; i++) {
       const row = i < 7 ? 0 : 1, k = i % 7;
-      const x = -12 + k * 4, z = row ? -14 : -6;
+      const x = -21 + k * 7, z = row ? -14 : -6;
       const piv = new THREE.Object3D(); piv.position.set(x, 13.6, z);
       const mesh = new THREE.Mesh(geo, beamMaterial()); piv.add(mesh); scene.add(piv);
       const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff })); lamp.position.copy(piv.position); lamp.position.y -= 0.3; scene.add(lamp);
@@ -127,7 +128,7 @@ const Stage = (() => {
       const n = (260 * sc) | 0;
       for (let i = 0; i < n; i++) spawn([rnd(-16, 16), rnd(13, 18), rnd(-8, 22)], [rnd(-1.5, 1.5), rnd(-2.5, -0.8), rnd(-1.5, 1.5)], i % 5 === 0 ? [1, 1, 1] : cs[i % cs.length], rnd(5, 8), 0.5);
     } else if (kind === 'sparks') {
-      [-13, -7, 7, 13].forEach(x => {
+      [-24, -16, -8, 8, 16, 24].forEach(x => {
         const n = (70 * sc) | 0;
         for (let i = 0; i < n; i++) spawn([x + rnd(-.3, .3), 1.6, -4.3], [rnd(-2.5, 2.5), rnd(10, 17), rnd(-1, 3)], cs[i % cs.length], rnd(1.2, 2), 12);
       });
@@ -173,8 +174,8 @@ const Stage = (() => {
       let I = 0.1;
       const t = b.tgt;
       switch (mode) {
-        case 'sweep': t.set(Math.sin(time * 0.9 + i * 0.55) * 24, 0, 8 + Math.cos(time * 0.7 + i) * 14); I = 0.8; break;
-        case 'fan': t.set((u - 0.5) * 46 * (1 + 0.18 * P), 0, 9 + b.row * 6); I = 0.85; break;
+        case 'sweep': t.set(Math.sin(time * 0.9 + i * 0.55) * 30, 0, 8 + Math.cos(time * 0.7 + i) * 14); I = 0.8; break;
+        case 'fan': t.set((u - 0.5) * 56 * (1 + 0.18 * P), 0, 9 + b.row * 6); I = 0.85; break;
         case 'cross': t.set((b.k % 2 ? 1 : -1) * (6 + Math.sin(time * 0.8) * 7) + (u - 0.5) * 8, 0, 4 + b.row * 8); I = 0.9; break;
         case 'chase': t.set((u - 0.5) * 40, 0, 7 + b.row * 6); I = ((Math.floor(beat * 2) + i) % 4 === 0) ? 1 : 0.08; break;
         case 'strobe': t.set((u - 0.5) * 36, 0, 8 + b.row * 6); I = P > 0.5 ? 1 : 0.04; break;

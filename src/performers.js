@@ -3,7 +3,7 @@ const Performers = (() => {
   const root = new THREE.Group();
   const bands = {};
   const focus = { x: 0, z: -7 };
-  const SC = 2.6;
+  const SC = 3.4;
   const dark = new THREE.MeshStandardMaterial({ color: 0x15121f, roughness: 0.6, metalness: 0.3 });
   const metal = new THREE.MeshStandardMaterial({ color: 0x8a86a0, roughness: 0.35, metalness: 0.8 });
   const gold = new THREE.MeshStandardMaterial({ color: 0xd9c36a, roughness: 0.3, metalness: 0.85 });
@@ -84,7 +84,7 @@ const Performers = (() => {
         const a = await Avatar.create(lookFor(spec, b));
         const m = { a, root: new THREE.Group(), role: spec.role, seed: hashStr(spec.stage) % 100 / 100 * 6.28, mode: '' };
         const f = b.formation[spec.role] || [0, -9];
-        m.base = new THREE.Vector3(f[0], 1.5, f[1]); m.root.position.copy(m.base); m.root.scale.setScalar(SC);
+        m.base = new THREE.Vector3(f[0] * 1.6, 1.5, f[1] - 1); m.root.position.copy(m.base); m.root.scale.setScalar(SC);
         m.body = a.root; m.root.add(a.root); gp.add(m.root); m.a = a;
         props(m, spec, b.palette);
         const clip = { vocal: 'talk', guitar: 'strum', bass: 'strum', keys: 'keys', drums: 'hit' }[spec.role];
@@ -103,7 +103,7 @@ const Performers = (() => {
       const B = bands[id];
       const active = mode === 'both' || mode === id;
       B.enter = lerp(B.enter, active ? 1 : 0, 1 - Math.exp(-dt * 2.2));
-      const targetX = mode === 'both' ? (id === 'solar' ? -7.5 : 7.5) : 0;
+      const targetX = mode === 'both' ? (id === 'solar' ? -12 : 12) : 0;
       B.offX = lerp(B.offX, targetX, 1 - Math.exp(-dt * 2));
       B.group.position.x = B.offX; B.group.position.y = lerp(-7, 0, B.enter);
       B.group.visible = B.enter > 0.02 && B.ready;

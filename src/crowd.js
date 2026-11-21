@@ -22,6 +22,7 @@ const Crowd = (() => {
     varying vec3 vBase; varying vec3 vN; varying float vEm; varying float vDepth; varying float vWx; varying float vWz;
     void main(){
       float ph=iAnim.x, sp=iAnim.y, hs=iAnim.z, stick=iAnim.w;
+      if(hs<0.01){ gl_Position=vec4(2.0,2.0,2.0,1.0); vBase=vec3(0.0); vN=vec3(0.0,1.0,0.0); vEm=0.0; vDepth=0.0; vWx=0.0; vWz=0.0; return; }
       vec3 p=position; vec3 n=normal;
       float hyped=step(1.5,stick), hasStick=step(0.5,stick);
       p.y*=hs;

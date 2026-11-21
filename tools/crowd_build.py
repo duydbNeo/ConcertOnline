@@ -72,11 +72,14 @@ def part_mesh(obj, ratio, cover=None):
     # chọn nhóm xương trội cho từng đỉnh
     side=[]
     for v in m2.vertices:
-        s={0:0.0,2:0.0,3:0.0}
+        s={0:0.0,2:0.0,3:0.0}; fwv=0.0
         for g in v.groups:
             nm=o2.vertex_groups[g.group].name if g.group<len(o2.vertex_groups) else ''
-            s[side_of(nm)]+=g.weight
-        side.append(max(s,key=s.get))
+            k=side_of(nm); s[k]+=g.weight
+            if k and not nm.startswith('upperarm'): fwv+=g.weight
+        sk=2 if s[2]>=s[3] else 3; aw=s[sk]
+        if aw<0.03: side.append((0,0.0,0.0))
+        else: side.append((sk,min(1.0,aw),min(1.0,fwv)))
     for t in m2.loop_triangles:
         for li,vi in zip(t.loops,t.vertices):
             p=w2g(o2.matrix_world@m2.vertices[vi].co)
@@ -100,17 +103,19 @@ for vi,(ti,bi,si,hi) in enumerate(VAR):
     def add(items, cls, atlas, name):
         if not items: return
         L=[]
-        for p,n,uv,sd in items:
+        for p,n,uv,sdt in items:
+            sd=sdt[0]
             c=samp(TX[atlas],uv) if atlas in TX else (0.5,0.5,0.5,1)
             L.append(lum(c))
         mean=max(1e-3,sum(L)/len(L))
-        for (p,n,uv,sd),l in zip(items,L):
+        for (p,n,uv,sdt),l in zip(items,L):
+            sd,aw,fw=sdt
             c=cls
             if atlas=='ranger' and cls in (0,3,4):
                 em=samp(TX['ranger_em'],uv)
                 if lum(em)>0.35: c=5
             sh=max(0.55,min(1.5,l/mean)) if atlas in ('peasant','ranger','skin') else 1.0
-            V.append((p,n,sd,c,sh))
+            V.append((p,n,sd,c,sh,aw,fw))
     for pn in top['parts']:
         o=find(pn)
         if o: it,_=part_mesh(o, TARGET['top']/max(1,tri_count(o))/len(top['parts'])*1.0); add(it,0,top['atlas'] if top['atlas']in TX else 'peasant',pn)
@@ -135,17 +140,17 @@ for vi,(ti,bi,si,hi) in enumerate(VAR):
         def P(a,h): return (base.x+R*math.cos(a), base.y+h, base.z+R*math.sin(a))
         def Nn(a): return (math.cos(a),0,math.sin(a))
         quad=[(P(a0,-0.12),Nn(a0)),(P(a1,-0.12),Nn(a1)),(P(a1,Lz),Nn(a1)),(P(a0,-0.12),Nn(a0)),(P(a1,Lz),Nn(a1)),(P(a0,Lz),Nn(a0))]
-        for p,n in quad: V.append((p,n,3,7,1.0))
+        for p,n in quad: V.append((p,n,3,7,1.0,1.0,1.0))
     # hàn đỉnh
-    idx={}; pos=[];nor=[];part=[];cls=[];shade=[];ind=[]
-    for p,n,sd,c,sh in V:
-        k=(round(p[0]*400),round(p[1]*400),round(p[2]*400),round(n[0]*8),round(n[1]*8),round(n[2]*8),sd,c,round(sh*20))
+    idx={}; pos=[];nor=[];part=[];cls=[];shade=[];ind=[];AW=[];FW=[]
+    for p,n,sd,c,sh,aw,fw in V:
+        k=(round(p[0]*400),round(p[1]*400),round(p[2]*400),round(n[0]*8),round(n[1]*8),round(n[2]*8),sd,c,round(sh*20),round(aw*10),round(fw*10))
         if k not in idx:
-            idx[k]=len(pos); pos.append(p); nor.append(n); part.append(sd); cls.append(c); shade.append(sh)
+            idx[k]=len(pos); pos.append(p); nor.append(n); part.append(sd); cls.append(c); shade.append(sh); AW.append(aw); FW.append(fw)
         ind.append(idx[k])
     print(G,vi,'verts',len(pos),'tris',len(ind)//3)
     def b64(a): return base64.b64encode(a.tobytes()).decode()
     res['variants'].append({'g':gk,'n':len(pos),'pos':b64(np.array(pos,dtype=np.float32)),'nor':b64(np.array(nor,dtype=np.float32)),
-        'part':b64(np.array(part,dtype=np.uint8)),'cls':b64(np.array(cls,dtype=np.uint8)),'shade':b64(np.array([min(255,int(s*127)) for s in shade],dtype=np.uint8)),'idx':b64(np.array(ind,dtype=np.uint16))})
+        'part':b64(np.array(part,dtype=np.uint8)),'cls':b64(np.array(cls,dtype=np.uint8)),'shade':b64(np.array([min(255,int(s*127)) for s in shade],dtype=np.uint8)),'aw':b64(np.array([int(a*255) for a in AW],dtype=np.uint8)),'fw':b64(np.array([int(a*255) for a in FW],dtype=np.uint8)),'idx':b64(np.array(ind,dtype=np.uint16))})
 json.dump(res,open(OUT,'w'),separators=(',',':'))
 print('WROTE',OUT,os.path.getsize(OUT))

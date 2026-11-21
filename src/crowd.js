@@ -16,7 +16,7 @@ const Crowd = (() => {
   const CAPV = Math.ceil(MAXV / NV) + 2, CAPR = MAXR;
 
   const VS = `
-    attribute float part; attribute float cls; attribute float shade;
+    attribute float part; attribute float cls; attribute float shade; attribute float aw; attribute float fw;
     attribute vec3 iOff; attribute vec3 iCloth; attribute vec3 iSkin; attribute vec4 iAnim; attribute vec3 iHair; attribute vec3 iStick;
     uniform float uTime, uEnergy, uWave, uPulse, uYaw; uniform vec3 uColA, uColB; uniform vec2 uPivot;
     varying vec3 vBase; varying vec3 vN; varying float vEm; varying float vDepth; varying float vWx; varying float vWz;
@@ -39,15 +39,17 @@ const Crowd = (() => {
         float ang=mix(0.08,2.9,raise)+sin(uTime*sp*0.55+ph)*0.38*raise;
         float wv=2.75+sin(uTime*2.3-iOff.x*0.24-iOff.z*0.06)*0.55;
         ang=mix(ang,wv,uWave*(hasStick>0.5?1.0:0.35)*(side>0.0?1.0:0.5));
-        float dy=uPivot.y*hs-p.y; float wE=smoothstep(0.2,0.36,dy);
-        float bend=(0.12+0.55*raise)*(0.85+0.15*sin(uTime*sp*1.3+ph))*wE;
-        vec2 el=vec2(side*uPivot.x,uPivot.y*hs-0.28); vec2 ez=vec2(p.y-el.x*0.0-el.y, p.z);
-        float bc=cos(bend), bs=sin(bend);
-        float yy=p.y-el.y, zz=p.z; p.y=el.y+yy*bc-zz*bs; p.z=yy*bs+zz*bc;
+        float bend=(0.12+0.55*raise)*(0.85+0.15*sin(uTime*sp*1.3+ph));
+        vec3 q=p, qn=n;
+        vec2 el=vec2(side*uPivot.x,uPivot.y*hs-0.28);
+        float bc=cos(bend*fw), bs=sin(bend*fw);
+        float yy=q.y-el.y, zz=q.z; q.y=el.y+yy*bc-zz*bs; q.z=yy*bs+zz*bc;
+        float ny=qn.y, nz=qn.z; qn.y=ny*bc-nz*bs; qn.z=ny*bs+nz*bc;
         float a=side*ang; float c=cos(a), s=sin(a);
-        vec2 piv=vec2(side*uPivot.x,uPivot.y*hs); vec2 d=p.xy-piv;
-        p.xy=piv+vec2(d.x*c-d.y*s, d.x*s+d.y*c);
-        vec2 nn=n.xy; n.xy=vec2(nn.x*c-nn.y*s, nn.x*s+nn.y*c);
+        vec2 piv=vec2(side*uPivot.x,uPivot.y*hs); vec2 d=q.xy-piv;
+        q.xy=piv+vec2(d.x*c-d.y*s, d.x*s+d.y*c);
+        qn.xy=vec2(qn.x*c-qn.y*s, qn.x*s+qn.y*c);
+        p=mix(p,q,aw); n=normalize(mix(n,qn,aw));
       }
       p.x+=up*sw*0.05*act; p.z+=up*sw2*0.04*act; p.y-=0.03*hk*act;
       if(cls>6.5 && hasStick<0.5) p=vec3(0.0,-20.0,0.0);
@@ -104,12 +106,14 @@ const Crowd = (() => {
     g.setAttribute('part', new THREE.BufferAttribute(Float32Array.from(b64(v.part, Uint8Array)), 1));
     g.setAttribute('cls', new THREE.BufferAttribute(Float32Array.from(b64(v.cls, Uint8Array)), 1));
     g.setAttribute('shade', new THREE.BufferAttribute(Float32Array.from(b64(v.shade, Uint8Array), x => x / 127), 1));
+    g.setAttribute('aw', new THREE.BufferAttribute(Float32Array.from(b64(v.aw, Uint8Array), x => x / 255), 1));
+    g.setAttribute('fw', new THREE.BufferAttribute(Float32Array.from(b64(v.fw, Uint8Array), x => x / 255), 1));
     g.setIndex(new THREE.BufferAttribute(b64(v.idx, Uint16Array), 1));
     return g;
   }
   function makeInstGeo(base, n) {
     const g = new THREE.InstancedBufferGeometry();
-    g.index = base.index; ['position', 'normal', 'part', 'cls', 'shade'].forEach(k => g.attributes[k] = base.attributes[k]);
+    g.index = base.index; ['position', 'normal', 'part', 'cls', 'shade', 'aw', 'fw'].forEach(k => g.attributes[k] = base.attributes[k]);
     g.setAttribute('iOff', new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3).setUsage(THREE.DynamicDrawUsage));
     g.setAttribute('iCloth', new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3));
     g.setAttribute('iSkin', new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3));

@@ -26,7 +26,10 @@ const Crowd = (() => {
       float hyped=step(1.5,stick), hasStick=step(0.5,stick);
       p.y*=hs;
       float act=clamp(uEnergy+hyped*0.6,0.0,1.0);
-      float hop=abs(sin(uTime*sp+ph))*0.26*act*(0.35+0.65*fract(ph*7.0))+uPulse*0.12*act*(0.3+0.7*fract(ph*13.0));
+      float hk=0.5-0.5*cos(uTime*sp*2.0+ph*2.0);
+      float hop=hk*hk*0.24*act*(0.35+0.65*fract(ph*7.0))+uPulse*0.1*act*(0.3+0.7*fract(ph*13.0));
+      float sw=sin(uTime*sp*0.9+ph), sw2=sin(uTime*sp*0.45+ph*1.7);
+      float up=smoothstep(0.75,1.35,position.y);
       if(part>1.5){
         float side=(part<2.5)?-1.0:1.0;
         float R=step(0.35,fract(ph*5.0+0.2));
@@ -36,11 +39,17 @@ const Crowd = (() => {
         float ang=mix(0.08,2.9,raise)+sin(uTime*sp*0.55+ph)*0.38*raise;
         float wv=2.75+sin(uTime*2.3-iOff.x*0.24-iOff.z*0.06)*0.55;
         ang=mix(ang,wv,uWave*(hasStick>0.5?1.0:0.35)*(side>0.0?1.0:0.5));
+        float dy=uPivot.y*hs-p.y; float wE=smoothstep(0.2,0.36,dy);
+        float bend=(0.12+0.55*raise)*(0.85+0.15*sin(uTime*sp*1.3+ph))*wE;
+        vec2 el=vec2(side*uPivot.x,uPivot.y*hs-0.28); vec2 ez=vec2(p.y-el.x*0.0-el.y, p.z);
+        float bc=cos(bend), bs=sin(bend);
+        float yy=p.y-el.y, zz=p.z; p.y=el.y+yy*bc-zz*bs; p.z=yy*bs+zz*bc;
         float a=side*ang; float c=cos(a), s=sin(a);
         vec2 piv=vec2(side*uPivot.x,uPivot.y*hs); vec2 d=p.xy-piv;
         p.xy=piv+vec2(d.x*c-d.y*s, d.x*s+d.y*c);
         vec2 nn=n.xy; n.xy=vec2(nn.x*c-nn.y*s, nn.x*s+nn.y*c);
       }
+      p.x+=up*sw*0.05*act; p.z+=up*sw2*0.04*act; p.y-=0.03*hk*act;
       if(cls>6.5 && hasStick<0.5) p=vec3(0.0,-20.0,0.0);
       float cy=cos(uYaw), sy=sin(uYaw);
       p.xz=vec2(p.x*cy-p.z*sy, p.x*sy+p.z*cy);
@@ -80,7 +89,7 @@ const Crowd = (() => {
 
   function newUniforms() {
     return {
-      uTime: { value: 0 }, uEnergy: { value: 0.3 }, uWave: { value: 0 }, uPulse: { value: 0 }, uYaw: { value: 0 },
+      uTime: { value: 0 }, uEnergy: { value: 0.3 }, uWave: { value: 0 }, uPulse: { value: 0 }, uYaw: { value: Math.PI },
       uColA: { value: new THREE.Color('#19e3ff') }, uColB: { value: new THREE.Color('#ff2bd6') },
       uFog: { value: new THREE.Color(0x05030c) }, uLdir: { value: new THREE.Vector3(0, 0.3, -1) },
       uLit: { value: 0.9 }, uAmb: { value: 0.32 }, uFogD: { value: 0.013 }

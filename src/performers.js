@@ -138,7 +138,13 @@ const Performers = (() => {
       m.root.rotation.z = Math.sin(time * 1.6 + s) * 0.04 * e;
     }
     m.a.update(dt, bpm);
+    const bn = m.a.bones, k = e * 0.6 + 0.25;
+    sway(bn.spine_02, 0, Math.sin(time * 1.1 + s) * 0.05 * k, Math.sin(time * 1.7 + s) * 0.04 * k);
+    sway(bn.spine_03, h * 0.04 * e, Math.sin(time * 0.9 + s * 2) * 0.05 * k, 0);
+    sway(bn.neck_01, Math.sin(time * 1.3 + s) * 0.04 * k + h * 0.05 * e, Math.sin(time * 0.6 + s) * 0.08 * k, 0);
   }
+  const _q = new THREE.Quaternion(), _e = new THREE.Euler();
+  function sway(b, x, y, z) { if (b) b.quaternion.multiply(_q.setFromEuler(_e.set(x, y, z))); }
 
   return { init, update, root, focusPoint() { return focus; } };
 })();

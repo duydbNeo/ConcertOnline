@@ -210,10 +210,8 @@ const Crowd = (() => {
     vCountApply();
   }
 
-  function slotFor(id, rank) {
-    const z = Zones.zoneOf(hashStr(String(id)) >>> 0), cells = Zones.cell[z.id];
-    return { z, p: cells[rank % cells.length] };
-  }
+  function zoneFor(p) { return (Number.isInteger(p.zn) && Zones.list[p.zn]) || Zones.zoneOf(hashStr(String(p.id)) >>> 0); }
+  function slotFor(z, rank) { const cells = Zones.cell[z.id]; return { z, p: cells[rank % cells.length] }; }
   let myZone = 'PIT';
 
   function nameTex(name) {
@@ -264,8 +262,8 @@ const Crowd = (() => {
     let n = 0; const m = new THREE.Matrix4(), col = new THREE.Color();
     let ti = 0; rCnt.fill(0); const zRank = {};
     sorted.forEach((p, idx) => {
-      const zid = Zones.zoneOf(hashStr(String(p.id)) >>> 0).id; zRank[zid] = (zRank[zid] || 0) + 1;
-      const sf = slotFor(p.id, zRank[zid] - 1), sl = [sf.p[0], sf.p[1]];
+      const zo = zoneFor(p), zid = zo.id; zRank[zid] = (zRank[zid] || 0) + 1;
+      const sf = slotFor(zo, zRank[zid] - 1), sl = [sf.p[0], sf.p[1]];
       const mine = p.id === myId;
       if (mine) { mySlot = { x: sl[0], z: sl[1] + 0.1 }; myZone = sf.z.name; Stage.setMyPos(sl[0], sl[1] + 0.1); }
       if (n < MAXR) {

@@ -65,6 +65,7 @@ export class Room {
     if ('name' in m) a.name = cleanName(m.name);
     if ('look' in m) { const l = cleanLook(m.look); if (l) a.look = l; }
     if ('l3' in m) { const l = cleanL3(m.l3); a.l3 = l || null; }
+    if ('zn' in m) { a.zn = (Number.isInteger(m.zn) && m.zn >= 0 && m.zn <= 3) ? m.zn : null; }
     if ('emote' in m && EMOTES.includes(m.emote)) { a.emote = m.emote; a.et = now; }
     ws.serializeAttachment(a);
     this.schedule();
@@ -81,7 +82,7 @@ export class Room {
     const list = [];
     for (const ws of sockets) {
       const a = ws.deserializeAttachment(); if (!a) continue;
-      list.push({ id: a.id, name: a.name, look: a.look, l3: a.l3 || null, emote: a.emote, ea: a.emote ? now - a.et : 0 });
+      list.push({ id: a.id, name: a.name, look: a.look, l3: a.l3 || null, zn: (a.zn == null ? null : a.zn), emote: a.emote, ea: a.emote ? now - a.et : 0 });
     }
     const msg = JSON.stringify({ t: 'peers', list, cap: this.cap });
     for (const ws of sockets) { try { ws.send(msg); } catch (e) { } }

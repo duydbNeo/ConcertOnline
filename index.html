@@ -159,6 +159,7 @@ button.chip:hover{background:rgba(40,30,80,.85)}
       <span class="chip" title="Khán giả thật và khán giả ảo"><i class="dot" id="liveDot"></i><span id="hudCount">1 người xem</span></span>
       <button class="chip" id="soundBtn" aria-pressed="false">Âm thanh: tắt</button>
       <button class="chip" id="camBtn">Góc nhìn: khán đài</button>
+      <button class="chip" id="zoneBtn">Khu: tự động</button>
       <button class="chip" id="dressBtn">Thay đồ</button>
       <button class="chip" id="stageBtn">Hậu trường</button>
     </div>
@@ -5862,10 +5863,8 @@ const Crowd = (() => {
     vCountApply();
   }
 
-  function slotFor(id, rank) {
-    const z = Zones.zoneOf(hashStr(String(id)) >>> 0), cells = Zones.cell[z.id];
-    return { z, p: cells[rank % cells.length] };
-  }
+  function zoneFor(p) { return (Number.isInteger(p.zn) && Zones.list[p.zn]) || Zones.zoneOf(hashStr(String(p.id)) >>> 0); }
+  function slotFor(z, rank) { const cells = Zones.cell[z.id]; return { z, p: cells[rank % cells.length] }; }
   let myZone = 'PIT';
 
   function nameTex(name) {
@@ -5916,8 +5915,8 @@ const Crowd = (() => {
     let n = 0; const m = new THREE.Matrix4(), col = new THREE.Color();
     let ti = 0; rCnt.fill(0); const zRank = {};
     sorted.forEach((p, idx) => {
-      const zid = Zones.zoneOf(hashStr(String(p.id)) >>> 0).id; zRank[zid] = (zRank[zid] || 0) + 1;
-      const sf = slotFor(p.id, zRank[zid] - 1), sl = [sf.p[0], sf.p[1]];
+      const zo = zoneFor(p), zid = zo.id; zRank[zid] = (zRank[zid] || 0) + 1;
+      const sf = slotFor(zo, zRank[zid] - 1), sl = [sf.p[0], sf.p[1]];
       const mine = p.id === myId;
       if (mine) { mySlot = { x: sl[0], z: sl[1] + 0.1 }; myZone = sf.z.name; Stage.setMyPos(sl[0], sl[1] + 0.1); }
       if (n < MAXR) {
@@ -6313,7 +6312,7 @@ const Wardrobe = (() => {
    3) chạy một mình ===== */
 const Net = (() => {
   let room = null, cb = () => { }, ws = null, wsTimer = null, tries = 0, closed = false;
-  const st = { uid: 'g-' + Math.random().toString(36).slice(2, 7), name: 'Khách', emote: null, et: 0, look: null, l3: null };
+  const st = { uid: 'g-' + Math.random().toString(36).slice(2, 7), name: 'Khách', emote: null, et: 0, look: null, l3: null, zn: null };
   let peers = [], status = 'offline', account = null, cap = 0;
 
   function norm(p) {
@@ -6325,7 +6324,7 @@ const Net = (() => {
       if (!it || typeof it !== 'object') return;
       const s = it.state || it.presence || it.data || it;
       const id = s.uid || it.id || it.clientId || it.__k; if (!id) return;
-      out.push({ id: String(id), name: String(s.name || it.name || 'Khách'), emote: s.emote || null, et: s.et || 0, look: s.look || null, l3: s.l3 || null, you: !!(it.you || it.self || it.isYou) });
+      out.push({ id: String(id), name: String(s.name || it.name || 'Khách'), emote: s.emote || null, et: s.et || 0, look: s.look || null, l3: s.l3 || null, zn: (s.zn == null ? null : s.zn), you: !!(it.you || it.self || it.isYou) });
     });
     return out;
   }
@@ -6333,7 +6332,7 @@ const Net = (() => {
     let list = peers.slice();
     const flagged = list.find(p => p.you);
     if (flagged) flagged.id = st.uid;
-    if (!list.some(p => p.id === st.uid)) list.push({ id: st.uid, name: st.name, emote: st.emote, et: st.et, look: st.look, l3: st.l3, you: true });
+    if (!list.some(p => p.id === st.uid)) list.push({ id: st.uid, name: st.name, emote: st.emote, et: st.et, look: st.look, l3: st.l3, zn: st.zn, you: true });
     const seen = new Set(); list = list.filter(p => seen.has(p.id) ? false : seen.add(p.id));
     cb(list);
   }
@@ -6357,14 +6356,14 @@ const Net = (() => {
       let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
       if (m.t === 'welcome') {
         clearTimeout(to); tries = 0; st.uid = m.id; cap = m.cap || 0; status = 'relay';
-        wsSend({ t: 'state', name: st.name, look: st.look, l3: st.l3 });
+        wsSend({ t: 'state', name: st.name, look: st.look, l3: st.l3, zn: st.zn });
         clearInterval(wsTimer); wsTimer = setInterval(() => { if (ws && ws.readyState === 1) ws.send('ping'); }, 20000);
         emit(); done('relay');
       } else if (m.t === 'full') {
         clearTimeout(to); closed = true; cap = m.cap || 0; status = 'full'; emit(); done('full');
       } else if (m.t === 'peers') {
         const now = Date.now();
-        peers = m.list.map(p => ({ id: p.id, name: p.name, emote: p.emote, et: p.emote ? now - (p.ea || 0) : 0, look: p.look, l3: p.l3 || null, you: p.id === st.uid }));
+        peers = m.list.map(p => ({ id: p.id, name: p.name, emote: p.emote, et: p.emote ? now - (p.ea || 0) : 0, look: p.look, l3: p.l3 || null, zn: (p.zn == null ? null : p.zn), you: p.id === st.uid }));
         cap = m.cap || cap; emit();
       }
     };
@@ -6412,6 +6411,11 @@ const Net = (() => {
       st.name = (n || 'Khách').slice(0, 20);
       if (room) { try { room.presence({ uid: st.uid, name: st.name }); } catch (e) { } }
       wsSend({ t: 'state', name: st.name }); emit();
+    },
+    setZone(z) {
+      st.zn = (Number.isInteger(z) && z >= 0 && z <= 3) ? z : null;
+      if (room) { try { room.presence({ zn: st.zn }); } catch (e) { } }
+      wsSend({ t: 'state', zn: st.zn }); emit();
     },
     setLook(l, l3) {
       st.look = l; st.l3 = l3 || null;
@@ -6586,6 +6590,11 @@ const Net = (() => {
   function setSoundBtn() { const b = $('soundBtn'); b.setAttribute('aria-pressed', Aud.isOn()); b.textContent = 'Âm thanh: ' + (Aud.isOn() ? 'bật' : 'tắt'); }
   function setCamBtn() { $('camBtn').textContent = 'Góc nhìn: ' + (Stage.getCamMode() === 'audience' ? 'khán đài' : 'đạo diễn'); Crowd.setSelfVisible(Stage.getCamMode() === 'director'); if (typeof AV !== 'undefined') AV.setSelf(Stage.getCamMode() === 'director'); }
   $('soundBtn').addEventListener('click', async () => { if (Aud.isOn()) Aud.disable(); else await Aud.enable(); setSoundBtn(); });
+  const ZSEQ = [null, 0, 1, 2, 3]; let zIdx = 0;
+  try { const v = localStorage.getItem('nm_zone'); if (v != null && v !== '') zIdx = Math.max(0, Math.min(4, +v | 0)); } catch (e) { }
+  function applyZone() { Net.setZone(ZSEQ[zIdx]); $('zoneBtn').textContent = 'Khu: ' + (ZSEQ[zIdx] == null ? 'tự động' : Zones.list[ZSEQ[zIdx]].name); try { localStorage.setItem('nm_zone', String(zIdx)); } catch (e) { } }
+  $('zoneBtn').addEventListener('click', () => { zIdx = (zIdx + 1) % ZSEQ.length; applyZone(); });
+  setTimeout(applyZone, 600);
   $('camBtn').addEventListener('click', () => { Stage.setCamMode(Stage.getCamMode() === 'audience' ? 'director' : 'audience'); setCamBtn(); });
   document.querySelectorAll('.emotes button').forEach(b => b.addEventListener('click', () => {
     const e = b.dataset.e; Net.emote(e); const s = Crowd.mySlot(); Crowd.spawnEmote(e, s.x, s.z - 2.2);

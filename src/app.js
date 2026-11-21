@@ -156,6 +156,11 @@
   function setSoundBtn() { const b = $('soundBtn'); b.setAttribute('aria-pressed', Aud.isOn()); b.textContent = 'Âm thanh: ' + (Aud.isOn() ? 'bật' : 'tắt'); }
   function setCamBtn() { $('camBtn').textContent = 'Góc nhìn: ' + (Stage.getCamMode() === 'audience' ? 'khán đài' : 'đạo diễn'); Crowd.setSelfVisible(Stage.getCamMode() === 'director'); if (typeof AV !== 'undefined') AV.setSelf(Stage.getCamMode() === 'director'); }
   $('soundBtn').addEventListener('click', async () => { if (Aud.isOn()) Aud.disable(); else await Aud.enable(); setSoundBtn(); });
+  const ZSEQ = [null, 0, 1, 2, 3]; let zIdx = 0;
+  try { const v = localStorage.getItem('nm_zone'); if (v != null && v !== '') zIdx = Math.max(0, Math.min(4, +v | 0)); } catch (e) { }
+  function applyZone() { Net.setZone(ZSEQ[zIdx]); $('zoneBtn').textContent = 'Khu: ' + (ZSEQ[zIdx] == null ? 'tự động' : Zones.list[ZSEQ[zIdx]].name); try { localStorage.setItem('nm_zone', String(zIdx)); } catch (e) { } }
+  $('zoneBtn').addEventListener('click', () => { zIdx = (zIdx + 1) % ZSEQ.length; applyZone(); });
+  setTimeout(applyZone, 600);
   $('camBtn').addEventListener('click', () => { Stage.setCamMode(Stage.getCamMode() === 'audience' ? 'director' : 'audience'); setCamBtn(); });
   document.querySelectorAll('.emotes button').forEach(b => b.addEventListener('click', () => {
     const e = b.dataset.e; Net.emote(e); const s = Crowd.mySlot(); Crowd.spawnEmote(e, s.x, s.z - 2.2);

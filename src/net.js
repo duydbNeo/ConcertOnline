@@ -4,7 +4,7 @@
    3) chạy một mình ===== */
 const Net = (() => {
   let room = null, cb = () => { }, ws = null, wsTimer = null, tries = 0, closed = false;
-  const st = { uid: 'g-' + Math.random().toString(36).slice(2, 7), name: 'Khách', emote: null, et: 0, look: null, l3: null };
+  const st = { uid: 'g-' + Math.random().toString(36).slice(2, 7), name: 'Khách', emote: null, et: 0, look: null, l3: null, zn: null };
   let peers = [], status = 'offline', account = null, cap = 0;
 
   function norm(p) {
@@ -16,7 +16,7 @@ const Net = (() => {
       if (!it || typeof it !== 'object') return;
       const s = it.state || it.presence || it.data || it;
       const id = s.uid || it.id || it.clientId || it.__k; if (!id) return;
-      out.push({ id: String(id), name: String(s.name || it.name || 'Khách'), emote: s.emote || null, et: s.et || 0, look: s.look || null, l3: s.l3 || null, you: !!(it.you || it.self || it.isYou) });
+      out.push({ id: String(id), name: String(s.name || it.name || 'Khách'), emote: s.emote || null, et: s.et || 0, look: s.look || null, l3: s.l3 || null, zn: (s.zn == null ? null : s.zn), you: !!(it.you || it.self || it.isYou) });
     });
     return out;
   }
@@ -24,7 +24,7 @@ const Net = (() => {
     let list = peers.slice();
     const flagged = list.find(p => p.you);
     if (flagged) flagged.id = st.uid;
-    if (!list.some(p => p.id === st.uid)) list.push({ id: st.uid, name: st.name, emote: st.emote, et: st.et, look: st.look, l3: st.l3, you: true });
+    if (!list.some(p => p.id === st.uid)) list.push({ id: st.uid, name: st.name, emote: st.emote, et: st.et, look: st.look, l3: st.l3, zn: st.zn, you: true });
     const seen = new Set(); list = list.filter(p => seen.has(p.id) ? false : seen.add(p.id));
     cb(list);
   }
@@ -48,14 +48,14 @@ const Net = (() => {
       let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
       if (m.t === 'welcome') {
         clearTimeout(to); tries = 0; st.uid = m.id; cap = m.cap || 0; status = 'relay';
-        wsSend({ t: 'state', name: st.name, look: st.look, l3: st.l3 });
+        wsSend({ t: 'state', name: st.name, look: st.look, l3: st.l3, zn: st.zn });
         clearInterval(wsTimer); wsTimer = setInterval(() => { if (ws && ws.readyState === 1) ws.send('ping'); }, 20000);
         emit(); done('relay');
       } else if (m.t === 'full') {
         clearTimeout(to); closed = true; cap = m.cap || 0; status = 'full'; emit(); done('full');
       } else if (m.t === 'peers') {
         const now = Date.now();
-        peers = m.list.map(p => ({ id: p.id, name: p.name, emote: p.emote, et: p.emote ? now - (p.ea || 0) : 0, look: p.look, l3: p.l3 || null, you: p.id === st.uid }));
+        peers = m.list.map(p => ({ id: p.id, name: p.name, emote: p.emote, et: p.emote ? now - (p.ea || 0) : 0, look: p.look, l3: p.l3 || null, zn: (p.zn == null ? null : p.zn), you: p.id === st.uid }));
         cap = m.cap || cap; emit();
       }
     };
@@ -103,6 +103,11 @@ const Net = (() => {
       st.name = (n || 'Khách').slice(0, 20);
       if (room) { try { room.presence({ uid: st.uid, name: st.name }); } catch (e) { } }
       wsSend({ t: 'state', name: st.name }); emit();
+    },
+    setZone(z) {
+      st.zn = (Number.isInteger(z) && z >= 0 && z <= 3) ? z : null;
+      if (room) { try { room.presence({ zn: st.zn }); } catch (e) { } }
+      wsSend({ t: 'state', zn: st.zn }); emit();
     },
     setLook(l, l3) {
       st.look = l; st.l3 = l3 || null;

@@ -11,6 +11,8 @@ const Performers = (() => {
     3: [[0, -6.6], [-4.8, -8.4], [4.8, -8.4]],
     4: [[0, -6.4], [-4.6, -8], [4.6, -8], [0, -10.6]]
   };
+  const key = new THREE.DirectionalLight(0xfff0e0, 1.5), rimA = new THREE.PointLight(0xffffff, 2.2, 26, 1.4), rimB = new THREE.PointLight(0xffffff, 2.2, 26, 1.4);
+  key.position.set(0, 9, 16); key.target.position.set(0, 1.5, -8); root.add(key); root.add(key.target); root.add(rimA); root.add(rimB);
   const metal = new THREE.MeshStandardMaterial({ color: 0x8a86a0, roughness: 0.35, metalness: 0.8 });
   const dark = new THREE.MeshStandardMaterial({ color: 0x15121f, roughness: 0.6, metalness: 0.3 });
 
@@ -20,18 +22,28 @@ const Performers = (() => {
     return bi;
   }
   /* trang phục sân khấu: áo khoác ranger + quần/váy tối, ủng, phụ kiện */
+  /* mỗi người một bộ riêng: [top, topCW, bottom, botCW, shoeCW, extrasMask, head, neck, wrist]. CW: 0 midnight 1 cyber 2 sakura 3 solar 4 aurora 5 mono */
   const STY = {
-    M: { top: [5, 4, 5, 3], tcw: { solar: [1, 5, 3, 1], luna: [5, 5, 5, 5] }, bot: [0, 1, 0, 0], bcw: [5, 5, 5, 1], head: [1, 2, 2, 0] },
-    F: { top: [5, 4, 5, 4], tcw: { solar: [2, 5, 3, 2], luna: [2, 5, 4, 2] }, bot: [4, 2, 4, 2], bcw: [2, 5, 2, 5], head: [1, 2, 0, 2] }
+    solar: [
+      [5, 5, 0, 3, 3, 3, 2, 1, 1],   // chính: jacket trắng, quần cam, giáp vai + đai, kính
+      [4, 3, 1, 1, 1, 1, 1, 1, 1],   // crop jacket cam, cargo cyan, headphone
+      [5, 1, 0, 5, 1, 2, 6, 0, 1],   // jacket cyan, quần trắng, bandana
+      [3, 4, 1, 3, 4, 5, 2, 1, 1]
+    ],
+    luna: [
+      [4, 2, 4, 0, 5, 1, 1, 1, 1],   // crop jacket hồng, váy tím, headphone
+      [5, 5, 4, 2, 2, 3, 2, 1, 1],   // jacket trắng, váy hồng, kính
+      [4, 1, 2, 0, 5, 5, 6, 1, 1],   // crop cyan, short tím, bandana
+      [5, 0, 4, 1, 1, 3, 1, 1, 1]
+    ]
   };
   const HAIR = { M: { spiky: 0, swoop: 0, short: 1, bob: 0, ponytail: 0 }, F: { ponytail: 0, bob: 3, spiky: 2, swoop: 3, short: 2 } };
   function lookFor(spec, band, i) {
-    const g = band.type === 'girl' ? 0 : 1, G = g ? 'M' : 'F', V = Avatar.V3, S = STY[G];
-    const l = Avatar.Look.def(g);
-    l[1] = S.top[i % 4]; l[2] = S.tcw[band.id === 'luna' ? 'luna' : 'solar'][i % 4];
-    l[3] = S.bot[i % 4]; l[4] = S.bcw[i % 4]; l[5] = 1; l[6] = 5;
+    const g = band.type === 'girl' ? 0 : 1, G = g ? 'M' : 'F', V = Avatar.V3;
+    const o = STY[band.id === 'luna' ? 'luna' : 'solar'][i % 4], l = Avatar.Look.def(g);
+    l[1] = o[0]; l[2] = o[1]; l[3] = g ? Math.min(o[2], 3) : o[2]; l[4] = o[3]; l[5] = 1; l[6] = o[4];
     l[7] = HAIR[G][spec.hairStyle] != null ? HAIR[G][spec.hairStyle] : 0; l[8] = near(V.hairColors, spec.hair); l[9] = near(V.skins, spec.skin);
-    l[10] = 0; l[11] = S.head[i % 4]; l[12] = 1; l[13] = 1;
+    l[10] = o[5]; l[11] = o[6]; l[12] = o[7]; l[13] = o[8]; l[14] = 0; l[15] = 0;
     return l;
   }
 
@@ -107,6 +119,11 @@ const Performers = (() => {
   function update(W, time, dt) {
     const mode = W.seg ? W.seg.band : 'none';
     const e = W.energy, cast = (W.seg && CAST[W.seg.id]) || 1;
+    const pr = W.pal || null;
+    key.intensity = 0.6 + e * 1.4;
+    rimA.position.set(-9, 5, -9); rimB.position.set(9, 5, -9);
+    rimA.color.set(BANDS.bands[0].palette.accent); rimB.color.set(BANDS.bands[1].palette.main);
+    rimA.intensity = rimB.intensity = 1.2 + e * 2.2;
     for (const id in bands) {
       const B = bands[id];
       const active = mode === 'both' || mode === id;
@@ -118,7 +135,7 @@ const Performers = (() => {
       B.group.visible = B.enter > 0.02 && B.ready;
       if (!B.group.visible) { B.members.forEach(m => { if (m) m.mic.visible = false; }); continue; }
       const featured = mode === 'both' ? Math.floor(W.bi.bar) % 2 === (id === 'solar' ? 0 : 1) : active;
-      const want = featured && B.es > 0.55 && cast <= 2 && Math.floor(W.bi.bar / 2) % 2 === 1 ? 1 : 0;
+      const want = featured && B.es > 0.6 && cast <= 2 && Math.floor(W.bi.bar / 8) % 3 === 2 && Math.floor(W.bi.bar) % 8 >= 1 && Math.floor(W.bi.bar) % 8 <= 5 ? 1 : 0;
       B.vdir = Math.sign(want - B.vp); B.vp += clamp(want - B.vp, -dt * 0.085, dt * 0.085);
       B.members.forEach(m => m && animate(m, B, dt, time, W, cast));
     }
@@ -148,12 +165,13 @@ const Performers = (() => {
     // đường chạy ra sân khấu phụ (ca sĩ chính)
     let ep = 0, moving = false;
     if (m.idx === 0) { const p = B.vp; ep = p * p * (3 - 2 * p); moving = Math.abs(B.vdir) > 0 && p > 0.004 && p < 0.996; }
-    const wantClip = moving ? 'jog' : 'dance';
+    const grounded = name === 'sing' || name === 'wave' || name === 'point';
+    const wantClip = moving ? 'jog' : grounded ? 'talk' : 'dance';
     if (wantClip !== m.mode) { m.a.play(wantClip, 0.4); m.mode = wantClip; if (wantClip === 'jog') m.a.speed('jog', 0.9); }
-    if (!moving) m.a.speed('dance', name === 'sing' || name === 'wave' || name === 'point' ? 0.55 : name === 'hype' || name === 'jump' || name === 'pump' ? bpm / 75 * 1.15 : bpm / 75);
-    const wx = Math.sin(time * 0.45 + s) * (name === 'sing' ? 1.6 : 2.6) * e;
+    if (!moving && wantClip === 'dance') m.a.speed('dance', name === 'hype' || name === 'jump' || name === 'pump' ? bpm / 75 : bpm / 90);
+    const wx = Math.sin(time * 0.25 + s) * 0.7 * e;
     m.root.position.x = (m.pos.x + wx * (m.idx === 0 ? 1 : 0.4)) * (1 - ep) - B.group.position.x * ep + Math.sin(time * 0.8 + s) * 1.2 * ep * e;
-    m.root.position.z = m.pos.z + (27 - m.pos.z) * ep + (m.idx === 0 ? Math.sin(time * 0.3 + s) * 0.6 * e * (1 - ep) : 0);
+    m.root.position.z = m.pos.z + (27 - m.pos.z) * ep + 0;
     let y = m.pos.y, hop = Math.abs(Math.sin(Math.PI * b));
     if (name === 'jump' && !moving) y += hop * hop * 0.55; else if (name === 'pump' || name === 'hype') y += hop * 0.1;
     m.root.position.y = y;

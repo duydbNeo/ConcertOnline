@@ -4899,6 +4899,32 @@ const LED = (() => {
 })();
 
 /* ===== stage: renderer, sân khấu, tường LED, đèn, hiệu ứng, camera ===== */
+/* ===== phân khu khán giả + lối catwalk ra giữa sân ===== */
+const Zones = (() => {
+  const runway = { w: 4.6, z0: -4, z1: 22 }, bst = { x: 0, z: 29.5, r: 8 };
+  const list = [
+    { id: 'pit', name: 'PIT', sub: 'Sát sân khấu', color: '#ff2bd6', rects: [[-27, -5.5, 4.5, 15], [5.5, 27, 4.5, 15]], w: 0.3 },
+    { id: 'a', name: 'KHU A', sub: 'Đứng giữa sân', color: '#19e3ff', rects: [[-27, -6, 17, 33], [6, 27, 17, 33]], w: 0.3 },
+    { id: 'b', name: 'KHU B', sub: 'Đứng phía sau', color: '#ffc23d', rects: [[-27, 27, 38.5, 53]], w: 0.2 },
+    { id: 'vip', name: 'VIP', sub: 'Khán đài hai cánh', color: '#a15cff', rects: [[-44, -30, 6, 30], [30, 44, 6, 30]], w: 0.2 }
+  ];
+  function blocked(x, z, pad) {
+    pad = pad || 0;
+    if (Math.abs(x) < runway.w / 2 + 1.2 + pad && z > runway.z0 - 1 && z < runway.z1 + 2) return true;
+    const dx = x - bst.x, dz = z - bst.z; return dx * dx + dz * dz < (bst.r + 1.6 + pad) * (bst.r + 1.6 + pad);
+  }
+  // lưới vị trí cho từng khu, cách nhau step
+  function grid(z, step) {
+    const out = [];
+    z.rects.forEach(r => { for (let zz = r[2] + 0.8; zz <= r[3] - 0.5; zz += step) for (let x = r[0] + 0.8; x <= r[1] - 0.5; x += step) if (!blocked(x, zz, 0.2)) out.push([x, zz]); });
+    out.sort((a, b) => Math.abs(a[0]) - Math.abs(b[0]) || a[1] - b[1]);
+    return out;
+  }
+  const cell = {}; list.forEach(z => { cell[z.id] = grid(z, 1.55); });
+  function zoneOf(h) { let u = (h % 1000) / 1000, acc = 0; for (const z of list) { acc += z.w; if (u < acc) return z; } return list[0]; }
+  return { runway, bst, list, blocked, cell, zoneOf };
+})();
+
 const Stage = (() => {
   let renderer, scene, camera, canvas;
   const beams = [], lamps = [], stripMats = [], panelMats = [];
@@ -4966,6 +4992,44 @@ const Stage = (() => {
     // barrier trước đám đông
     barrier = new THREE.Mesh(new THREE.BoxGeometry(58, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: 0x6a5cff }));
     barrier.position.set(0, 1.1, 1.6); scene.add(barrier);
+
+
+    // lối catwalk ra giữa sân + sân khấu phụ tròn
+    {
+      const R = Zones.runway, B = Zones.bst, len = R.z1 - R.z0;
+      const rw = new THREE.Mesh(new THREE.BoxGeometry(R.w, 1.5, len), new THREE.MeshLambertMaterial({ color: 0x17122a }));
+      rw.position.set(0, 0.75, R.z0 + len / 2); scene.add(rw);
+      [-1, 1].forEach(sx => { const e = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, len), edgeMat); e.position.set(sx * R.w / 2, 1.5, R.z0 + len / 2); scene.add(e); });
+      for (let z = R.z0 + 2; z < R.z1; z += 4) { const st = new THREE.Mesh(new THREE.BoxGeometry(R.w - 0.5, 0.04, 0.22), panelMats[(z / 4 | 0) % panelMats.length] || edgeMat); st.position.set(0, 1.52, z); scene.add(st); }
+      const bs = new THREE.Mesh(new THREE.CylinderGeometry(B.r, B.r, 1.5, 48), new THREE.MeshLambertMaterial({ color: 0x17122a })); bs.position.set(B.x, 0.75, B.z); scene.add(bs);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(B.r, 0.1, 6, 64), edgeMat); ring.rotation.x = Math.PI / 2; ring.position.set(B.x, 1.52, B.z); scene.add(ring);
+      const ring2 = new THREE.Mesh(new THREE.TorusGeometry(B.r * 0.55, 0.07, 6, 48), panelMats[1] || edgeMat); ring2.rotation.x = Math.PI / 2; ring2.position.set(B.x, 1.53, B.z); scene.add(ring2);
+      // giàn đèn nhỏ trên sân khấu phụ
+      for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4, m = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 10, 8), new THREE.MeshBasicMaterial({ color: 0x1b1730 })); m.position.set(B.x + Math.cos(a) * (B.r + 0.6), 5, B.z + Math.sin(a) * (B.r + 0.6)); scene.add(m); const h = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.7, 0.7), new THREE.MeshBasicMaterial({ color: 0xffffff })); h.position.set(m.position.x, 10, m.position.z); scene.add(h); lamps.push(h); }
+    }
+    // phân khu: sàn tô màu, hàng rào, bảng tên
+    Zones.list.forEach(z => {
+      const c = new THREE.Color(z.color);
+      const rail = new THREE.MeshBasicMaterial({ color: c.clone().multiplyScalar(0.7), fog: false });
+      z.rects.forEach(r => {
+        const w = r[1] - r[0], d = r[3] - r[2], cx = (r[0] + r[1]) / 2, cz = (r[2] + r[3]) / 2;
+        const f = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.07, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+        f.rotation.x = -Math.PI / 2; f.position.set(cx, 0.03, cz); scene.add(f);
+        [[w, 0.07, 0.07, cx, 1.0, r[2]], [w, 0.07, 0.07, cx, 1.0, r[3]], [0.07, 0.07, d, r[0], 1.0, cz], [0.07, 0.07, d, r[1], 1.0, cz]].forEach(q => { const m = new THREE.Mesh(new THREE.BoxGeometry(q[0], q[1], q[2]), rail); m.position.set(q[3], q[4], q[5]); scene.add(m); });
+      });
+      // bảng tên
+      const cv = document.createElement('canvas'); cv.width = 512; cv.height = 192; const g = cv.getContext('2d');
+      g.fillStyle = 'rgba(8,6,16,0.82)'; g.beginPath(); g.roundRect ? g.roundRect(6, 6, 500, 180, 28) : g.rect(6, 6, 500, 180); g.fill(); g.strokeStyle = z.color; g.lineWidth = 6; g.stroke();
+      g.fillStyle = z.color; g.font = '800 92px "Be Vietnam Pro",system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(z.name, 256, 84);
+      g.fillStyle = '#fff'; g.font = '500 34px "Be Vietnam Pro",system-ui,sans-serif'; g.fillText(z.sub, 256, 150);
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false, fog: false }));
+      const r0 = z.rects[0], r1 = z.rects[z.rects.length - 1];
+      const px = z.id === 'b' ? 0 : (r0[0] + r0[1]) / 2, pz = z.id === 'b' ? r1[2] : z.id === 'vip' ? r0[2] + 1 : r0[2];
+      [z.id === 'b' ? [0, pz] : [px, pz], z.rects.length > 1 ? [(r1[0] + r1[1]) / 2, pz] : null].forEach(q => {
+        if (!q) return; const s2 = sp.clone(); s2.material = sp.material; s2.scale.set(7.2, 2.7, 1); s2.position.set(q[0], 7.4, q[1]); scene.add(s2);
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 6, 6), rail); pole.position.set(q[0], 3, q[1]); scene.add(pole);
+      });
+    });
 
     // tường LED
     const tex = LED.init(THREE);
@@ -5539,6 +5603,9 @@ const Performers = (() => {
       B.group.position.x = B.offX; B.group.position.y = lerp(-7, 0, B.enter);
       B.group.visible = B.enter > 0.02 && B.ready;
       if (!B.group.visible) continue;
+      const featured = mode === 'both' ? Math.floor(W.bi.bar) % 2 === (id === 'solar' ? 0 : 1) : active;
+      const want = featured && e > 0.55 && Math.floor(W.bi.bar / 2) % 2 === 1 ? 1 : 0;
+      B.vdir = Math.sign(want - (B.vp || 0)); B.vp = (B.vp || 0) + clamp(want - (B.vp || 0), -dt * 0.085, dt * 0.085);
       B.members.forEach(m => animate(m, B, dt, time, beat, h, P, e, id === 'luna', M));
     }
     let target = null;
@@ -5552,11 +5619,14 @@ const Performers = (() => {
   function animate(m, B, dt, time, beat, h, P, e, girl, M) {
     const s = m.seed, r = m.role, bpm = B.spec.bpm || 118;
     if (r === 'vocal') {
-      const want = e > 0.85 ? 'dance' : 'talk';
-      if (want !== m.mode) { m.a.play(want, 0.5); m.mode = want; }
-      m.root.position.x = m.base.x + Math.sin(time * 0.45 + s) * 2.6 * e;
-      m.root.position.z = m.base.z + 0.5 + Math.sin(time * 0.3 + s) * 0.6 * e;
+      const p = B.vp || 0, ep = p * p * (3 - 2 * p), moving = Math.abs(B.vdir) > 0 && p > 0.004 && p < 0.996;
+      const want = moving ? 'jog' : (e > 0.85 ? 'dance' : 'talk');
+      if (want !== m.mode) { m.a.play(want, 0.4); m.mode = want; if (want === 'jog') m.a.speed('jog', 0.9); }
+      const wx = Math.sin(time * 0.45 + s) * 2.6 * e * (1 - ep), wz = 0.5 + Math.sin(time * 0.3 + s) * 0.6 * e;
+      m.root.position.x = (m.base.x + wx) * (1 - ep) - B.group.position.x * ep + Math.sin(time * 0.8 + s) * 1.2 * ep * e;
+      m.root.position.z = m.base.z + wz * (1 - ep) + (27 - m.base.z) * ep;
       m.root.position.y = m.base.y + h * 0.08 * e;
+      const face = moving && B.vdir < 0 ? Math.PI : 0; m.root.rotation.y += (face - m.root.rotation.y) * Math.min(1, dt * 5);
     } else if (r === 'drums') {
       m.a.speed('hit', bpm / 62);
       m.root.position.y = m.base.y + h * 0.02 * e;
@@ -5769,14 +5839,14 @@ const Crowd = (() => {
   function gen() {
     const R = mulberry(20260);
     const slots = [];
-    for (let z = 2.6; z <= 50; z += 1.18) {
-      for (let x = -27; x <= 27; x += 1.12) {
-        const px = x + (R() - 0.5) * 0.55, pz = z + (R() - 0.5) * 0.5;
-        const edge = clamp((Math.abs(px) - 19) / 10, 0, 1) * 0.8 + clamp((pz - 40) / 12, 0, 1) * 0.35;
-        if (R() < 0.07 + edge) continue;
+    const dens = { pit: 1.0, a: 0.8, b: 0.55, vip: 0.45 };
+    Zones.list.forEach(z => z.rects.forEach(r => {
+      for (let zz = r[2] + 0.9; zz <= r[3] - 0.6; zz += 1.18) for (let x = r[0] + 0.9; x <= r[1] - 0.6; x += 1.12) {
+        const px = x + (R() - 0.5) * 0.5, pz = zz + (R() - 0.5) * 0.45;
+        if (Zones.blocked(px, pz, 0.1) || R() > dens[z.id]) continue;
         slots.push([px, pz]);
       }
-    }
+    }));
     for (let i = slots.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); const t = slots[i]; slots[i] = slots[j]; slots[j] = t; }
     vTotal = Math.min(MAXV, slots.length); vScale = new Float32Array(vTotal); vX = new Float32Array(vTotal); vZ = new Float32Array(vTotal);
     for (let i = 0; i < vTotal; i++) {
@@ -5792,12 +5862,11 @@ const Crowd = (() => {
     vCountApply();
   }
 
-  const SLOTS = (() => {
-    const s = [];
-    [14, 15.6, 17.2, 18.8, 20.4].forEach((z, r) => { for (let i = 0; i < 23; i++) { const x = (i - 11) * 1.5; s.push([x, z, r]); } });
-    s.sort((a, b) => a[2] - b[2] || Math.abs(a[0]) - Math.abs(b[0]) || a[0] - b[0]);
-    return s;
-  })();
+  function slotFor(id, rank) {
+    const z = Zones.zoneOf(hashStr(String(id)) >>> 0), cells = Zones.cell[z.id];
+    return { z, p: cells[rank % cells.length] };
+  }
+  let myZone = 'PIT';
 
   function nameTex(name) {
     if (tagCache.has(name)) return tagCache.get(name);
@@ -5845,11 +5914,12 @@ const Crowd = (() => {
     const sorted = list.slice().sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
     peersView.length = 0; myIdx = -1; rSlot = [];
     let n = 0; const m = new THREE.Matrix4(), col = new THREE.Color();
-    let ti = 0; rCnt.fill(0);
+    let ti = 0; rCnt.fill(0); const zRank = {};
     sorted.forEach((p, idx) => {
-      const sl = SLOTS[idx % SLOTS.length];
+      const zid = Zones.zoneOf(hashStr(String(p.id)) >>> 0).id; zRank[zid] = (zRank[zid] || 0) + 1;
+      const sf = slotFor(p.id, zRank[zid] - 1), sl = [sf.p[0], sf.p[1]];
       const mine = p.id === myId;
-      if (mine) { mySlot = { x: sl[0], z: sl[1] + 0.1 }; Stage.setMyPos(sl[0], sl[1] + 0.1); }
+      if (mine) { mySlot = { x: sl[0], z: sl[1] + 0.1 }; myZone = sf.z.name; Stage.setMyPos(sl[0], sl[1] + 0.1); }
       if (n < MAXR) {
         const h = hashStr(p.id) >>> 0, look = Look.valid(p.look) ? p.look : Look.fallback(p.id);
         if (loaded) {
@@ -5915,7 +5985,7 @@ const Crowd = (() => {
     setCount(n) { vCount = n; if (loaded) vCountApply(); },
     total() { return vTotal; },
     count() { return loaded ? Math.min(vCount, vTotal) : 0; },
-    mySlot() { return mySlot; },
+    mySlot() { return mySlot; }, myZone() { return myZone; },
     peersView() { return peersView; }, setAvatarIds
   };
 })();
@@ -6707,7 +6777,7 @@ const Net = (() => {
       const gs = W.phase === 'lobby' ? `Mở cửa. Bắt đầu sau ${fmtTime(W.countdown)}.` : `Đang diễn: ${W.seg ? W.seg.label : ''}.`;
       $('gateStatus').textContent = W.phase === 'lobby' ? `Cửa đã mở. Buổi diễn bắt đầu sau ${fmtTime(W.countdown)}.` : `Đang diễn "${W.seg ? W.seg.label : ''}". Vào ngay để xem tiếp.`;
       $('hudSub').textContent = demo + (W.phase === 'lobby' ? `Mở cửa, bắt đầu sau ${fmtTime(W.countdown)}` : `${W.seg ? W.seg.label : ''}, còn ${fmtTime(SHOW_LEN - W.t)}`);
-      $('hudCount').textContent = `${realCount}${Net.cap() ? '/' + Net.cap() : ''} người thật, ${Crowd.count()} khán giả ảo`;
+      $('hudCount').textContent = `${realCount}${Net.cap() ? '/' + Net.cap() : ''} người thật, ${Crowd.count()} khán giả ảo · ${Crowd.myZone()}`;
       $('liveDot').className = 'dot' + (W.phase === 'lobby' ? ' lobby' : '');
       if (drawer.classList.contains('open')) {
         document.querySelectorAll('#cueRows tr').forEach(r => r.classList.toggle('now', +r.dataset.i === W.cue._idx));

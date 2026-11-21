@@ -347,7 +347,7 @@
       const gs = W.phase === 'lobby' ? `Mở cửa. Bắt đầu sau ${fmtTime(W.countdown)}.` : `Đang diễn: ${W.seg ? W.seg.label : ''}.`;
       $('gateStatus').textContent = W.phase === 'lobby' ? `Cửa đã mở. Buổi diễn bắt đầu sau ${fmtTime(W.countdown)}.` : `Đang diễn "${W.seg ? W.seg.label : ''}". Vào ngay để xem tiếp.`;
       $('hudSub').textContent = demo + (W.phase === 'lobby' ? `Mở cửa, bắt đầu sau ${fmtTime(W.countdown)}` : `${W.seg ? W.seg.label : ''}, còn ${fmtTime(SHOW_LEN - W.t)}`);
-      $('hudCount').textContent = `${realCount}${Net.cap() ? '/' + Net.cap() : ''} người thật, ${Crowd.count()} khán giả ảo`;
+      $('hudCount').textContent = `${realCount}${Net.cap() ? '/' + Net.cap() : ''} người thật, ${Crowd.count()} khán giả ảo · ${Crowd.myZone()}`;
       $('liveDot').className = 'dot' + (W.phase === 'lobby' ? ' lobby' : '');
       if (drawer.classList.contains('open')) {
         document.querySelectorAll('#cueRows tr').forEach(r => r.classList.toggle('now', +r.dataset.i === W.cue._idx));

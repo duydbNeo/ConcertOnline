@@ -187,14 +187,14 @@ const Crowd = (() => {
   function gen() {
     const R = mulberry(20260);
     const slots = [];
-    for (let z = 2.6; z <= 50; z += 1.18) {
-      for (let x = -27; x <= 27; x += 1.12) {
-        const px = x + (R() - 0.5) * 0.55, pz = z + (R() - 0.5) * 0.5;
-        const edge = clamp((Math.abs(px) - 19) / 10, 0, 1) * 0.8 + clamp((pz - 40) / 12, 0, 1) * 0.35;
-        if (R() < 0.07 + edge) continue;
+    const dens = { pit: 1.0, a: 0.8, b: 0.55, vip: 0.45 };
+    Zones.list.forEach(z => z.rects.forEach(r => {
+      for (let zz = r[2] + 0.9; zz <= r[3] - 0.6; zz += 1.18) for (let x = r[0] + 0.9; x <= r[1] - 0.6; x += 1.12) {
+        const px = x + (R() - 0.5) * 0.5, pz = zz + (R() - 0.5) * 0.45;
+        if (Zones.blocked(px, pz, 0.1) || R() > dens[z.id]) continue;
         slots.push([px, pz]);
       }
-    }
+    }));
     for (let i = slots.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); const t = slots[i]; slots[i] = slots[j]; slots[j] = t; }
     vTotal = Math.min(MAXV, slots.length); vScale = new Float32Array(vTotal); vX = new Float32Array(vTotal); vZ = new Float32Array(vTotal);
     for (let i = 0; i < vTotal; i++) {
@@ -210,12 +210,11 @@ const Crowd = (() => {
     vCountApply();
   }
 
-  const SLOTS = (() => {
-    const s = [];
-    [14, 15.6, 17.2, 18.8, 20.4].forEach((z, r) => { for (let i = 0; i < 23; i++) { const x = (i - 11) * 1.5; s.push([x, z, r]); } });
-    s.sort((a, b) => a[2] - b[2] || Math.abs(a[0]) - Math.abs(b[0]) || a[0] - b[0]);
-    return s;
-  })();
+  function slotFor(id, rank) {
+    const z = Zones.zoneOf(hashStr(String(id)) >>> 0), cells = Zones.cell[z.id];
+    return { z, p: cells[rank % cells.length] };
+  }
+  let myZone = 'PIT';
 
   function nameTex(name) {
     if (tagCache.has(name)) return tagCache.get(name);
@@ -263,11 +262,12 @@ const Crowd = (() => {
     const sorted = list.slice().sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
     peersView.length = 0; myIdx = -1; rSlot = [];
     let n = 0; const m = new THREE.Matrix4(), col = new THREE.Color();
-    let ti = 0; rCnt.fill(0);
+    let ti = 0; rCnt.fill(0); const zRank = {};
     sorted.forEach((p, idx) => {
-      const sl = SLOTS[idx % SLOTS.length];
+      const zid = Zones.zoneOf(hashStr(String(p.id)) >>> 0).id; zRank[zid] = (zRank[zid] || 0) + 1;
+      const sf = slotFor(p.id, zRank[zid] - 1), sl = [sf.p[0], sf.p[1]];
       const mine = p.id === myId;
-      if (mine) { mySlot = { x: sl[0], z: sl[1] + 0.1 }; Stage.setMyPos(sl[0], sl[1] + 0.1); }
+      if (mine) { mySlot = { x: sl[0], z: sl[1] + 0.1 }; myZone = sf.z.name; Stage.setMyPos(sl[0], sl[1] + 0.1); }
       if (n < MAXR) {
         const h = hashStr(p.id) >>> 0, look = Look.valid(p.look) ? p.look : Look.fallback(p.id);
         if (loaded) {
@@ -333,7 +333,7 @@ const Crowd = (() => {
     setCount(n) { vCount = n; if (loaded) vCountApply(); },
     total() { return vTotal; },
     count() { return loaded ? Math.min(vCount, vTotal) : 0; },
-    mySlot() { return mySlot; },
+    mySlot() { return mySlot; }, myZone() { return myZone; },
     peersView() { return peersView; }, setAvatarIds
   };
 })();

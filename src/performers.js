@@ -108,6 +108,9 @@ const Performers = (() => {
       B.group.position.x = B.offX; B.group.position.y = lerp(-7, 0, B.enter);
       B.group.visible = B.enter > 0.02 && B.ready;
       if (!B.group.visible) continue;
+      const featured = mode === 'both' ? Math.floor(W.bi.bar) % 2 === (id === 'solar' ? 0 : 1) : active;
+      const want = featured && e > 0.55 && Math.floor(W.bi.bar / 2) % 2 === 1 ? 1 : 0;
+      B.vdir = Math.sign(want - (B.vp || 0)); B.vp = (B.vp || 0) + clamp(want - (B.vp || 0), -dt * 0.085, dt * 0.085);
       B.members.forEach(m => animate(m, B, dt, time, beat, h, P, e, id === 'luna', M));
     }
     let target = null;
@@ -121,11 +124,14 @@ const Performers = (() => {
   function animate(m, B, dt, time, beat, h, P, e, girl, M) {
     const s = m.seed, r = m.role, bpm = B.spec.bpm || 118;
     if (r === 'vocal') {
-      const want = e > 0.85 ? 'dance' : 'talk';
-      if (want !== m.mode) { m.a.play(want, 0.5); m.mode = want; }
-      m.root.position.x = m.base.x + Math.sin(time * 0.45 + s) * 2.6 * e;
-      m.root.position.z = m.base.z + 0.5 + Math.sin(time * 0.3 + s) * 0.6 * e;
+      const p = B.vp || 0, ep = p * p * (3 - 2 * p), moving = Math.abs(B.vdir) > 0 && p > 0.004 && p < 0.996;
+      const want = moving ? 'jog' : (e > 0.85 ? 'dance' : 'talk');
+      if (want !== m.mode) { m.a.play(want, 0.4); m.mode = want; if (want === 'jog') m.a.speed('jog', 0.9); }
+      const wx = Math.sin(time * 0.45 + s) * 2.6 * e * (1 - ep), wz = 0.5 + Math.sin(time * 0.3 + s) * 0.6 * e;
+      m.root.position.x = (m.base.x + wx) * (1 - ep) - B.group.position.x * ep + Math.sin(time * 0.8 + s) * 1.2 * ep * e;
+      m.root.position.z = m.base.z + wz * (1 - ep) + (27 - m.base.z) * ep;
       m.root.position.y = m.base.y + h * 0.08 * e;
+      const face = moving && B.vdir < 0 ? Math.PI : 0; m.root.rotation.y += (face - m.root.rotation.y) * Math.min(1, dt * 5);
     } else if (r === 'drums') {
       m.a.speed('hit', bpm / 62);
       m.root.position.y = m.base.y + h * 0.02 * e;

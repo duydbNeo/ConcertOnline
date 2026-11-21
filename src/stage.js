@@ -1,4 +1,30 @@
 /* ===== stage: renderer, sân khấu, tường LED, đèn, hiệu ứng, camera ===== */
+/* ===== phân khu khán giả + lối catwalk ra giữa sân ===== */
+const Zones = (() => {
+  const runway = { w: 4.6, z0: -4, z1: 22 }, bst = { x: 0, z: 29.5, r: 8 };
+  const list = [
+    { id: 'pit', name: 'PIT', sub: 'Sát sân khấu', color: '#ff2bd6', rects: [[-27, -5.5, 4.5, 15], [5.5, 27, 4.5, 15]], w: 0.3 },
+    { id: 'a', name: 'KHU A', sub: 'Đứng giữa sân', color: '#19e3ff', rects: [[-27, -6, 17, 33], [6, 27, 17, 33]], w: 0.3 },
+    { id: 'b', name: 'KHU B', sub: 'Đứng phía sau', color: '#ffc23d', rects: [[-27, 27, 38.5, 53]], w: 0.2 },
+    { id: 'vip', name: 'VIP', sub: 'Khán đài hai cánh', color: '#a15cff', rects: [[-44, -30, 6, 30], [30, 44, 6, 30]], w: 0.2 }
+  ];
+  function blocked(x, z, pad) {
+    pad = pad || 0;
+    if (Math.abs(x) < runway.w / 2 + 1.2 + pad && z > runway.z0 - 1 && z < runway.z1 + 2) return true;
+    const dx = x - bst.x, dz = z - bst.z; return dx * dx + dz * dz < (bst.r + 1.6 + pad) * (bst.r + 1.6 + pad);
+  }
+  // lưới vị trí cho từng khu, cách nhau step
+  function grid(z, step) {
+    const out = [];
+    z.rects.forEach(r => { for (let zz = r[2] + 0.8; zz <= r[3] - 0.5; zz += step) for (let x = r[0] + 0.8; x <= r[1] - 0.5; x += step) if (!blocked(x, zz, 0.2)) out.push([x, zz]); });
+    out.sort((a, b) => Math.abs(a[0]) - Math.abs(b[0]) || a[1] - b[1]);
+    return out;
+  }
+  const cell = {}; list.forEach(z => { cell[z.id] = grid(z, 1.55); });
+  function zoneOf(h) { let u = (h % 1000) / 1000, acc = 0; for (const z of list) { acc += z.w; if (u < acc) return z; } return list[0]; }
+  return { runway, bst, list, blocked, cell, zoneOf };
+})();
+
 const Stage = (() => {
   let renderer, scene, camera, canvas;
   const beams = [], lamps = [], stripMats = [], panelMats = [];
@@ -66,6 +92,44 @@ const Stage = (() => {
     // barrier trước đám đông
     barrier = new THREE.Mesh(new THREE.BoxGeometry(58, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: 0x6a5cff }));
     barrier.position.set(0, 1.1, 1.6); scene.add(barrier);
+
+
+    // lối catwalk ra giữa sân + sân khấu phụ tròn
+    {
+      const R = Zones.runway, B = Zones.bst, len = R.z1 - R.z0;
+      const rw = new THREE.Mesh(new THREE.BoxGeometry(R.w, 1.5, len), new THREE.MeshLambertMaterial({ color: 0x17122a }));
+      rw.position.set(0, 0.75, R.z0 + len / 2); scene.add(rw);
+      [-1, 1].forEach(sx => { const e = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, len), edgeMat); e.position.set(sx * R.w / 2, 1.5, R.z0 + len / 2); scene.add(e); });
+      for (let z = R.z0 + 2; z < R.z1; z += 4) { const st = new THREE.Mesh(new THREE.BoxGeometry(R.w - 0.5, 0.04, 0.22), panelMats[(z / 4 | 0) % panelMats.length] || edgeMat); st.position.set(0, 1.52, z); scene.add(st); }
+      const bs = new THREE.Mesh(new THREE.CylinderGeometry(B.r, B.r, 1.5, 48), new THREE.MeshLambertMaterial({ color: 0x17122a })); bs.position.set(B.x, 0.75, B.z); scene.add(bs);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(B.r, 0.1, 6, 64), edgeMat); ring.rotation.x = Math.PI / 2; ring.position.set(B.x, 1.52, B.z); scene.add(ring);
+      const ring2 = new THREE.Mesh(new THREE.TorusGeometry(B.r * 0.55, 0.07, 6, 48), panelMats[1] || edgeMat); ring2.rotation.x = Math.PI / 2; ring2.position.set(B.x, 1.53, B.z); scene.add(ring2);
+      // giàn đèn nhỏ trên sân khấu phụ
+      for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4, m = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 10, 8), new THREE.MeshBasicMaterial({ color: 0x1b1730 })); m.position.set(B.x + Math.cos(a) * (B.r + 0.6), 5, B.z + Math.sin(a) * (B.r + 0.6)); scene.add(m); const h = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.7, 0.7), new THREE.MeshBasicMaterial({ color: 0xffffff })); h.position.set(m.position.x, 10, m.position.z); scene.add(h); lamps.push(h); }
+    }
+    // phân khu: sàn tô màu, hàng rào, bảng tên
+    Zones.list.forEach(z => {
+      const c = new THREE.Color(z.color);
+      const rail = new THREE.MeshBasicMaterial({ color: c.clone().multiplyScalar(0.7), fog: false });
+      z.rects.forEach(r => {
+        const w = r[1] - r[0], d = r[3] - r[2], cx = (r[0] + r[1]) / 2, cz = (r[2] + r[3]) / 2;
+        const f = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.07, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+        f.rotation.x = -Math.PI / 2; f.position.set(cx, 0.03, cz); scene.add(f);
+        [[w, 0.07, 0.07, cx, 1.0, r[2]], [w, 0.07, 0.07, cx, 1.0, r[3]], [0.07, 0.07, d, r[0], 1.0, cz], [0.07, 0.07, d, r[1], 1.0, cz]].forEach(q => { const m = new THREE.Mesh(new THREE.BoxGeometry(q[0], q[1], q[2]), rail); m.position.set(q[3], q[4], q[5]); scene.add(m); });
+      });
+      // bảng tên
+      const cv = document.createElement('canvas'); cv.width = 512; cv.height = 192; const g = cv.getContext('2d');
+      g.fillStyle = 'rgba(8,6,16,0.82)'; g.beginPath(); g.roundRect ? g.roundRect(6, 6, 500, 180, 28) : g.rect(6, 6, 500, 180); g.fill(); g.strokeStyle = z.color; g.lineWidth = 6; g.stroke();
+      g.fillStyle = z.color; g.font = '800 92px "Be Vietnam Pro",system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(z.name, 256, 84);
+      g.fillStyle = '#fff'; g.font = '500 34px "Be Vietnam Pro",system-ui,sans-serif'; g.fillText(z.sub, 256, 150);
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false, fog: false }));
+      const r0 = z.rects[0], r1 = z.rects[z.rects.length - 1];
+      const px = z.id === 'b' ? 0 : (r0[0] + r0[1]) / 2, pz = z.id === 'b' ? r1[2] : z.id === 'vip' ? r0[2] + 1 : r0[2];
+      [z.id === 'b' ? [0, pz] : [px, pz], z.rects.length > 1 ? [(r1[0] + r1[1]) / 2, pz] : null].forEach(q => {
+        if (!q) return; const s2 = sp.clone(); s2.material = sp.material; s2.scale.set(7.2, 2.7, 1); s2.position.set(q[0], 7.4, q[1]); scene.add(s2);
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 6, 6), rail); pole.position.set(q[0], 3, q[1]); scene.add(pole);
+      });
+    });
 
     // tường LED
     const tex = LED.init(THREE);

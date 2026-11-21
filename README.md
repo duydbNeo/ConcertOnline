@@ -29,3 +29,6 @@ Nên giữ không quá khoảng 120, vì game chỉ vẽ tối đa 115 chỗ đ�
 
 ## Nhạc trong concert (thử nghiệm)
 Nhạc thử nghiệm: ba bản nhạc Việt từ Pixabay (giấy phép Pixabay Content License) gồm Upbeat Vietnam Festival Day, Năm tháng bên nhau, Vietnamese Festival Vibe. Hai bài CC0 của iamoneabe (Black Sheep, Mister Blues) vẫn nằm trong KV. Tệp mp3 nằm trong Cloudflare KV, phát qua đường `/audio/<tên>.mp3`. Lịch diễn do `agent/event_agent.py` dựng từ `agent/brief.json`.
+
+## Phụ kiện 3D (Blender)
+`tools/make_accessories.py` dựng 12 phụ kiện bằng Blender (module `bpy`, bản 5.3) và xuất glTF vào `assets/accessories/`, kèm `manifest.json` (điểm gắn, tên xương thử lần lượt, offset). Chạy: `pip install bpy` rồi `python tools/make_accessories.py assets/accessories`. Mô hình tự dựng, không dùng asset ngoài.

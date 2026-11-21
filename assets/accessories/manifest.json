@@ -1,0 +1,172 @@
+{
+ "units": "m",
+ "note": "origin của mỗi mô hình là điểm gắn. Tên xương thử lần lượt, so khớp không phân biệt hoa thường và bỏ ký tự . _ -",
+ "items": {
+  "headphones": {
+   "file": "headphones.glb",
+   "slot": "head",
+   "bones": [
+    "head"
+   ],
+   "offset": [
+    0,
+    0.02,
+    0
+   ],
+   "tris": 3512
+  },
+  "sunglasses": {
+   "file": "sunglasses.glb",
+   "slot": "head",
+   "bones": [
+    "head"
+   ],
+   "offset": [
+    0,
+    0.02,
+    0
+   ],
+   "tris": 1308
+  },
+  "cat_ears": {
+   "file": "cat_ears.glb",
+   "slot": "head",
+   "bones": [
+    "head"
+   ],
+   "offset": [
+    0,
+    0.03,
+    0
+   ],
+   "tris": 688
+  },
+  "non_la": {
+   "file": "non_la.glb",
+   "slot": "head",
+   "bones": [
+    "head"
+   ],
+   "offset": [
+    0,
+    0.08,
+    0
+   ],
+   "tris": 3124
+  },
+  "flower_crown": {
+   "file": "flower_crown.glb",
+   "slot": "head",
+   "bones": [
+    "head"
+   ],
+   "offset": [
+    0,
+    0.07,
+    0
+   ],
+   "tris": 13152
+  },
+  "bandana": {
+   "file": "bandana.glb",
+   "slot": "head",
+   "bones": [
+    "head"
+   ],
+   "offset": [
+    0,
+    0.05,
+    0
+   ],
+   "tris": 1320
+  },
+  "top_hat": {
+   "file": "top_hat.glb",
+   "slot": "head",
+   "bones": [
+    "head"
+   ],
+   "offset": [
+    0,
+    0.1,
+    0
+   ],
+   "tris": 468
+  },
+  "necklace": {
+   "file": "necklace.glb",
+   "slot": "neck",
+   "bones": [
+    "neck_01",
+    "neck",
+    "spine_05"
+   ],
+   "offset": [
+    0,
+    0,
+    0
+   ],
+   "tris": 1104
+  },
+  "wings": {
+   "file": "wings.glb",
+   "slot": "back",
+   "bones": [
+    "spine_05",
+    "spine_04",
+    "chest"
+   ],
+   "offset": [
+    0,
+    0,
+    -0.1
+   ],
+   "tris": 5712
+  },
+  "wristband": {
+   "file": "wristband.glb",
+   "slot": "wrist",
+   "bones": [
+    "lowerarm_r",
+    "forearm_r",
+    "hand_r"
+   ],
+   "offset": [
+    0,
+    0,
+    0
+   ],
+   "tris": 560
+  },
+  "lightstick": {
+   "file": "lightstick.glb",
+   "slot": "hand",
+   "bones": [
+    "hand_r",
+    "hand.R",
+    "RightHand"
+   ],
+   "offset": [
+    0,
+    0,
+    0
+   ],
+   "tris": 680
+  },
+  "heart_lightstick": {
+   "file": "heart_lightstick.glb",
+   "slot": "hand",
+   "bones": [
+    "hand_r",
+    "hand.R",
+    "RightHand"
+   ],
+   "offset": [
+    0,
+    0,
+    0
+   ],
+   "tris": 1224
+  }
+ }
+}

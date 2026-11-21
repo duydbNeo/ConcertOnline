@@ -3,7 +3,7 @@ const Wardrobe = (() => {
   const KEY = 'nm_look_v3';
   let renderer, scene, cam, sparkles, spk = [], av = null, avG = -1, loading = false;
   let active = false, ready = false, look = null, confirmed = false;
-  let yaw = 0, dragYaw = 0, idle = 0, tab = 0, onDone = () => { }, hi = 0;
+  let dbgCam = null; let yaw = 0, dragYaw = 0, idle = 0, tab = 0, onDone = () => { }, hi = 0;
   const $ = id => document.getElementById(id);
   const V3 = Avatar.V3, G = Avatar.G, L = Avatar.Look, gk = i => (i ? 'M' : 'F');
 
@@ -130,16 +130,17 @@ const Wardrobe = (() => {
       sync(); renderTabs(); renderOpts(); layout();
       const f = $('wdDone'); if (f) f.focus();
     },
-    isActive() { return active; }, _av() { return av; },
+    isActive() { return active; }, _av() { return av; }, _set(l, c) { look = l; dbgCam = c || null; sync(); renderTabs(); renderOpts(); },
     hasSaved() { return confirmed; },
     getLook() { return look ? look.slice() : L.def(0); },
     rotate(dx) { dragYaw += dx; idle = 0; },
     render(time, dt) {
       idle += dt; if (idle > 2.2) yaw += dt * 0.6;
-      if (av) { av.root.rotation.y = yaw + dragYaw; av.update(dt, 118); }
+      if (av) { av.root.rotation.y = dbgCam ? (dbgCam[7] || 0) : yaw + dragYaw; av.update(dt, 118); }
       const p = sparkles.geometry.attributes.position.array;
       for (let i = 0; i < spk.length; i++) { const s = spk[i]; s.y += dt * s.s; if (s.y > 2.8) s.y = 0; s.a += dt * 0.15; p[i * 3] = Math.cos(s.a) * s.r; p[i * 3 + 1] = s.y; p[i * 3 + 2] = Math.sin(s.a) * s.r - 0.4; }
       sparkles.geometry.attributes.position.needsUpdate = true;
+      if (dbgCam) { cam.clearViewOffset(); cam.aspect = innerWidth / innerHeight; cam.position.set(dbgCam[0], dbgCam[1], dbgCam[2]); cam.lookAt(dbgCam[3], dbgCam[4], dbgCam[5]); cam.fov = dbgCam[6] || 30; cam.updateProjectionMatrix(); }
       renderer.render(scene, cam);
     }
   };

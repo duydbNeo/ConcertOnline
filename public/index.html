@@ -5494,120 +5494,146 @@ const Env = (() => {
   return { init, update, setQuality(q) { quality = q; }, get venue() { return V; } };
 })();
 
-/* ===== performers: ban nhạc là nhân vật 3D thật (cùng bộ xương, tủ đồ với khán giả), nhạc cụ dựng bằng hình học trơn ===== */
+/* ===== performers: chỉ có ca sĩ (không nhạc cụ). Số người theo từng bài, nhảy đồng bộ, bộ động tác trình diễn dựng chồng lên clip ===== */
 const Performers = (() => {
   const root = new THREE.Group();
   const bands = {};
   const focus = { x: 0, z: -7 };
   const SC = 1.12;
-  const dark = new THREE.MeshStandardMaterial({ color: 0x15121f, roughness: 0.6, metalness: 0.3 });
+  const CAST = { s1: 1, s2: 3, finale: 2, outro: 3 };   // số ca sĩ mỗi ban nhạc theo bài
+  const FORM = {
+    1: [[0, -7]],
+    2: [[-3.4, -7], [3.4, -7]],
+    3: [[0, -6.6], [-4.8, -8.4], [4.8, -8.4]],
+    4: [[0, -6.4], [-4.6, -8], [4.6, -8], [0, -10.6]]
+  };
+  const key = new THREE.DirectionalLight(0xfff0e0, 1.5), rimA = new THREE.PointLight(0xffffff, 2.2, 26, 1.4), rimB = new THREE.PointLight(0xffffff, 2.2, 26, 1.4);
+  key.position.set(0, 9, 16); key.target.position.set(0, 1.5, -8); root.add(key); root.add(key.target); root.add(rimA); root.add(rimB);
   const metal = new THREE.MeshStandardMaterial({ color: 0x8a86a0, roughness: 0.35, metalness: 0.8 });
-  const gold = new THREE.MeshStandardMaterial({ color: 0xd9c36a, roughness: 0.3, metalness: 0.85 });
-  function paint(c, em) { const col = new THREE.Color(c); return new THREE.MeshStandardMaterial({ color: col, roughness: 0.35, metalness: 0.2, emissive: col.clone().multiplyScalar(em == null ? 0.25 : em) }); }
-  function neon(c) { return new THREE.MeshBasicMaterial({ color: c }); }
-  function put(parent, geo, mat, x, y, z, sx, sy, sz) { const m = new THREE.Mesh(geo, mat); m.position.set(x || 0, y || 0, z || 0); if (sx != null) m.scale.set(sx, sy, sz); parent.add(m); return m; }
-  const cyl = (r, h, n) => new THREE.CylinderGeometry(r, r, h, n || 24);
-  const sph = () => new THREE.SphereGeometry(1, 20, 14);
+  const dark = new THREE.MeshStandardMaterial({ color: 0x15121f, roughness: 0.6, metalness: 0.3 });
 
   function near(list, hex) {
     const t = new THREE.Color(hex); let bi = 0, bd = 9;
     list.forEach((c, i) => { const k = new THREE.Color(c), d = (k.r - t.r) ** 2 + (k.g - t.g) ** 2 + (k.b - t.b) ** 2; if (d < bd) { bd = d; bi = i; } });
     return bi;
   }
-  const OUT = {
-    M: { vocal: [5, 0, 1, 1], guitar: [4, 1, 1, 0], bass: [2, 0, 1, 1], drums: [1, 2, 0, 1], keys: [3, 0, 1, 0] },
-    F: { vocal: [5, 4, 1, 0], guitar: [4, 2, 1, 1], bass: [2, 3, 1, 0], drums: [1, 3, 0, 0], keys: [3, 0, 1, 0] }
+  /* trang phục sân khấu: áo khoác ranger + quần/váy tối, ủng, phụ kiện */
+  /* mỗi người một bộ riêng: [top, topCW, bottom, botCW, shoeCW, extrasMask, head, neck, wrist]. CW: 0 midnight 1 cyber 2 sakura 3 solar 4 aurora 5 mono */
+  const STY = {
+    solar: [
+      [5, 5, 0, 3, 3, 3, 2, 1, 1],   // chính: jacket trắng, quần cam, giáp vai + đai, kính
+      [4, 3, 1, 1, 1, 1, 1, 1, 1],   // crop jacket cam, cargo cyan, headphone
+      [5, 1, 0, 5, 1, 2, 6, 0, 1],   // jacket cyan, quần trắng, bandana
+      [3, 4, 1, 3, 4, 5, 2, 1, 1]
+    ],
+    luna: [
+      [4, 2, 4, 0, 5, 1, 1, 1, 1],   // crop jacket hồng, váy tím, headphone
+      [5, 5, 4, 2, 2, 3, 2, 1, 1],   // jacket trắng, váy hồng, kính
+      [4, 1, 2, 0, 5, 5, 6, 1, 1],   // crop cyan, short tím, bandana
+      [5, 0, 4, 1, 1, 3, 1, 1, 1]
+    ]
   };
   const HAIR = { M: { spiky: 0, swoop: 0, short: 1, bob: 0, ponytail: 0 }, F: { ponytail: 0, bob: 3, spiky: 2, swoop: 3, short: 2 } };
-  function lookFor(spec, band) {
-    const g = band.type === 'girl' ? 0 : 1, G = g ? 'M' : 'F', V = Avatar.V3, cw = band.id === 'luna' ? V.colorways.findIndex(c => c.id === 'sakura') : V.colorways.findIndex(c => c.id === 'solar');
-    const o = OUT[G][spec.role] || OUT[G].guitar, cwi = Math.max(0, cw);
-    const l = Avatar.Look.def(g);
-    l[1] = o[0]; l[2] = cwi; l[3] = o[1]; l[4] = cwi; l[5] = o[2]; l[6] = cwi;
+  function lookFor(spec, band, i) {
+    const g = band.type === 'girl' ? 0 : 1, G = g ? 'M' : 'F', V = Avatar.V3;
+    const o = STY[band.id === 'luna' ? 'luna' : 'solar'][i % 4], l = Avatar.Look.def(g);
+    l[1] = o[0]; l[2] = o[1]; l[3] = g ? Math.min(o[2], 3) : o[2]; l[4] = o[3]; l[5] = 1; l[6] = o[4];
     l[7] = HAIR[G][spec.hairStyle] != null ? HAIR[G][spec.hairStyle] : 0; l[8] = near(V.hairColors, spec.hair); l[9] = near(V.skins, spec.skin);
+    l[10] = o[5]; l[11] = o[6]; l[12] = o[7]; l[13] = o[8]; l[14] = 0; l[15] = 0;
     return l;
   }
 
-  function props(m, spec, pal) {
-    const g = new THREE.Group(); m.rig = g; m.root.add(g);
-    const main = new THREE.Color(pal.main), acc = new THREE.Color(pal.accent);
-    if (spec.role === 'vocal') {
-      const hb = m.a.bones.hand_r;
-      if (hb) {
-        const mic = new THREE.Group();
-        put(mic, cyl(0.016, 0.16, 12), dark, 0, 0.05, 0);
-        put(mic, sph(), metal, 0, 0.16, 0, 0.034, 0.04, 0.034);
-        hb.add(mic); mic.position.set(0, 0.02, 0.02); mic.rotation.set(0.5, 0, 0);
-        m.mic = mic;
-      }
-    } else if (spec.role === 'guitar' || spec.role === 'bass') {
-      const gt = new THREE.Group(), bass = spec.role === 'bass';
-      const col = bass ? 0x2a1f3d : main.getHex();
-      put(gt, sph(), paint(col, 0.3), 0, -0.04, 0, 0.15, 0.19, 0.035);
-      put(gt, sph(), paint(col, 0.3), 0, 0.15, 0, 0.11, 0.13, 0.035);
-      put(gt, sph(), neon(acc.getHex()), 0, -0.02, 0.037, 0.045, 0.045, 0.006);
-      const nl = bass ? 0.8 : 0.68;
-      const neck = put(gt, cyl(0.022, nl, 10), dark, 0, 0.23 + nl / 2, 0.0); neck.scale.set(1, 1, 0.6);
-      put(gt, sph(), gold, 0, 0.23 + nl + 0.05, 0, 0.035, 0.06, 0.018);
-      gt.rotation.z = -1.15; gt.position.set(0.0, 1.0, 0.23); gt.rotation.y = 0.0;
-      g.add(gt); m.inst = gt;
-    } else if (spec.role === 'keys') {
-      const k = new THREE.Group();
-      put(k, new THREE.BoxGeometry(1.25, 0.08, 0.42), dark, 0, 0, 0);
-      put(k, new THREE.BoxGeometry(1.15, 0.03, 0.2), paint(0xf0f0f8, 0.5), 0, 0.055, 0.08);
-      put(k, new THREE.BoxGeometry(1.2, 0.03, 0.03), neon(acc.getHex()), 0, 0.06, -0.17);
-      [-0.5, 0.5].forEach(x => put(k, cyl(0.025, 0.95, 10), metal, x, -0.5, 0));
-      k.position.set(0, 1.0, 0.52); g.add(k);
-    } else if (spec.role === 'drums') {
-      const kit = new THREE.Group(), shell = paint(main.getHex(), 0.22);
-      const kick = put(kit, cyl(0.26, 0.4, 28), shell, 0, 0.3, 0.62); kick.rotation.x = Math.PI / 2;
-      put(kit, cyl(0.1, 0.3, 20), metal, 0, 0.3, 0.42).rotation.x = Math.PI / 2;
-      put(kit, cyl(0.15, 0.12, 24), metal, -0.34, 0.82, 0.38);
-      [-0.16, 0.18].forEach(x => put(kit, cyl(0.12, 0.14, 24), shell, x, 0.82, 0.62));
-      put(kit, cyl(0.17, 0.18, 24), shell, 0.52, 0.55, 0.45);
-      m.cym = [-0.7, 0.72].map((x, i) => { const c = put(kit, cyl(0.24, 0.012, 32), gold, x, 1.12, 0.38 + i * 0.1); put(kit, cyl(0.01, 1.1, 8), metal, x, 0.56, 0.38 + i * 0.1); return c; });
-      put(kit, cyl(0.2, 0.05, 24), dark, 0, 0.5, -0.32);
-      g.add(kit);
+  /* ---- micro: đặt theo toạ độ thế giới (tay phải → hướng về miệng) ---- */
+  function makeMic() {
+    const m = new THREE.Group();
+    const h = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.02, 0.17, 12), dark); h.position.y = 0.0; m.add(h);
+    const c = new THREE.Mesh(new THREE.SphereGeometry(0.036, 16, 12), metal); c.position.y = 0.115; m.add(c);
+    return m;
+  }
+
+  /* ---- chỉnh xương theo hướng thế giới (không phụ thuộc trục xương) ---- */
+  const _p = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _q = new THREE.Quaternion(), _w = new THREE.Quaternion(), _pq = new THREE.Quaternion();
+  function aim(bone, dirW, w) {
+    if (!bone) return;
+    const ch = bone.children.find(x => x.isBone); if (!ch) return;
+    bone.updateWorldMatrix(true, false); ch.updateWorldMatrix(true, false);
+    bone.getWorldPosition(_p); ch.getWorldPosition(_c); _d.copy(_c).sub(_p).normalize();
+    _q.setFromUnitVectors(_d, dirW);
+    bone.getWorldQuaternion(_w); _w.premultiply(_q);
+    bone.parent.getWorldQuaternion(_pq); _pq.invert(); _w.premultiply(_pq);
+    bone.quaternion.slerp(_w, w);
+    bone.updateMatrixWorld(true);
+  }
+
+  /* ---- bộ động tác. toạ độ nhân vật: x = trái nhân vật, y = lên, z = phía trước (khán giả) ---- */
+  const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+  function pose(name, b, P) {
+    // trả về {lu, lf, ru, rf, wl, wr} hướng cánh tay trên/dưới của tay trái (L) và tay phải cầm micro (R)
+    const s = Math.sin(b * Math.PI * 2), s2 = Math.sin(b * Math.PI), beatUp = Math.abs(s2);
+    const mic = { ru: V3(-0.2, -0.5, 0.85), rf: V3(0.05, 0.85, 0.55), wr: 1 };
+    switch (name) {
+      case 'sing': return Object.assign({ lu: V3(0.75, -0.15 + 0.35 * s2, 0.4), lf: V3(0.8, 0.1 + 0.4 * s, 0.5), wl: 0.9 }, mic);
+      case 'wave': return Object.assign({ lu: V3(0.7, 0.55, 0.25), lf: V3(0.25 + 0.55 * Math.sin(b * Math.PI * 4), 0.9, 0.1), wl: 1 }, mic);
+      case 'point': { const a = Math.floor(b / 2) % 2 ? -0.6 : 0.85; return Object.assign({ lu: V3(a, 0.15, 0.55), lf: V3(a, 0.25 + 0.1 * s, 0.6), wl: 1 }, mic); }
+      case 'pump': return Object.assign({ lu: V3(0.35, 0.6 + 0.2 * beatUp, 0.5), lf: V3(0.1, 0.9 + 0.3 * beatUp, 0.25), wl: 1 }, mic);
+      case 'clap': { const k = Math.abs(Math.sin(b * Math.PI * 2)); return { lu: V3(0.3, 0.95, 0.2), lf: V3(0.55 - 0.9 * k, 0.8, 0.3), wl: 1, ru: V3(-0.3, 0.95, 0.2), rf: V3(-0.55 + 0.9 * k, 0.8, 0.3), wr: 1 }; }
+      case 'hype': return { lu: V3(0.55, 0.8, 0.2), lf: V3(0.3 + 0.35 * s, 0.9, 0.1), wl: 1, ru: V3(-0.55, 0.8, 0.2), rf: V3(-0.3 - 0.35 * s, 0.9, 0.1), wr: 1 };
+      case 'jump': return { lu: V3(0.5, 0.9, 0.2), lf: V3(0.35, 0.95, 0.1), wl: 1, ru: V3(-0.5, 0.9, 0.2), rf: V3(-0.35, 0.95, 0.1), wr: 1 };
+      case 'spin': return Object.assign({ lu: V3(1, 0.05, 0.05), lf: V3(1, 0.1, 0.05), wl: 1 }, mic);
+      case 'dance': return Object.assign({ lu: V3(0.6, -0.1 + 0.5 * beatUp, 0.55), lf: V3(0.7, 0.4 + 0.4 * s, 0.5), wl: 0.85 }, mic);
+      default: return null;
     }
+  }
+  const SEQ = {
+    lo: ['sing', 'wave', 'sing', 'point'],
+    mid: ['dance', 'point', 'pump', 'sing', 'clap', 'wave'],
+    hi: ['hype', 'spin', 'pump', 'dance', 'clap', 'jump', 'point', 'hype']
+  };
+
+  async function make(B, spec, i) {
+    const a = await Avatar.create(lookFor(spec, B.spec, i));
+    const m = { a, root: new THREE.Group(), idx: i, spec, vis: 0, mode: '', move: 'sing', seed: hashStr(spec.stage) % 100 / 100 * 6.28, pos: new THREE.Vector3(), cur: { lu: V3(0.2, -1, 0), lf: V3(0.2, -1, 0), ru: V3(-0.2, -1, 0), rf: V3(-0.2, -1, 0), wl: 0, wr: 0 }, spin: 0 };
+    m.root.add(a.root); m.root.scale.setScalar(0.001); B.group.add(m.root);
+    const f = FORM[1][0]; m.pos.set(f[0], 1.5, f[1]); m.root.position.copy(m.pos);
+    m.mic = makeMic(); m.mic.scale.setScalar(SC); root.add(m.mic);
+    m.hand = a.bones.hand_r; m.head = a.bones.head || a.bones.neck_01;
+    a.play('dance', 0.01); a.speed('dance', 0.6); m.mode = 'dance';
+    B.members[i] = m; if (i === 0) B.vocal = m;
   }
 
   function init(THREE_scene) {
     BANDS.bands.forEach(b => {
       const gp = new THREE.Group(); root.add(gp);
-      const B = { spec: b, group: gp, members: [], enter: 0, offX: 0, vocal: null, ready: false };
+      const B = { spec: b, group: gp, members: [], enter: 0, offX: 0, vocal: null, ready: false, vp: 0, vdir: 0, es: 0.3 };
       bands[b.id] = B; gp.position.y = -7; gp.visible = false;
-      Promise.all(b.members.filter(sp => sp.role === "vocal").map(async spec => {
-        const a = await Avatar.create(lookFor(spec, b));
-        const m = { a, root: new THREE.Group(), role: spec.role, seed: hashStr(spec.stage) % 100 / 100 * 6.28, mode: '' };
-        const f = b.formation[spec.role] || [0, -9];
-        m.base = new THREE.Vector3(f[0] * 1.6, 1.5, f[1] - 1); m.root.position.copy(m.base); m.root.scale.setScalar(SC);
-        m.body = a.root; m.root.add(a.root); gp.add(m.root); m.a = a;
-        props(m, spec, b.palette);
-        const clip = { vocal: 'talk', guitar: 'strum', bass: 'strum', keys: 'keys', drums: 'hit' }[spec.role];
-        a.play(clip, 0.01); m.mode = clip; m.clip = clip;
-        if (spec.role === 'guitar' || spec.role === 'bass') m.root.rotation.y = spec.role === 'guitar' ? 0.25 : -0.25;
-        B.members.push(m); if (spec.role === 'vocal') B.vocal = m;
-      })).then(() => { B.ready = true; }).catch(e => console.warn('band', e));
+      const order = b.members.filter(s => s.role === 'vocal').concat(b.members.filter(s => s.role !== 'vocal'));
+      Promise.all(order.map((spec, i) => make(B, spec, i))).then(() => { B.ready = true; }).catch(e => console.warn('band', e));
       THREE_scene.add(root);
     });
   }
 
   function update(W, time, dt) {
     const mode = W.seg ? W.seg.band : 'none';
-    const e = W.energy, beat = W.bi.beat, h = Math.abs(Math.sin(Math.PI * beat)), P = W.bi.pulse, M = W.live ? W.live.mid : 0;
+    const e = W.energy, cast = (W.seg && CAST[W.seg.id]) || 1;
+    const pr = W.pal || null;
+    key.intensity = 0.6 + e * 1.4;
+    rimA.position.set(-9, 5, -9); rimB.position.set(9, 5, -9);
+    rimA.color.set(BANDS.bands[0].palette.accent); rimB.color.set(BANDS.bands[1].palette.main);
+    rimA.intensity = rimB.intensity = 1.2 + e * 2.2;
     for (const id in bands) {
       const B = bands[id];
       const active = mode === 'both' || mode === id;
       B.enter = lerp(B.enter, active ? 1 : 0, 1 - Math.exp(-dt * 2.2));
-      const targetX = mode === 'both' ? (id === 'solar' ? -12 : 12) : 0;
+      B.es = lerp(B.es, e, 1 - Math.exp(-dt * 0.8));
+      const targetX = mode === 'both' ? (id === 'solar' ? -13 : 13) : 0;
       B.offX = lerp(B.offX, targetX, 1 - Math.exp(-dt * 2));
       B.group.position.x = B.offX; B.group.position.y = lerp(-7, 0, B.enter);
       B.group.visible = B.enter > 0.02 && B.ready;
-      if (!B.group.visible) continue;
+      if (!B.group.visible) { B.members.forEach(m => { if (m) m.mic.visible = false; }); continue; }
       const featured = mode === 'both' ? Math.floor(W.bi.bar) % 2 === (id === 'solar' ? 0 : 1) : active;
-      const want = featured && e > 0.55 && Math.floor(W.bi.bar / 2) % 2 === 1 ? 1 : 0;
-      B.vdir = Math.sign(want - (B.vp || 0)); B.vp = (B.vp || 0) + clamp(want - (B.vp || 0), -dt * 0.085, dt * 0.085);
-      B.members.forEach(m => animate(m, B, dt, time, beat, h, P, e, id === 'luna', M));
+      const want = featured && B.es > 0.6 && cast <= 2 && Math.floor(W.bi.bar / 8) % 3 === 2 && Math.floor(W.bi.bar) % 8 >= 1 && Math.floor(W.bi.bar) % 8 <= 5 ? 1 : 0;
+      B.vdir = Math.sign(want - B.vp); B.vp += clamp(want - B.vp, -dt * 0.085, dt * 0.085);
+      B.members.forEach(m => m && animate(m, B, dt, time, W, cast));
     }
     let target = null;
     if (mode === 'both') target = bands[Math.floor(W.bi.bar) % 2 === 0 ? 'solar' : 'luna']; else target = bands[mode];
@@ -5617,36 +5643,66 @@ const Performers = (() => {
     }
   }
 
-  function animate(m, B, dt, time, beat, h, P, e, girl, M) {
-    const s = m.seed, r = m.role, bpm = B.spec.bpm || 118;
-    if (r === 'vocal') {
-      const p = B.vp || 0, ep = p * p * (3 - 2 * p), moving = Math.abs(B.vdir) > 0 && p > 0.004 && p < 0.996;
-      const want = moving ? 'jog' : (e > 0.85 ? 'dance' : 'talk');
-      if (want !== m.mode) { m.a.play(want, 0.4); m.mode = want; if (want === 'jog') m.a.speed('jog', 0.9); }
-      const wx = Math.sin(time * 0.45 + s) * 2.6 * e * (1 - ep), wz = 0.5 + Math.sin(time * 0.3 + s) * 0.6 * e;
-      m.root.position.x = (m.base.x + wx) * (1 - ep) - B.group.position.x * ep + Math.sin(time * 0.8 + s) * 1.2 * ep * e;
-      m.root.position.z = m.base.z + wz * (1 - ep) + (27 - m.base.z) * ep;
-      m.root.position.y = m.base.y + h * 0.08 * e;
-      const face = moving && B.vdir < 0 ? Math.PI : 0; m.root.rotation.y += (face - m.root.rotation.y) * Math.min(1, dt * 5);
-    } else if (r === 'drums') {
-      m.a.speed('hit', bpm / 62);
-      m.root.position.y = m.base.y + h * 0.02 * e;
-      if (m.cym) m.cym.forEach((c, i) => { c.rotation.z = Math.sin(time * 30 + i) * 0.04 * P * e; });
-    } else if (r === 'keys') {
-      m.root.position.y = m.base.y + h * 0.03 * e; m.root.rotation.z = Math.sin(time * 1.6 + s) * 0.02 * e;
-    } else {
-      m.a.speed('strum', 0.8 + e * 1.2);
-      m.root.position.y = m.base.y + h * 0.05 * e + P * 0.02;
-      m.root.rotation.z = Math.sin(time * 1.6 + s) * 0.04 * e;
-    }
+  const _hp = new THREE.Vector3(), _hh = new THREE.Vector3(), _bq = new THREE.Quaternion(), _up = new THREE.Vector3(0, 1, 0);
+  function animate(m, B, dt, time, W, cast) {
+    const bpm = B.spec.bpm || 118, bps = bpm / 60, e = W.energy, s = m.seed;
+    const on = m.idx < cast; m.vis = clamp(m.vis + (on ? 1 : -1) * dt * 1.2, 0, 1);
+    const vv = m.vis * m.vis * (3 - 2 * m.vis);
+    m.root.visible = m.vis > 0.02; m.root.scale.setScalar(Math.max(0.001, SC * vv));
+    if (!m.root.visible) { m.mic.visible = false; return; }
+    // vị trí theo đội hình của bài
+    const f = (FORM[Math.min(4, cast)] || FORM[1])[Math.min(m.idx, Math.min(4, cast) - 1)] || [0, -8];
+    const k = 1.35; m.pos.x += (f[0] * k - m.pos.x) * Math.min(1, dt * 1.5); m.pos.z += (f[1] - m.pos.z) * Math.min(1, dt * 1.5);
+    // chọn động tác theo nhịp (đồng bộ cả nhóm, lệch nhẹ theo người)
+    const b = time * bps - m.idx * 0.15;
+    const seq = B.es < 0.4 ? SEQ.lo : B.es < 0.72 ? SEQ.mid : SEQ.hi;
+    const si = Math.floor(b / 8), name = seq[(si + (m.idx === 0 && cast > 2 ? 0 : 0)) % seq.length];
+    const ph = (b / 8) % 1, bb = b;
+    // đường chạy ra sân khấu phụ (ca sĩ chính)
+    let ep = 0, moving = false;
+    if (m.idx === 0) { const p = B.vp; ep = p * p * (3 - 2 * p); moving = Math.abs(B.vdir) > 0 && p > 0.004 && p < 0.996; }
+    const grounded = name === 'sing' || name === 'wave' || name === 'point';
+    const wantClip = moving ? 'jog' : grounded ? 'talk' : 'dance';
+    if (wantClip !== m.mode) { m.a.play(wantClip, 0.4); m.mode = wantClip; if (wantClip === 'jog') m.a.speed('jog', 0.9); }
+    if (!moving && wantClip === 'dance') m.a.speed('dance', name === 'hype' || name === 'jump' || name === 'pump' ? bpm / 75 : bpm / 90);
+    const wx = Math.sin(time * 0.25 + s) * 0.7 * e;
+    m.root.position.x = (m.pos.x + wx * (m.idx === 0 ? 1 : 0.4)) * (1 - ep) - B.group.position.x * ep + Math.sin(time * 0.8 + s) * 1.2 * ep * e;
+    m.root.position.z = m.pos.z + (27 - m.pos.z) * ep + 0;
+    let y = m.pos.y, hop = Math.abs(Math.sin(Math.PI * b));
+    if (name === 'jump' && !moving) y += hop * hop * 0.55; else if (name === 'pump' || name === 'hype') y += hop * 0.1;
+    m.root.position.y = y;
+    // xoay người: quay vòng, hoặc quay về khi chạy lại sân khấu
+    let face = moving && B.vdir < 0 ? Math.PI : 0;
+    if (name === 'spin' && !moving) face += Math.min(1, Math.max(0, (ph - 0.02) / 0.22)) * Math.PI * 2;
+    if (name === 'point' || name === 'wave') face += Math.sin(time * 0.6 + s) * 0.3;
+    m.spin += (face - m.spin) * Math.min(1, dt * (name === 'spin' ? 9 : 5)); m.root.rotation.y = m.spin;
     m.a.update(dt, bpm);
-    const bn = m.a.bones, k = e * 0.6 + 0.25;
-    sway(bn.spine_02, 0, Math.sin(time * 1.1 + s) * 0.05 * k, Math.sin(time * 1.7 + s) * 0.04 * k);
-    sway(bn.spine_03, h * 0.04 * e, Math.sin(time * 0.9 + s * 2) * 0.05 * k, 0);
-    sway(bn.neck_01, Math.sin(time * 1.3 + s) * 0.04 * k + h * 0.05 * e, Math.sin(time * 0.6 + s) * 0.08 * k, 0);
+    // cột sống, cổ: nhún theo nhịp
+    const P = W.bi.pulse, kk = e * 0.6 + 0.25, h = Math.abs(Math.sin(Math.PI * W.bi.beat)), bn = m.a.bones;
+    sway(bn.spine_02, 0, Math.sin(time * 1.1 + s) * 0.05 * kk, Math.sin(time * 1.7 + s) * 0.04 * kk);
+    sway(bn.spine_03, h * 0.05 * e + (name === 'point' ? 0.1 : 0), Math.sin(time * 0.9 + s * 2) * 0.05 * kk, 0);
+    sway(bn.neck_01, Math.sin(time * 1.3 + s) * 0.04 * kk + h * 0.06 * e - (name === 'sing' ? P * 0.1 : 0), Math.sin(time * 0.6 + s) * 0.08 * kk, 0);
+    // tay: hướng cánh tay theo động tác, làm mượt giữa các động tác
+    m.root.updateWorldMatrix(true, true);
+    const ps = pose(name, bb, P) || pose('sing', bb, P);
+    const c = m.cur, kd = 1 - Math.exp(-dt * 9);
+    if (moving) { ps.lu = V3(0.6, 0.1, 0.5); ps.lf = V3(0.5, 0.2, 0.6); ps.wl = 0.7; }
+    ['lu', 'lf', 'ru', 'rf'].forEach(key => c[key].lerp(ps[key], kd));
+    c.wl += (ps.wl - c.wl) * kd; c.wr += (ps.wr - c.wr) * kd;
+    m.a.root.getWorldQuaternion(_bq);
+    const dirs = { lu: c.lu.clone().normalize().applyQuaternion(_bq), lf: c.lf.clone().normalize().applyQuaternion(_bq), ru: c.ru.clone().normalize().applyQuaternion(_bq), rf: c.rf.clone().normalize().applyQuaternion(_bq) };
+    aim(bn.upperarm_l, dirs.lu, c.wl); aim(bn.lowerarm_l, dirs.lf, c.wl);
+    aim(bn.upperarm_r, dirs.ru, c.wr); aim(bn.lowerarm_r, dirs.rf, c.wr);
+    // micro bám tay phải, hướng về miệng
+    if (m.hand && m.head) {
+      m.hand.getWorldPosition(_hp); m.head.getWorldPosition(_hh); _hh.y -= 0.02;
+      root.worldToLocal(_hp); root.worldToLocal(_hh);
+      m.mic.visible = true; m.mic.position.copy(_hp);
+      _hh.sub(_hp); if (_hh.lengthSq() > 1e-6) { _hh.normalize(); m.mic.quaternion.setFromUnitVectors(_up, _hh); }
+    }
   }
-  const _q = new THREE.Quaternion(), _e = new THREE.Euler();
-  function sway(b, x, y, z) { if (b) b.quaternion.multiply(_q.setFromEuler(_e.set(x, y, z))); }
+  const _q2 = new THREE.Quaternion(), _e = new THREE.Euler();
+  function sway(b, x, y, z) { if (b) b.quaternion.multiply(_q2.setFromEuler(_e.set(x, y, z))); }
 
   return { init, update, root, focusPoint() { return focus; } };
 })();
